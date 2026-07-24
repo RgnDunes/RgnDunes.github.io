@@ -1,99 +1,85 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { FaExternalLinkAlt } from "react-icons/fa";
-import { products } from "@/data/products";
+import { motion, useInView } from "framer-motion";
 import Image from "next/image";
+import { useRef } from "react";
+import { FaArrowRight } from "react-icons/fa";
+import { products } from "@/data/products";
 
 export default function DigitalProducts() {
-  return (
-    <section
-      id="digital-products"
-      className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8"
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif text-3xl font-bold tracking-tight text-[#0f0e0c] sm:text-4xl">
-            Digital Products
-          </h2>
-          <span className="hidden text-sm font-medium tracking-wider text-accent sm:inline">
-            05 · PRODUCTS
-          </span>
-        </div>
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
 
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product, index) => (
-            <motion.div
-              key={product.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              whileHover={{
-                y: -5,
-                boxShadow: "0 15px 40px rgba(0,0,0,0.12)",
-                borderColor: "#c84b31"
-              }}
-              transition={{
-                duration: 0.4,
-                delay: index * 0.1,
-                ease: "easeOut"
-              }}
-              className="group relative flex flex-col overflow-hidden rounded-lg border-2 border-[#d4cdc0] bg-white"
-            >
-              {product.image && (
-                <div className="relative h-52 w-full overflow-hidden bg-gray-50">
-                  <Image
-                    src={product.image}
-                    alt={product.title}
-                    fill
-                    className="object-contain p-4"
-                  />
-                </div>
-              )}
-              <div className="flex flex-1 flex-col p-6">
-                <span className="text-xs font-semibold uppercase tracking-wider text-accent">
-                  {product.type}
-                </span>
-                <h4 className="mt-1 font-serif text-xl font-bold text-[#0f0e0c]">
-                  {product.title}
-                </h4>
-                <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-[#0f0e0c]">
-                  {product.description}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {product.techStack.map((tech) => (
-                    <span
-                      key={tech}
-                      className="rounded-md bg-[#f5e6d3] px-3 py-1 text-xs font-medium text-muted"
-                    >
-                      {tech}
-                    </span>
+  return (
+    <section id="products" ref={ref} className="page-shell py-28 md:py-36">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.7 }}
+        className="grid gap-6 border-b border-rule pb-8 md:grid-cols-[auto_1fr] md:items-end md:gap-10"
+      >
+        <div className="flex items-baseline gap-4">
+          <span className="folio text-6xl md:text-7xl">v.</span>
+          <div>
+            <span className="eyebrow">The Shelf</span>
+            <h2 className="font-display text-display-3 text-ink">
+              Books I have written<span className="text-saffron">.</span>
+            </h2>
+          </div>
+        </div>
+        <p className="max-w-md font-mono text-[11.5px] uppercase tracking-[0.18em] text-muted md:justify-self-end md:text-right">
+          Long-form on JavaScript, CSS, and frontend system design
+        </p>
+      </motion.div>
+
+      <div className="mt-12 grid gap-8 md:grid-cols-3">
+        {products.map((p, i) => (
+          <motion.a
+            key={p.title}
+            href={p.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: i * 0.1 }}
+            className="group flex flex-col"
+          >
+            <div className="relative overflow-hidden rounded-t-2xl border border-b-0 border-rule bg-paper-2">
+              <div className="relative flex h-72 items-center justify-center p-8">
+                {p.image && (
+                  <div className="relative h-full w-40 transition-transform duration-500 group-hover:-translate-y-2 group-hover:rotate-1">
+                    <Image src={p.image} alt={p.title} fill className="object-contain drop-shadow-xl" />
+                  </div>
+                )}
+              </div>
+              <div className="absolute -inset-6 -z-10 bg-saffron/0 blur-3xl transition-all group-hover:bg-saffron/20" />
+            </div>
+            <div className="flex flex-1 flex-col rounded-b-2xl border border-t border-rule bg-paper p-6">
+              <div className="mb-2 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">
+                <span>{p.type}</span>
+                <span>·</span>
+                <span className="text-saffron">{p.stats}</span>
+              </div>
+              <h3 className="font-display text-xl text-ink transition-colors group-hover:text-saffron">
+                {p.title}
+              </h3>
+              <p className="mt-3 clamp-3 text-[14px] leading-[1.55] text-ink-2">
+                {p.description}
+              </p>
+              <div className="mt-auto flex items-center justify-between pt-5">
+                <div className="flex flex-wrap gap-1.5">
+                  {p.techStack.slice(0, 2).map((t) => (
+                    <span key={t} className="chip">{t}</span>
                   ))}
                 </div>
-                <div className="mt-auto flex items-center justify-between pt-5">
-                  <span className="text-sm font-medium text-accent">
-                    {product.stats}
-                  </span>
-                  <a
-                    href={product.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full border border-[#d4cdc0] p-2 text-accent transition-colors hover:border-accent hover:bg-[#f5e6d3]"
-                    aria-label={`View ${product.title}`}
-                  >
-                    <FaExternalLinkAlt className="h-3.5 w-3.5" />
-                  </a>
-                </div>
+                <span className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.18em] text-ink transition-all group-hover:text-saffron group-hover:gap-2">
+                  Read <FaArrowRight className="h-3 w-3" />
+                </span>
               </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+            </div>
+          </motion.a>
+        ))}
+      </div>
     </section>
   );
 }

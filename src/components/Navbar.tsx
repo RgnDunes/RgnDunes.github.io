@@ -1,160 +1,185 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaBars, FaTimes, FaGamepad } from "react-icons/fa";
-import Image from "next/image";
-import { motion } from "framer-motion";
-import portfolioLogo from "../assets/images/portfolio-logo.png";
 
-const navigation = [
-  { name: "About", href: "#about" },
-  { name: "Experience", href: "#experience" },
+const nav = [
+  { name: "Work", href: "#work" },
+  { name: "Notebook", href: "#notebook" },
   { name: "Skills", href: "#skills" },
-  { name: "Projects", href: "#projects" },
-  { name: "Blog", href: "/blog" },
+  { name: "Writing", href: "/blog" },
   { name: "Contact", href: "#contact" },
 ];
 
-// For resume, use the direct path
-const resumePath = "/resume.pdf";
-
 interface NavbarProps {
   onGameModeToggle?: () => void;
+  onCommandOpen?: () => void;
 }
 
-export default function Navbar({ onGameModeToggle }: NavbarProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function Navbar({ onGameModeToggle, onCommandOpen }: NavbarProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <motion.nav
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed top-0 z-50 w-full border-b shadow-sm"
-      style={{ borderColor: '#d4cdc0', background: '#dad4cc' }}
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/" className="relative h-8 w-8">
-              <Image
-                src={portfolioLogo}
-                alt="DS Logo"
-                fill
-                className="object-contain"
-              />
-            </Link>
-          </div>
+    <>
+      {/* Editorial masthead — always visible above nav */}
+      <div className="relative z-30 border-b border-rule bg-paper/70 backdrop-blur-sm">
+        <div className="page-shell flex h-8 items-center justify-between text-[10.5px] font-mono uppercase tracking-[0.22em] text-muted">
+          <span>Vol. V · The Notebook</span>
+          <span className="hidden md:inline">
+            Bengaluru, IN · <span className="text-saffron">Available for opportunities</span>
+          </span>
+          <span>Issue {new Date().getFullYear()}</span>
+        </div>
+      </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden items-center gap-8 md:flex">
-            {navigation.map((item, index) => (
-              <motion.div
-                key={item.name}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 + index * 0.05 }}
-              >
-                <Link
-                  href={item.href}
-                  className="relative text-sm font-medium text-[#0f0e0c] transition-colors hover:text-accent after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent after:transition-all hover:after:w-full"
-                >
-                  {item.name}
-                </Link>
-              </motion.div>
-            ))}
-            {onGameModeToggle && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.35 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onGameModeToggle}
-                className="flex items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm font-medium text-accent transition-all hover:bg-accent hover:text-white"
-              >
-                <FaGamepad className="text-xs" />
-                <span>3D <sup className="text-[8px] opacity-60">Beta</sup></span>
-              </motion.button>
-            )}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+        className={`sticky top-0 z-40 border-b transition-all duration-500 ${
+          scrolled
+            ? "border-rule bg-paper/85 backdrop-blur-md"
+            : "border-transparent bg-paper/60 backdrop-blur-sm"
+        }`}
+      >
+        <div className="page-shell flex h-16 items-center justify-between">
+          {/* Logo — wordmark */}
+          <Link
+            href="/"
+            className="group flex items-baseline gap-2"
+            aria-label="Home"
+          >
+            <span className="font-display text-2xl italic leading-none text-ink transition-colors group-hover:text-saffron">
+              Divyansh
+            </span>
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted">
+              /ds
+            </span>
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
+            {nav.map((item) => (
               <Link
-                href="/resume.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:bg-[#a03b25] hover:shadow-lg"
+                key={item.name}
+                href={item.href}
+                className="group relative px-3 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-ink transition-colors hover:text-saffron"
               >
-                Resume
-                <span aria-hidden="true">→</span>
+                {item.name}
+                <span className="absolute inset-x-3 -bottom-0.5 h-px scale-x-0 bg-saffron transition-transform duration-300 group-hover:scale-x-100" />
               </Link>
-            </motion.div>
-          </div>
+            ))}
+          </nav>
 
-          {/* Mobile menu button */}
-          <div className="flex md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center rounded-lg p-2 text-[#0f0e0c] transition-all hover:text-accent focus:outline-none"
-              aria-expanded={isOpen}
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {onCommandOpen && (
+              <button
+                onClick={onCommandOpen}
+                className="hidden items-center gap-2 rounded-full border border-rule bg-paper/60 px-3 py-1.5 text-[11px] font-mono text-ink transition-all hover:border-ink md:inline-flex"
+                aria-label="Open command menu"
+              >
+                <span className="text-muted">Menu</span>
+                <span className="kbd">⌘K</span>
+              </button>
+            )}
+
+            <a
+              href="/resume.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden rounded-full border border-ink px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-ink transition-all hover:bg-ink hover:text-paper md:inline-block"
             >
-              <span className="sr-only">Open main menu</span>
-              {isOpen ? (
-                <FaTimes className="h-6 w-6" aria-hidden="true" />
+              Résumé
+            </a>
+
+            {onGameModeToggle && (
+              <button
+                onClick={onGameModeToggle}
+                className="hidden items-center gap-2 rounded-full bg-ink px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-paper transition-transform hover:-translate-y-0.5 md:inline-flex"
+                aria-label="Enter 3D mode"
+              >
+                <FaGamepad className="h-3 w-3" />
+                3D
+                <sup className="text-[8px] opacity-70">β</sup>
+              </button>
+            )}
+
+            <button
+              onClick={() => setMobileOpen((o) => !o)}
+              className="rounded-full border border-rule p-2 text-ink transition-colors hover:border-ink md:hidden"
+              aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
+            >
+              {mobileOpen ? (
+                <FaTimes className="h-4 w-4" />
               ) : (
-                <FaBars className="h-6 w-6" aria-hidden="true" />
+                <FaBars className="h-4 w-4" />
               )}
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Mobile Navigation */}
-      {isOpen && (
-        <div className="md:hidden">
-          <div className="flex-1 border-t border-[#d4cdc0] bg-white/95 px-4 pb-6 pt-4 backdrop-blur-md">
-            <div className="space-y-3">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="block rounded-lg border border-transparent px-4 py-3 text-base font-semibold text-[#0f0e0c] transition-all hover:border-accent hover:text-accent"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              <div className="mt-4 flex gap-3">
-                {onGameModeToggle && (
-                  <button
-                    onClick={() => { setIsOpen(false); onGameModeToggle(); }}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-4 py-3 text-base font-semibold text-accent transition-all hover:bg-accent hover:text-white"
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
+              className="overflow-hidden border-t border-rule md:hidden"
+            >
+              <div className="page-shell divide-y divide-rule py-4">
+                {nav.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-between py-3 font-display text-2xl text-ink transition-colors hover:text-saffron"
                   >
-                    <FaGamepad />
-                    3D <span className="text-[10px] opacity-60">Beta</span>
-                  </button>
-                )}
-                <Link
-                  href="/resume.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 text-base font-bold text-white shadow-md transition-all hover:bg-[#a03b25]"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Resume
-                  <span aria-hidden="true">→</span>
-                </Link>
+                    {item.name}
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted">
+                      →
+                    </span>
+                  </Link>
+                ))}
+                <div className="flex gap-3 pt-4">
+                  <a
+                    href="/resume.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 rounded-full border border-ink py-2 text-center font-mono text-[11px] uppercase tracking-[0.18em]"
+                  >
+                    Résumé
+                  </a>
+                  {onGameModeToggle && (
+                    <button
+                      onClick={() => {
+                        onGameModeToggle();
+                        setMobileOpen(false);
+                      }}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-paper"
+                    >
+                      <FaGamepad className="h-3 w-3" />
+                      3D <sup className="text-[8px] opacity-70">β</sup>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </motion.nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
+    </>
   );
 }

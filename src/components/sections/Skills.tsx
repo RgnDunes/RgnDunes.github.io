@@ -1,132 +1,94 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { skillCategories } from "@/data/skills";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import Image from "next/image";
+import { useRef, useState } from "react";
+import { skillCategories } from "@/data/skills";
 
 export default function Skills() {
-  const [selectedCategory, setSelectedCategory] = useState(
-    "Frontend Development"
-  );
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [active, setActive] = useState(skillCategories[0].name);
+  const current = skillCategories.find((c) => c.name === active);
 
   return (
-    <section
-      id="skills"
-      className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 overflow-hidden"
-    >
-      {/* Cosmos/starfield background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(30)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute h-0.5 w-0.5 rounded-full bg-accent"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              opacity: 0.1,
-            }}
-            animate={{
-              opacity: [0.05, 0.2, 0.05],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 4 + Math.random() * 3,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
+    <section id="skills" ref={ref} className="page-shell py-28 md:py-36">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.7 }}
+        className="grid gap-6 border-b border-rule pb-8 md:grid-cols-[auto_1fr] md:items-end md:gap-10"
+      >
+        <div className="flex items-baseline gap-4">
+          <span className="folio text-6xl md:text-7xl">iii.</span>
+          <div>
+            <span className="eyebrow">The Toolkit</span>
+            <h2 className="font-display text-display-3 text-ink">
+              Instruments of the trade<span className="text-saffron">.</span>
+            </h2>
+          </div>
+        </div>
+        <p className="max-w-md font-mono text-[11.5px] uppercase tracking-[0.18em] text-muted md:justify-self-end md:text-right">
+          Twenty-plus tools, five categories, one long apprenticeship
+        </p>
+      </motion.div>
+
+      {/* Category rail */}
+      <div className="mt-10 flex flex-wrap gap-2">
+        {skillCategories.map((c) => (
+          <button
+            key={c.name}
+            onClick={() => setActive(c.name)}
+            className={`rounded-full border px-4 py-2 font-mono text-[11.5px] uppercase tracking-[0.15em] transition-all ${
+              active === c.name
+                ? "border-ink bg-ink text-paper"
+                : "border-rule bg-paper text-ink-2 hover:border-ink hover:text-ink"
+            }`}
+          >
+            {c.name}
+          </button>
         ))}
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10"
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif text-3xl font-bold tracking-tight text-[#0f0e0c] sm:text-4xl">
-            Skills & Technologies
-          </h2>
-          <span className="hidden text-sm font-medium tracking-wider text-accent sm:inline">
-            03 · SKILLS
-          </span>
-        </div>
-
-        <div className="mt-8 flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:flex-wrap sm:overflow-x-visible sm:pb-0">
-          {skillCategories.map((category) => (
-            <button
-              key={category.name}
-              onClick={() => setSelectedCategory(category.name)}
-              className={`flex-shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                selectedCategory === category.name
-                  ? "bg-accent text-white"
-                  : "border-2 border-[#d4cdc0] bg-white text-muted hover:border-accent"
-              }`}
+      {/* Skills grid */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={active}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-10 grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+        >
+          {current?.skills.map((s, i) => (
+            <motion.div
+              key={s.name}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: i * 0.03 }}
+              className="group relative overflow-hidden rounded-2xl border border-rule bg-paper p-5 transition-all hover:border-ink"
             >
-              {category.name}
-            </button>
+              <div className="flex items-start justify-between gap-3">
+                <div className="relative h-10 w-10 flex-shrink-0">
+                  <Image
+                    src={s.image}
+                    alt={s.name}
+                    fill
+                    className="object-contain transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+                <span className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">
+                  {s.experience}
+                </span>
+              </div>
+              <div className="mt-4">
+                <div className="font-display text-lg text-ink">{s.name}</div>
+              </div>
+              <div className="pointer-events-none absolute -bottom-6 -right-6 h-16 w-16 rounded-full bg-saffron/0 blur-2xl transition-all group-hover:bg-saffron/15" />
+            </motion.div>
           ))}
-        </div>
-
-        <div className="mt-12">
-          {skillCategories.map(
-            (category) =>
-              selectedCategory === category.name && (
-                <motion.div
-                  key={category.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-                >
-                  {category.skills.map((skill, index) => (
-                    <motion.div
-                      key={skill.name}
-                      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      whileHover={{
-                        scale: 1.05,
-                        y: -5,
-                        boxShadow: "0 15px 40px rgba(0,0,0,0.1)",
-                        borderColor: "#c84b31"
-                      }}
-                      transition={{
-                        duration: 0.3,
-                        delay: index * 0.05,
-                        ease: "easeOut"
-                      }}
-                      className="group relative overflow-hidden rounded-lg border-2 border-[#d4cdc0] bg-white p-6"
-                    >
-                      <div className="relative z-10 flex items-center gap-4">
-                        <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-50 p-2">
-                          <Image
-                            src={skill.image}
-                            alt={`${skill.name} logo`}
-                            fill
-                            sizes="48px"
-                            className="object-contain"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-[#0f0e0c]">
-                            {skill.name}
-                          </h3>
-                          <p className="text-sm font-medium text-accent">
-                            {skill.experience}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )
-          )}
-        </div>
-      </motion.div>
+        </motion.div>
+      </AnimatePresence>
     </section>
   );
 }
