@@ -83,8 +83,8 @@ export default function MarkdownRenderer({
           prose-h2:text-3xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-5
           prose-h3:text-xl prose-h3:font-bold prose-h3:italic prose-h3:mt-8 prose-h3:mb-4
           prose-p:leading-relaxed prose-p:text-[#0f0e0c] prose-p:mb-5
-          prose-a:text-accent prose-a:no-underline prose-a:decoration-accent/30 hover:prose-a:decoration-accent
-          prose-blockquote:border-l-4 prose-blockquote:border-accent prose-blockquote:pl-7
+          prose-a:text-saffron prose-a:no-underline prose-a:decoration-saffron/30 hover:prose-a:decoration-saffron
+          prose-blockquote:border-l-4 prose-blockquote:border-saffron prose-blockquote:pl-7
           prose-blockquote:font-serif prose-blockquote:text-xl prose-blockquote:italic prose-blockquote:text-[#0f0e0c]
           prose-code:bg-rule/30 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:text-[#0f0e0c]
           prose-pre:bg-[#1e1e1e] prose-pre:p-6 prose-pre:rounded-lg prose-pre:overflow-x-auto
@@ -160,7 +160,7 @@ export default function MarkdownRenderer({
         a: ({ children, href }) => (
           <a
             href={href}
-            className="text-accent underline decoration-accent/30 transition-colors hover:decoration-accent"
+            className="text-saffron underline decoration-saffron/30 transition-colors hover:decoration-saffron"
             target={href?.startsWith("http") ? "_blank" : undefined}
             rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
           >

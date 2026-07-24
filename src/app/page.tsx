@@ -1,77 +1,88 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import NavbarModern from "@/components/NavbarModern";
+import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
-import HeroModern from "@/components/sections/HeroModern";
-import AboutModern from "@/components/sections/AboutModern";
-import ExperienceModern from "@/components/sections/ExperienceModern";
-import SkillsImproved from "@/components/sections/SkillsImproved";
+import CommandPalette from "@/components/CommandPalette";
+import Hero from "@/components/sections/Hero";
+import About from "@/components/sections/About";
+import Experience from "@/components/sections/Experience";
+import Skills from "@/components/sections/Skills";
 import GameModeWrapper from "@/components/game3d/GameModeWrapper";
 
-// Dynamically import components that are below the fold
-const Projects = dynamic(() => import("@/components/sections/ProjectsModern"), {
-  loading: () => <div className="min-h-screen" />,
+// Below-the-fold sections are code-split
+const Projects = dynamic(() => import("@/components/sections/Projects"), {
+  loading: () => <div className="min-h-[70vh]" />,
 });
 const DigitalProducts = dynamic(
-  () => import("@/components/sections/DigitalProductsModern"),
-  {
-    loading: () => <div className="min-h-screen" />,
-  }
+  () => import("@/components/sections/DigitalProducts"),
+  { loading: () => <div className="min-h-[70vh]" /> }
 );
-const ArticlesAndProducts = dynamic(
-  () => import("@/components/sections/ArticlesModern"),
-  {
-    loading: () => <div className="min-h-screen" />,
-  }
-);
-const Testimonials = dynamic(
-  () => import("@/components/sections/TestimonialsModern"),
-  {
-    loading: () => <div className="min-h-screen" />,
-  }
-);
-const Contact = dynamic(() => import("@/components/sections/ContactModern"), {
-  loading: () => <div className="min-h-screen" />,
+const Articles = dynamic(() => import("@/components/sections/Articles"), {
+  loading: () => <div className="min-h-[70vh]" />,
 });
-const LatestBlogPosts = dynamic(
-  () => import("@/components/sections/LatestBlogModern"),
-  {
-    loading: () => <div className="min-h-screen" />,
-  }
-);
+const LatestBlog = dynamic(() => import("@/components/sections/LatestBlog"), {
+  loading: () => <div className="min-h-[70vh]" />,
+});
+const Testimonials = dynamic(() => import("@/components/sections/Testimonials"), {
+  loading: () => <div className="min-h-[70vh]" />,
+});
+const Contact = dynamic(() => import("@/components/sections/Contact"), {
+  loading: () => <div className="min-h-[70vh]" />,
+});
 
 export default function Home() {
   const [gameMode, setGameMode] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
 
   const enterGameMode = useCallback(() => setGameMode(true), []);
   const exitGameMode = useCallback(() => setGameMode(false), []);
+  const openCmd = useCallback(() => setCmdOpen(true), []);
+  const closeCmd = useCallback(() => setCmdOpen(false), []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCmdOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <>
       <ScrollProgress />
-      <NavbarModern onGameModeToggle={enterGameMode} />
       {!gameMode && (
-        <motion.main
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="min-h-screen"
-          style={{ background: '#dad4cc', color: '#0f0e0c' }}
-        >
-          <HeroModern />
-          <AboutModern />
-          <ExperienceModern />
-          <SkillsImproved />
-          <Projects />
-          <DigitalProducts />
-          <ArticlesAndProducts />
-          <LatestBlogPosts />
-          <Testimonials />
-          <Contact />
-        </motion.main>
+        <>
+          <Navbar onGameModeToggle={enterGameMode} onCommandOpen={openCmd} />
+          <motion.main
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7 }}
+            className="relative"
+          >
+            <Hero />
+            <About />
+            <Experience />
+            <Skills />
+            <Projects />
+            <DigitalProducts />
+            <Articles />
+            <LatestBlog />
+            <Testimonials />
+            <Contact />
+          </motion.main>
+
+          <CommandPalette
+            open={cmdOpen}
+            onClose={closeCmd}
+            onGameModeToggle={enterGameMode}
+          />
+        </>
       )}
       <GameModeWrapper isActive={gameMode} onExit={exitGameMode} />
     </>

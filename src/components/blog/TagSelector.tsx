@@ -1,172 +1,145 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
-import { FaTag, FaTimes, FaSearch } from "react-icons/fa";
+import { AnimatePresence, motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { FaSearch, FaTimes } from "react-icons/fa";
 
-interface TagSelectorProps {
+interface Props {
   allTags: string[];
   selectedTag: string | null;
   onSelectTag: (tag: string | null) => void;
 }
 
-export default function TagSelector({ allTags, selectedTag, onSelectTag }: TagSelectorProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+export default function TagSelector({ allTags, selectedTag, onSelectTag }: Props) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
 
-  const filteredTags = useMemo(() => {
-    if (!searchQuery) return allTags;
-    return allTags.filter(tag =>
-      tag.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [allTags, searchQuery]);
+  const filtered = useMemo(() => {
+    if (!q) return allTags;
+    return allTags.filter((t) => t.toLowerCase().includes(q.toLowerCase()));
+  }, [allTags, q]);
 
   const topTags = allTags.slice(0, 12);
-  const hasMoreTags = allTags.length > 12;
+  const hasMore = allTags.length > 12;
+
+  const Pill = ({
+    active,
+    onClick,
+    children,
+  }: {
+    active: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+  }) => (
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] transition-all ${
+        active
+          ? "border-ink bg-ink text-paper"
+          : "border-rule bg-paper text-ink-2 hover:border-ink hover:text-ink"
+      }`}
+    >
+      {children}
+    </button>
+  );
 
   return (
     <>
-      {/* Main tag filters - show top tags */}
-      <div className="flex flex-wrap gap-2.5">
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => onSelectTag(null)}
-          className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
-            selectedTag === null
-              ? "bg-gradient-to-r from-accent via-[#d55a3f] to-accent2 text-white shadow-lg"
-              : "glass bg-white/60 text-ink hover:bg-white/80"
-          }`}
-        >
-          All Articles
-        </motion.button>
-
-        {topTags.map((tag, index) => (
-          <motion.button
+      <div className="flex flex-wrap gap-2">
+        <Pill active={selectedTag === null} onClick={() => onSelectTag(null)}>
+          All
+        </Pill>
+        {topTags.map((tag) => (
+          <Pill
             key={tag}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2, delay: 0.02 * index }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+            active={selectedTag === tag}
             onClick={() => onSelectTag(selectedTag === tag ? null : tag)}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-              selectedTag === tag
-                ? "bg-accent text-white shadow-md"
-                : "glass bg-white/60 text-ink/90 hover:bg-white/80"
-            }`}
           >
-            <FaTag className="h-3 w-3" />
             {tag}
-          </motion.button>
+          </Pill>
         ))}
-
-        {/* View all tags button */}
-        {hasMoreTags && (
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setIsOpen(true)}
-            className="flex items-center gap-2 rounded-xl border-2 border-dashed border-accent/30 bg-white/40 px-4 py-2.5 text-sm font-medium text-accent transition-all hover:border-accent/60 hover:bg-white/60"
+        {hasMore && (
+          <button
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2 rounded-full border border-dashed border-rule bg-paper px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] text-ink-2 transition-all hover:border-saffron hover:text-saffron"
           >
             <FaSearch className="h-3 w-3" />
-            Browse All {allTags.length} Tags
-          </motion.button>
+            Browse all {allTags.length}
+          </button>
         )}
       </div>
 
-      {/* Modal for all tags */}
       <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            {/* Backdrop */}
+        {open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            onClick={() => setOpen(false)}
+          >
+            <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            />
-
-            {/* Modal */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              className="relative z-10 max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-3xl bg-white p-8 shadow-2xl"
+              role="dialog"
+              aria-label="All tags"
+              initial={{ y: -12, opacity: 0, scale: 0.97 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: -8, opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
               onClick={(e) => e.stopPropagation()}
+              className="relative z-10 max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-3xl border border-rule bg-paper p-8 shadow-2xl"
             >
-              {/* Header */}
-              <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-baseline justify-between">
                 <div>
-                  <h3 className="font-serif text-2xl font-bold text-ink">
-                    Browse All Tags
-                  </h3>
-                  <p className="mt-1 text-sm text-muted">
-                    {allTags.length} topics available
-                  </p>
+                  <span className="eyebrow">Tag Index</span>
+                  <h3 className="font-display text-2xl text-ink">Browse all tags</h3>
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/10 text-muted transition-all hover:bg-accent/10 hover:text-accent"
+                  onClick={() => setOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-rule text-ink-2 transition-all hover:border-ink hover:text-ink"
+                  aria-label="Close"
                 >
-                  <FaTimes className="h-5 w-5" />
+                  <FaTimes className="h-3.5 w-3.5" />
                 </button>
               </div>
 
-              {/* Search */}
-              <div className="relative mb-6">
-                <FaSearch className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted/50" />
+              <div className="relative mt-6">
+                <FaSearch className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
                 <input
-                  type="text"
-                  placeholder="Search tags..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-xl border border-muted/20 bg-muted/5 px-12 py-3 text-sm text-ink outline-none transition-all focus:border-accent/50 focus:bg-white"
                   autoFocus
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search tags…"
+                  className="w-full rounded-full border border-rule bg-paper-2 py-3 pl-11 pr-4 text-sm text-ink outline-none placeholder:text-muted focus:border-ink"
                 />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-accent"
-                  >
-                    <FaTimes className="h-4 w-4" />
-                  </button>
-                )}
               </div>
 
-              {/* Tags grid */}
-              <div className="max-h-96 overflow-y-auto">
-                {filteredTags.length > 0 ? (
+              <div className="mt-6 max-h-96 overflow-y-auto">
+                {filtered.length === 0 ? (
+                  <p className="py-12 text-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
+                    No tags match “{q}”
+                  </p>
+                ) : (
                   <div className="flex flex-wrap gap-2">
-                    {filteredTags.map((tag) => (
-                      <button
+                    {filtered.map((tag) => (
+                      <Pill
                         key={tag}
+                        active={selectedTag === tag}
                         onClick={() => {
                           onSelectTag(tag);
-                          setIsOpen(false);
-                          setSearchQuery("");
+                          setOpen(false);
+                          setQ("");
                         }}
-                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                          selectedTag === tag
-                            ? "bg-accent text-white"
-                            : "bg-muted/10 text-ink hover:bg-accent/10 hover:text-accent"
-                        }`}
                       >
-                        <FaTag className="h-3 w-3" />
                         {tag}
-                      </button>
+                      </Pill>
                     ))}
-                  </div>
-                ) : (
-                  <div className="py-12 text-center text-muted">
-                    No tags found matching "{searchQuery}"
                   </div>
                 )}
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>

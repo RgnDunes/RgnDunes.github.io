@@ -3,130 +3,99 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { FaArrowLeft } from "react-icons/fa";
-import BlogListModern from "@/components/blog/BlogListModern";
+import BlogList from "@/components/blog/BlogList";
+import ScrollProgress from "@/components/ScrollProgress";
 import { BlogPost } from "@/data/blogPosts";
 
-interface BlogPageClientProps {
+interface Props {
   posts: BlogPost[];
 }
 
-export default function BlogPageClient({ posts }: BlogPageClientProps) {
+export default function BlogPageClient({ posts }: Props) {
+  const totalMinutes = posts.reduce((sum, p) => {
+    if (!p.readingTime) return sum;
+    const m = p.readingTime.match(/\d+/);
+    return sum + (m ? parseInt(m[0], 10) : 0);
+  }, 0);
+  const totalReading =
+    totalMinutes < 60
+      ? `${totalMinutes} min`
+      : `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+
   return (
-    <div className="relative min-h-screen">
-      {/* Animated background */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[#f5f0e8] via-[#dad4cc] to-[#d5cfc7]">
-        <div className="absolute inset-0 opacity-20">
-          <motion.div
-            animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 90, 0],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            className="absolute -left-20 top-20 h-96 w-96 rounded-full bg-gradient-to-br from-accent/20 to-transparent blur-3xl"
-          />
-          <motion.div
-            animate={{
-              scale: [1.2, 1, 1.2],
-              rotate: [90, 0, 90],
-            }}
-            transition={{
-              duration: 25,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            className="absolute -right-20 bottom-20 h-96 w-96 rounded-full bg-gradient-to-br from-accent2/20 to-transparent blur-3xl"
-          />
+    <>
+      <ScrollProgress />
+
+      {/* Editorial masthead */}
+      <div className="border-b border-rule bg-paper/70 backdrop-blur-sm">
+        <div className="page-shell flex h-8 items-center justify-between text-[10.5px] font-mono uppercase tracking-[0.22em] text-muted">
+          <span>Vol. V · The Notebook</span>
+          <span className="hidden md:inline">Engineering Diaries</span>
+          <span>Archive</span>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-32 sm:px-6 lg:px-8">
-        {/* Back Button */}
+      <div className="page-shell py-16 md:py-24">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          <Link
-            href="/"
-            className="glass-strong group inline-flex items-center gap-3 rounded-xl px-6 py-3 text-sm font-semibold text-ink transition-all hover:bg-white/30 hover:shadow-lg"
-          >
-            <FaArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Back to Home
+          <Link href="/" className="link-quiet font-mono text-[11.5px] uppercase tracking-[0.2em]">
+            <FaArrowLeft className="h-3 w-3" /> Back to the cover
           </Link>
         </motion.div>
 
-        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-12 max-w-4xl"
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="mt-10 grid gap-8 border-b border-rule pb-10 md:grid-cols-[auto_1fr] md:items-end md:gap-12"
         >
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-6 py-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-accent">
-              Engineering Blog
-            </span>
+          <div className="flex items-baseline gap-4">
+            <span className="folio text-7xl md:text-8xl">§</span>
+            <div>
+              <span className="eyebrow">Section</span>
+              <h1 className="font-display text-display-2 text-ink">
+                Engineering<br />
+                <span className="italic text-saffron">Diaries</span>
+              </h1>
+            </div>
           </div>
-
-          <h1 className="font-serif text-6xl font-bold tracking-tight text-ink sm:text-7xl lg:text-8xl">
-            Engineering{" "}
-            <span className="gradient-text">Diaries</span>
-          </h1>
-
-          <p className="mt-8 text-xl leading-relaxed text-muted lg:text-2xl">
-            Thoughts on frontend architecture, system design, and building better
-            web experiences. Written from the trenches of building international
-            payment systems and enterprise software.
+          <p className="max-w-lg text-[16.5px] leading-[1.65] text-ink-2 md:justify-self-end md:text-right">
+            Long-form on frontend architecture, system design, and the small,
+            unglamorous rituals of shipping software at scale. Written from the
+            trenches of building international payment systems, developer
+            tooling, and CI pipelines.
           </p>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-8 flex flex-wrap gap-6"
-          >
-            <div className="glass-strong rounded-xl px-6 py-3">
-              <div className="text-2xl font-bold text-accent">
-                {posts.length}
-              </div>
-              <div className="text-sm text-muted">Articles</div>
-            </div>
-            <div className="glass-strong rounded-xl px-6 py-3">
-              <div className="text-2xl font-bold text-accent2">
-                {new Set(posts.flatMap((p) => p.tags)).size}
-              </div>
-              <div className="text-sm text-muted">Topics</div>
-            </div>
-            <div className="glass-strong rounded-xl px-6 py-3">
-              <div className="text-2xl font-bold text-accent">
-                {(() => {
-                  if (!posts || posts.length === 0) return '0 min';
-                  const totalMinutes = posts.reduce((sum, post) => {
-                    if (!post.readingTime) return sum;
-                    const match = post.readingTime.match(/\d+/);
-                    const time = match ? parseInt(match[0], 10) : 0;
-                    return sum + time;
-                  }, 0);
-
-                  if (totalMinutes < 60) return `${totalMinutes} min`;
-                  const hours = Math.floor(totalMinutes / 60);
-                  const mins = totalMinutes % 60;
-                  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-                })()}
-              </div>
-              <div className="text-sm text-muted">Total Reading</div>
-            </div>
-          </motion.div>
         </motion.div>
 
-        <BlogListModern posts={posts} />
+        {/* Stats strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-10 grid grid-cols-3 gap-6 rounded-2xl border border-rule bg-paper-2 p-6 md:grid-cols-3"
+        >
+          <StatCell label="Articles" value={String(posts.length)} />
+          <StatCell
+            label="Topics"
+            value={String(new Set(posts.flatMap((p) => p.tags)).size)}
+          />
+          <StatCell label="Total reading" value={totalReading} />
+        </motion.div>
+
+        <BlogList posts={posts} />
       </div>
+    </>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="eyebrow mb-2">{label}</div>
+      <div className="font-display text-3xl text-ink md:text-4xl">{value}</div>
     </div>
   );
 }

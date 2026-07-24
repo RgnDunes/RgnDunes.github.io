@@ -1,243 +1,196 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { FaArrowDown, FaArrowRight } from "react-icons/fa";
 import ViewCounter from "../ViewCounter";
 
-interface Snowflake {
-  id: number;
-  left: string;
-  animationDuration: string;
-  animationDelay: string;
-  fontSize: string;
-}
+const verses = [
+  { line: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन", lang: "sa", label: "Sanskrit · Bhagavad Gītā 2.47" },
+  { line: "karmaṇy‑evādhikāras te mā phaleṣu kadācana", lang: "iast", label: "Transliteration" },
+  { line: "You have the right to work — never to its fruits.", lang: "en", label: "English rendering" },
+];
+
+const nowItems = [
+  { k: "Building at", v: "Rippling · L6" },
+  { k: "Focus", v: "Web Infra / CI · CD" },
+  { k: "Location", v: "Bengaluru, IN" },
+  { k: "Availability", v: "Open to talk" },
+];
 
 export default function Hero() {
-  const [snowflakes, setSnowflakes] = useState<Snowflake[]>([]);
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
+  // Rotate through Sanskrit → translit → English
+  const [vIdx, setVIdx] = useState(0);
   useEffect(() => {
-    // Generate snowflakes
-    const flakes: Snowflake[] = Array.from({ length: 30 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      animationDuration: `${10 + Math.random() * 20}s`,
-      animationDelay: `${Math.random() * 5}s`,
-      fontSize: `${8 + Math.random() * 8}px`,
-    }));
-    setSnowflakes(flakes);
+    const t = setInterval(() => setVIdx((i) => (i + 1) % verses.length), 4200);
+    return () => clearInterval(t);
   }, []);
 
   return (
-    <section className="relative mt-20 flex min-h-[calc(100vh-5rem)] flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#dad4cc] via-[#d5cfc7] to-[#dad4cc] px-4 py-20 sm:px-6 lg:px-8">
-      {/* Mountain silhouette background */}
-      <div className="absolute inset-0 overflow-hidden opacity-[0.03]">
-        <svg
-          className="absolute bottom-0 w-full"
-          viewBox="0 0 1440 320"
-          preserveAspectRatio="none"
-          style={{ height: "60%" }}
-        >
-          <path
-            fill="#0f0e0c"
-            d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-          />
-        </svg>
-      </div>
+    <section
+      ref={sectionRef}
+      id="top"
+      className="relative overflow-hidden pt-16 pb-24 md:pt-24"
+    >
+      {/* Subtle grid backdrop */}
+      <div className="pointer-events-none absolute inset-0 -z-10 grid-backdrop opacity-40" />
+      {/* Warm halo, top-left */}
+      <div className="pointer-events-none absolute -left-40 top-10 -z-10 h-[560px] w-[560px] rounded-full bg-saffron/20 blur-[130px]" />
+      {/* Second halo, bottom right */}
+      <div className="pointer-events-none absolute -right-32 top-1/3 -z-10 h-[480px] w-[480px] rounded-full bg-seal/10 blur-[130px]" />
 
-      {/* Cosmos stars */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(40)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute h-1 w-1 rounded-full bg-accent"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              opacity: 0.15,
-            }}
-            animate={{
-              opacity: [0.05, 0.25, 0.05],
-              scale: [1, 1.3, 1],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 4,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+      <motion.div style={{ y, opacity }} className="page-shell">
+        {/* Editorial header row */}
+        <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-rule pb-4 font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
+          <span>Folio 01 · The Cover Page</span>
+          <span className="text-ink">
+            <span className="mr-2 inline-block h-1.5 w-1.5 translate-y-[-1px] rounded-full bg-saffron align-middle" />
+            Currently: Rippling · L6
+          </span>
+          <span>{new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
+        </div>
 
-      {/* Snowfall animation */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {snowflakes.map((flake) => (
-          <div
-            key={flake.id}
-            className="snowflake absolute text-white/20"
-            style={{
-              left: flake.left,
-              fontSize: flake.fontSize,
-              animationDuration: flake.animationDuration,
-              animationDelay: flake.animationDelay,
-            }}
-          >
-            ❄
-          </div>
-        ))}
-      </div>
+        {/* Colossal typographic name — kinetic reveal */}
+        <div className="mt-10 md:mt-16">
+          <div className="eyebrow mb-6">Introducing</div>
+          <h1 className="font-display font-medium text-ink text-[clamp(3rem,11vw,10.5rem)] leading-[0.92] tracking-[-0.035em]">
+            <motion.span
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
+              className="block"
+            >
+              Divyansh
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.1, ease: [0.2, 0.8, 0.2, 1] }}
+              className="block italic text-saffron"
+            >
+              Singh<span className="text-ink">.</span>
+            </motion.span>
+          </h1>
+        </div>
 
-      {/* Motorcycle silhouette - bottom right corner */}
-      <div className="absolute bottom-10 right-10 opacity-[0.04] pointer-events-none hidden lg:block">
-        <svg
-          width="120"
-          height="80"
-          viewBox="0 0 120 80"
-          fill="currentColor"
-          className="text-[#0f0e0c]"
-        >
-          <circle cx="25" cy="60" r="18" />
-          <circle cx="95" cy="60" r="18" />
-          <path d="M25 60 L50 35 L70 35 L75 45 L95 60" strokeWidth="4" stroke="currentColor" fill="none" />
-          <path d="M50 35 L45 25 L55 25 L60 35" strokeWidth="3" stroke="currentColor" fill="none" />
-        </svg>
-      </div>
-
-      {/* Top label */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 mb-8 text-center"
-      >
-        <span className="text-xs font-medium tracking-wider text-accent uppercase">
-          PORTFOLIO · 2026
-        </span>
-      </motion.div>
-
-      {/* Main heading */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-        className="relative z-10 max-w-5xl text-center"
-      >
-        <h1 className="font-serif text-5xl font-bold tracking-tight text-[#0f0e0c] sm:text-6xl md:text-7xl lg:text-8xl">
-          Building scalable{" "}
-          <motion.span
-            className="italic text-accent"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.5 }}
-          >
-            frontend systems
-          </motion.span>
-        </h1>
-      </motion.div>
-
-      {/* Subtitle */}
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-        className="relative z-10 mx-auto mt-8 max-w-3xl text-center text-base leading-relaxed text-[#0f0e0c] sm:text-lg"
-      >
-        Software Engineer II (L6) at Rippling, working on Web Infrastructure - CI/CD pipelines,
-        developer tooling, and observability. Previously at Razorpay, building international
-        payment systems and open-source SDKs with 100K+ weekly downloads. Author and mentor.
-      </motion.p>
-
-      {/* CTA Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-        className="relative z-10 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
-      >
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Link
-            href="#contact"
-            className="rounded-md bg-[#0f0e0c] px-8 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2a2a2a] hover:shadow-xl"
-          >
-            Get in touch
-          </Link>
-        </motion.div>
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Link
-            href="#projects"
-            className="rounded-md border-2 border-[#0f0e0c] bg-transparent px-8 py-3 text-sm font-semibold text-[#0f0e0c] transition-all hover:bg-[#0f0e0c] hover:text-white hover:shadow-lg"
-          >
-            View my work
-          </Link>
-        </motion.div>
-      </motion.div>
-
-      {/* Bottom labels */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
-        className="relative z-10 mt-16 flex flex-wrap items-center justify-center gap-4 text-xs font-medium tracking-wide text-muted sm:gap-8"
-      >
-        <motion.span whileHover={{ color: "#c84b31" }} transition={{ duration: 0.2 }}>
-          RIPPLING (L6)
-        </motion.span>
-        <span className="hidden sm:inline">·</span>
-        <motion.span whileHover={{ color: "#c84b31" }} transition={{ duration: 0.2 }}>
-          5+ YEARS EXPERIENCE
-        </motion.span>
-        <span className="hidden sm:inline">·</span>
-        <motion.span whileHover={{ color: "#c84b31" }} transition={{ duration: 0.2 }}>
-          100K+ DOWNLOADS
-        </motion.span>
-        <span className="hidden sm:inline">·</span>
-        <motion.span whileHover={{ color: "#c84b31" }} transition={{ duration: 0.2 }}>
-          OPEN SOURCE
-        </motion.span>
-      </motion.div>
-
-      {/* Bhagavad Gita Quote */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
-        whileHover={{ scale: 1.02, boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
-        className="relative z-10 mx-auto mt-20 max-w-2xl rounded-lg bg-[#f5e6d3] px-6 py-6 text-center transition-all sm:px-8"
-      >
-        <p className="font-serif text-lg text-accent sm:text-xl">
-          कर्मण्येवाधिकारस्ते मा फलेषु कदाचन
-        </p>
-        <p className="mt-2 text-sm text-muted">
-          - Bhagavad Gita 2.47
-        </p>
-        <p className="mt-1 text-xs italic text-muted">
-          You have the right to perform your duty, but not to the fruits of your actions
-        </p>
-      </motion.div>
-
-      {/* View Counter */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
-        className="relative z-10 mt-8 flex justify-center"
-      >
-        <ViewCounter pageId="homepage" showLabel={true} />
-      </motion.div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
-        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
-      >
+        {/* Sub-lede */}
         <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="flex flex-col items-center gap-2"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-10 grid gap-10 md:grid-cols-[1.35fr_1fr] md:gap-16"
         >
-          <div className="h-8 w-0.5 bg-[#0f0e0c]/30" />
+          <div>
+            <p className="max-w-[52ch] font-body text-lg leading-[1.55] text-ink-2 md:text-xl">
+              A software engineer building the plumbing of the modern web —
+              <span className="text-ink"> CI/CD pipelines</span>, developer
+              tooling, and <span className="text-ink">deployment infrastructure</span>. Formerly
+              a senior frontend engineer at Razorpay, currently at{" "}
+              <span className="text-ink">Rippling</span>. This is a working notebook
+              of the things I have shipped, written, and taught.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href="#work" className="btn-primary">
+                Read the work <FaArrowRight className="h-3 w-3" />
+              </Link>
+              <Link href="#contact" className="btn-ghost">
+                Get in touch
+              </Link>
+              <div className="ml-1 hidden items-center gap-2 md:flex">
+                <span className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
+                  or press
+                </span>
+                <span className="kbd">⌘</span>
+                <span className="kbd">K</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right column — animated verse card */}
+          <div className="relative">
+            <div className="absolute -left-4 top-0 h-full w-px bg-rule hidden md:block" />
+            <div className="relative flex flex-col gap-3 pt-1">
+              <span className="eyebrow">The line I return to</span>
+              <div className="relative h-[124px] overflow-hidden md:h-[112px]">
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={vIdx}
+                    initial={{ y: 18, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -18, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+                    className={`font-display text-[26px] leading-[1.18] text-ink md:text-[28px] ${
+                      verses[vIdx].lang === "en" ? "italic" : ""
+                    }`}
+                    style={{
+                      fontFeatureSettings: verses[vIdx].lang === "sa" ? '"kern"' : undefined,
+                    }}
+                  >
+                    {verses[vIdx].line}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="eyebrow">{verses[vIdx].label}</span>
+                <div className="flex gap-1.5">
+                  {verses.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setVIdx(i)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === vIdx ? "w-6 bg-saffron" : "w-1.5 bg-rule"
+                      }`}
+                      aria-label={`View verse ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* "Now" strip — the bento of live data, condensed */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-16 rule-h pt-6 md:mt-24"
+        >
+          <div className="mb-4 flex items-baseline justify-between">
+            <span className="eyebrow">— Now</span>
+            <ViewCounter pageId="homepage" showLabel={true} />
+          </div>
+          <div className="grid gap-8 md:grid-cols-4">
+            {nowItems.map((it) => (
+              <div key={it.k}>
+                <div className="eyebrow mb-2">{it.k}</div>
+                <div className="font-display text-2xl text-ink">{it.v}</div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Scroll cue */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1 }}
+          className="mt-14 flex items-center gap-3 text-muted"
+        >
+          <FaArrowDown className="h-3 w-3 animate-float-slow" />
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.24em]">
+            Continue reading — the notebook begins
+          </span>
         </motion.div>
       </motion.div>
     </section>

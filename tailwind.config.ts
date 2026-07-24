@@ -11,40 +11,32 @@ const config: Config = {
     container: {
       center: true,
       padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      screens: { "2xl": "1400px" },
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-dm-sans)', 'sans-serif'],
-        serif: ['var(--font-playfair)', 'serif'],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        serif: ["var(--font-fraunces)", "Fraunces", "Georgia", "serif"],
+        display: ["var(--font-fraunces)", "Fraunces", "Georgia", "serif"],
+        mono: [
+          "var(--font-jetbrains)",
+          "JetBrains Mono",
+          "ui-monospace",
+          "monospace",
+        ],
       },
       colors: {
-        // Modern enhanced palette
-        ink: '#0f0e0c',
-        paper: '#f5f0e8',
-        accent: '#c84b31',
-        accent2: '#2a6e4a',
-        muted: '#8a8275',
-        rule: '#d4cdc0',
-        highlight: '#fff3b0',
-        // Extended modern colors
-        'slate': {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          900: '#0f172a',
-          950: '#020617',
-        },
-        'purple': {
-          500: '#a855f7',
-          600: '#9333ea',
-        },
-        'cyan': {
-          400: '#22d3ee',
-          500: '#06b6d4',
-        },
-        // Tailwind semantic colors
+        paper: "rgb(var(--paper) / <alpha-value>)",
+        "paper-2": "rgb(var(--paper-2) / <alpha-value>)",
+        ink: "rgb(var(--ink) / <alpha-value>)",
+        "ink-2": "rgb(var(--ink-2) / <alpha-value>)",
+        muted: "rgb(var(--muted) / <alpha-value>)",
+        rule: "rgb(var(--rule) / <alpha-value>)",
+        saffron: "rgb(var(--saffron) / <alpha-value>)",
+        "saffron-deep": "rgb(var(--saffron-deep) / <alpha-value>)",
+        seal: "rgb(var(--seal) / <alpha-value>)",
+        highlight: "rgb(var(--highlight) / <alpha-value>)",
+        // shadcn compat (kept)
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -58,86 +50,31 @@ const config: Config = {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-        xl: "1rem",
-        '2xl': "1.5rem",
+        sm: "6px",
+        DEFAULT: "8px",
+        md: "10px",
+        lg: "14px",
+        xl: "18px",
+        "2xl": "24px",
+        "3xl": "32px",
       },
-      backdropBlur: {
-        xs: '2px',
+      fontSize: {
+        "display-1": ["clamp(3.5rem, 10vw, 8.5rem)", { lineHeight: "0.95", letterSpacing: "-0.03em" }],
+        "display-2": ["clamp(2.5rem, 6vw, 5rem)", { lineHeight: "1.02", letterSpacing: "-0.025em" }],
+        "display-3": ["clamp(2rem, 4vw, 3.25rem)", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
       },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-        "fade-in": {
-          from: { opacity: "0", transform: "translateY(20px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "slide-in-right": {
-          from: { transform: "translateX(100%)", opacity: "0" },
-          to: { transform: "translateX(0)", opacity: "1" },
-        },
-        "slide-in-left": {
-          from: { transform: "translateX(-100%)", opacity: "0" },
-          to: { transform: "translateX(0)", opacity: "1" },
-        },
-        "scale-in": {
-          from: { transform: "scale(0.9)", opacity: "0" },
-          to: { transform: "scale(1)", opacity: "1" },
-        },
-        "gradient-shift": {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
-        },
-        "float": {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-20px)" },
-        },
-        "pulse-slow": {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.5" },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.6s ease-out",
-        "slide-in-right": "slide-in-right 0.5s ease-out",
-        "slide-in-left": "slide-in-left 0.5s ease-out",
-        "scale-in": "scale-in 0.4s ease-out",
-        "gradient-shift": "gradient-shift 8s ease infinite",
-        "float": "float 6s ease-in-out infinite",
-        "pulse-slow": "pulse-slow 3s ease-in-out infinite",
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'gradient-mesh': 'radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 1) 0px, transparent 0%), radial-gradient(at 97% 21%, hsla(125, 98%, 72%, 1) 0px, transparent 50%), radial-gradient(at 52% 99%, hsla(354, 98%, 61%, 1) 0px, transparent 50%), radial-gradient(at 10% 29%, hsla(256, 96%, 67%, 1) 0px, transparent 50%), radial-gradient(at 97% 96%, hsla(38, 60%, 74%, 1) 0px, transparent 50%), radial-gradient(at 33% 50%, hsla(222, 67%, 73%, 1) 0px, transparent 50%), radial-gradient(at 79% 53%, hsla(343, 68%, 79%, 1) 0px, transparent 50%)',
+      transitionTimingFunction: {
+        "out-expo": "cubic-bezier(0.2, 0.8, 0.2, 1)",
       },
     },
   },
   plugins: [],
 };
 
-export default config; 
+export default config;

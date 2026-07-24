@@ -1,38 +1,55 @@
 import type { Metadata } from "next";
-import { Playfair_Display, DM_Sans } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 
-const playfair = Playfair_Display({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["400", "700", "900"],
+  weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
-  variable: "--font-playfair",
+  variable: "--font-fraunces",
   display: "swap",
-  preload: true,
-  fallback: ["Georgia", "serif"],
+  fallback: ["Playfair Display", "Georgia", "serif"],
 });
 
-const dmSans = DM_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  variable: "--font-dm-sans",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
   display: "swap",
-  preload: true,
-  fallback: ["system-ui", "arial"],
+  fallback: ["system-ui", "sans-serif"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-jetbrains",
+  display: "swap",
+  fallback: ["ui-monospace", "monospace"],
 });
 
 export const metadata: Metadata = {
-  title: "Divyansh Singh - Senior Frontend Engineer",
+  title: "Divyansh Singh — Software Engineer",
   description:
-    "Senior Frontend Engineer with expertise in React, TypeScript, and modern web technologies",
+    "The working notebook of Divyansh Singh, a software engineer building web infrastructure, developer tooling, and CI/CD systems at Rippling. Previously Razorpay.",
   keywords: [
-    "Frontend Engineer",
-    "React Developer",
-    "TypeScript",
-    "JavaScript",
-    "Web Development",
+    "Divyansh Singh",
     "Software Engineer",
+    "Frontend Engineer",
+    "Web Infrastructure",
+    "Developer Tooling",
+    "CI/CD",
+    "React",
+    "TypeScript",
+    "Rippling",
+    "Razorpay",
   ],
+  authors: [{ name: "Divyansh Singh" }],
+  openGraph: {
+    title: "Divyansh Singh — Software Engineer",
+    description:
+      "Web infrastructure, CI/CD, and developer tooling. A working notebook.",
+    type: "website",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon" },
@@ -50,7 +67,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+    >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -65,11 +85,7 @@ export default function RootLayout({
         />
         <link rel="icon" href="/Portfolio-v5/favicon.ico" type="image/x-icon" />
       </head>
-      <body
-        className={`${dmSans.className} bg-[rgb(245,240,232)] text-[rgb(15,14,12)] antialiased`}
-      >
-        {children}
-      </body>
+      <body className="bg-paper text-ink-2 antialiased">{children}</body>
     </html>
   );
 }
