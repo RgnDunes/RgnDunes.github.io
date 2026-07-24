@@ -147,14 +147,164 @@ export default function Contact() {
         </motion.div>
       </div>
 
-      {/* Colophon footer */}
-      <div className="mt-24 flex flex-col items-center gap-3 border-t border-rule pt-8 text-center">
-        <span className="font-display text-2xl italic text-ink">Fin.</span>
-        <p className="max-w-xl font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-          Set in Fraunces, Inter, and JetBrains Mono. Printed on paper made of pixels.
-          {" · "}© {new Date().getFullYear()} Divyansh Singh.
-        </p>
-      </div>
+      {/* Colophon — the last page of the notebook */}
+      <Colophon />
     </section>
+  );
+}
+
+/* ─── Colophon ────────────────────────────────────────────────
+   The final spread. A specimen sheet + credits, framed by
+   ornamental rules. The way a book ends.
+   ────────────────────────────────────────────────────────── */
+
+function Colophon() {
+  const year = new Date().getFullYear();
+  const specimens = [
+    { face: "Fraunces", role: "Display · Serif", sample: "Aa", weight: "italic" as const },
+    { face: "Inter", role: "Body · Sans", sample: "Aa", weight: "regular" as const },
+    { face: "JetBrains Mono", role: "Caption · Mono", sample: "Aa", weight: "mono" as const },
+  ];
+
+  return (
+    <footer className="mt-32 md:mt-40">
+      {/* Ornamental rule with center medallion */}
+      <div className="relative flex items-center justify-center py-8">
+        <span className="h-px flex-1 bg-rule" />
+        <div className="mx-6 flex items-center gap-3 font-mono text-[10.5px] uppercase tracking-[0.32em] text-muted">
+          <span>❋</span>
+          <span>End of Volume V</span>
+          <span>❋</span>
+        </div>
+        <span className="h-px flex-1 bg-rule" />
+      </div>
+
+      {/* The Fin. plate */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.7 }}
+        className="relative overflow-hidden rounded-3xl border border-rule bg-paper-2 px-6 py-14 md:px-16 md:py-20"
+      >
+        {/* Corner brackets — like a manuscript folio */}
+        <span className="pointer-events-none absolute left-4 top-4 h-6 w-6 border-l border-t border-ink" />
+        <span className="pointer-events-none absolute right-4 top-4 h-6 w-6 border-r border-t border-ink" />
+        <span className="pointer-events-none absolute bottom-4 left-4 h-6 w-6 border-b border-l border-ink" />
+        <span className="pointer-events-none absolute bottom-4 right-4 h-6 w-6 border-b border-r border-ink" />
+
+        {/* Warm halo behind Fin. */}
+        <span className="pointer-events-none absolute left-1/2 top-1/2 -z-0 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-saffron/15 blur-3xl" />
+
+        <div className="relative flex flex-col items-center text-center">
+          <span className="eyebrow">The last page</span>
+
+          {/* Colossal Fin. flourish */}
+          <div className="relative mt-4">
+            <span className="font-display italic text-ink text-[clamp(6rem,18vw,14rem)] leading-none tracking-[-0.04em]">
+              Fin
+            </span>
+            <span className="font-display italic text-saffron text-[clamp(6rem,18vw,14rem)] leading-none tracking-[-0.04em]">
+              .
+            </span>
+          </div>
+
+          {/* Sanskrit sign-off */}
+          <div className="mt-6 flex flex-col items-center gap-1">
+            <span className="font-display text-2xl text-ink md:text-3xl">
+              ॐ शान्तिः शान्तिः शान्तिः
+            </span>
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
+              Oṁ · Peace, peace, peace
+            </span>
+          </div>
+        </div>
+
+        {/* Type specimen row */}
+        <div className="relative mt-14">
+          <div className="mb-4 flex items-center justify-center gap-3">
+            <span className="h-px w-10 bg-rule" />
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.32em] text-muted">
+              Set in
+            </span>
+            <span className="h-px w-10 bg-rule" />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {specimens.map((s) => (
+              <div
+                key={s.face}
+                className="group flex items-center gap-4 rounded-2xl border border-rule bg-paper p-4 transition-all hover:border-ink"
+              >
+                <span
+                  className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl border border-rule bg-paper-2 text-[28px] leading-none text-ink transition-transform group-hover:-rotate-3 group-hover:scale-105 ${
+                    s.weight === "italic"
+                      ? "font-display italic"
+                      : s.weight === "mono"
+                      ? "font-mono"
+                      : "font-body"
+                  }`}
+                >
+                  {s.sample}
+                </span>
+                <div className="min-w-0">
+                  <div
+                    className={`truncate text-base text-ink ${
+                      s.weight === "italic"
+                        ? "font-display italic"
+                        : s.weight === "mono"
+                        ? "font-mono"
+                        : "font-body font-medium"
+                    }`}
+                  >
+                    {s.face}
+                  </div>
+                  <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted">
+                    {s.role}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Credits grid */}
+        <div className="relative mt-12 grid gap-6 border-t border-rule pt-8 sm:grid-cols-2 md:grid-cols-4">
+          <CreditCell k="Author" v="Divyansh Singh" />
+          <CreditCell k="Typesetter" v="The subject himself" />
+          <CreditCell k="Printed on" v="Paper made of pixels" />
+          <CreditCell k="Bound in" v="React · Next.js 14" />
+        </div>
+
+        {/* Bottom line */}
+        <div className="relative mt-10 flex flex-col items-center gap-2 text-center font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
+          <span>
+            © {year} Divyansh Singh · All spellings intentional
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-saffron animate-pulse" />
+            Still writing, Bengaluru — {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+          </span>
+        </div>
+      </motion.div>
+
+      {/* Publisher's mark */}
+      <div className="mt-8 flex items-center justify-center gap-6">
+        <span className="h-px w-20 bg-rule" />
+        <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-ink">
+          <span className="absolute inset-1 rounded-full border border-rule" />
+          <span className="font-display italic text-ink text-xl leading-none">ds</span>
+        </div>
+        <span className="h-px w-20 bg-rule" />
+      </div>
+    </footer>
+  );
+}
+
+function CreditCell({ k, v }: { k: string; v: string }) {
+  return (
+    <div>
+      <div className="eyebrow mb-1.5">{k}</div>
+      <div className="font-display text-base text-ink">{v}</div>
+    </div>
   );
 }
