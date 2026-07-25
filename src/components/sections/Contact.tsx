@@ -160,11 +160,6 @@ export default function Contact() {
 
 function Colophon() {
   const year = new Date().getFullYear();
-  const specimens = [
-    { face: "Fraunces", role: "Display · Serif", sample: "Aa", weight: "italic" as const },
-    { face: "Inter", role: "Body · Sans", sample: "Aa", weight: "regular" as const },
-    { face: "JetBrains Mono", role: "Caption · Mono", sample: "Aa", weight: "mono" as const },
-  ];
 
   return (
     <footer className="mt-32 md:mt-40">
@@ -220,55 +215,8 @@ function Colophon() {
           </div>
         </div>
 
-        {/* Type specimen row */}
-        <div className="relative mt-14">
-          <div className="mb-4 flex items-center justify-center gap-3">
-            <span className="h-px w-10 bg-rule" />
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.32em] text-muted">
-              Set in
-            </span>
-            <span className="h-px w-10 bg-rule" />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {specimens.map((s) => (
-              <div
-                key={s.face}
-                className="group flex items-center gap-4 rounded-2xl border border-rule bg-paper p-4 transition-all hover:border-ink"
-              >
-                <span
-                  className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl border border-rule bg-paper-2 text-[28px] leading-none text-ink transition-transform group-hover:-rotate-3 group-hover:scale-105 ${
-                    s.weight === "italic"
-                      ? "font-display italic"
-                      : s.weight === "mono"
-                      ? "font-mono"
-                      : "font-body"
-                  }`}
-                >
-                  {s.sample}
-                </span>
-                <div className="min-w-0">
-                  <div
-                    className={`truncate text-base text-ink ${
-                      s.weight === "italic"
-                        ? "font-display italic"
-                        : s.weight === "mono"
-                        ? "font-mono"
-                        : "font-body font-medium"
-                    }`}
-                  >
-                    {s.face}
-                  </div>
-                  <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted">
-                    {s.role}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Credits grid */}
-        <div className="relative mt-12 grid gap-6 border-t border-rule pt-8 sm:grid-cols-2 md:grid-cols-4">
+        <div className="relative mt-14 grid gap-6 border-t border-rule pt-8 sm:grid-cols-2 md:grid-cols-4">
           <CreditCell k="Author" v="Divyansh Singh" />
           <CreditCell k="Typesetter" v="The subject himself" />
           <CreditCell k="Printed on" v="Paper made of pixels" />

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FaArrowDown, FaArrowRight } from "react-icons/fa";
 import ViewCounter from "../ViewCounter";
-import ScrambleText from "../kinetic/ScrambleText";
 
 const verses = [
   { line: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन", lang: "sa", label: "Sanskrit · Bhagavad Gītā 2.47" },
@@ -70,7 +69,7 @@ export default function Hero() {
               transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
               className="block"
             >
-              <ScrambleText text="Divyansh" as="span" step={38} scrambles={5} delay={80} />
+              Divyansh
             </motion.span>
             <motion.span
               initial={{ opacity: 0, y: 40 }}
@@ -78,8 +77,7 @@ export default function Hero() {
               transition={{ duration: 0.9, delay: 0.1, ease: [0.2, 0.8, 0.2, 1] }}
               className="block italic text-saffron"
             >
-              <ScrambleText text="Singh" as="span" step={42} scrambles={6} delay={520} />
-              <span className="text-ink">.</span>
+              Singh<span className="text-ink">.</span>
             </motion.span>
           </h1>
         </div>
