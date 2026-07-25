@@ -1,11 +1,10 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useMotionTemplate, useMotionValue } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
-import { useRef } from "react";
-import { FaArrowRight, FaGithub, FaExternalLinkAlt } from "react-icons/fa";
-import { projects } from "@/data/projects";
+import { useRef, MouseEvent as ReactMouseEvent } from "react";
+import { FaArrowRight, FaGithub } from "react-icons/fa";
+import { projects, type Project } from "@/data/projects";
 
 export default function Projects() {
   const ref = useRef<HTMLElement>(null);
@@ -34,61 +33,8 @@ export default function Projects() {
         </p>
       </motion.div>
 
-      {/* Featured project */}
-      <motion.article
-        initial={{ opacity: 0, y: 30 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.7, delay: 0.1 }}
-        className="mt-12 grid gap-8 rounded-3xl border border-rule bg-paper-2 p-6 md:grid-cols-[1.1fr_1fr] md:gap-12 md:p-10"
-      >
-        <div className="relative flex items-center justify-center overflow-hidden rounded-2xl border border-rule bg-paper p-10">
-          {feature.image && (
-            <div className="relative h-40 w-40 md:h-56 md:w-56">
-              <Image src={feature.image} alt={feature.title} fill className="object-contain" />
-            </div>
-          )}
-          <div className="absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-saffron/15 blur-2xl" />
-        </div>
-
-        <div className="flex flex-col justify-between gap-6">
-          <div>
-            <div className="mb-3 flex items-center gap-3">
-              <span className="stamp">Featured · Open Source</span>
-              {feature.stats && feature.stats !== "N/A" && (
-                <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-saffron">
-                  {feature.stats}
-                </span>
-              )}
-            </div>
-            <h3 className="font-display text-display-3 text-ink">{feature.title}</h3>
-            <p className="mt-4 max-w-prose text-[16px] leading-[1.65] text-ink-2">
-              {feature.description}
-            </p>
-            <div className="mt-5 flex flex-wrap gap-1.5">
-              {feature.technologies.map((t) => (
-                <span key={t} className="chip">{t}</span>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {feature.links.map((l) => {
-              const Icon = l.icon;
-              return (
-                <a
-                  key={l.label}
-                  href={l.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-ghost"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {l.label}
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      </motion.article>
+      {/* Featured — spotlight follow */}
+      <FeaturedCard feature={feature} inView={inView} />
 
       {/* Rest as a 3-column bento */}
       <div className="mt-8 grid gap-6 md:grid-cols-3">
@@ -162,5 +108,95 @@ export default function Projects() {
         </a>
       </motion.div>
     </section>
+  );
+}
+
+/* ─── Featured card with mouse-follow spotlight ────────── */
+
+function FeaturedCard({ feature, inView }: { feature: Project; inView: boolean }) {
+  const mx = useMotionValue(-200);
+  const my = useMotionValue(-200);
+  const spotlight = useMotionTemplate`radial-gradient(360px circle at ${mx}px ${my}px, rgba(232, 106, 43, 0.20), transparent 60%)`;
+
+  const onMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mx.set(e.clientX - rect.left);
+    my.set(e.clientY - rect.top);
+  };
+  const onLeave = () => {
+    mx.set(-200);
+    my.set(-200);
+  };
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.7, delay: 0.1 }}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onLeave}
+      className="relative mt-12 grid gap-8 overflow-hidden rounded-3xl border border-rule bg-paper-2 p-6 md:grid-cols-[1.1fr_1fr] md:gap-12 md:p-10"
+    >
+      {/* Spotlight overlay — sits above content but below interactives */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-100 transition-opacity duration-300"
+        style={{ background: spotlight }}
+      />
+
+      {/* Corner brackets — echo the colophon */}
+      <span className="pointer-events-none absolute left-3 top-3 h-4 w-4 border-l border-t border-ink/30" />
+      <span className="pointer-events-none absolute right-3 top-3 h-4 w-4 border-r border-t border-ink/30" />
+      <span className="pointer-events-none absolute bottom-3 left-3 h-4 w-4 border-b border-l border-ink/30" />
+      <span className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 border-b border-r border-ink/30" />
+
+      <div className="relative z-10 flex items-center justify-center overflow-hidden rounded-2xl border border-rule bg-paper p-10">
+        {feature.image && (
+          <div className="relative h-40 w-40 md:h-56 md:w-56">
+            <Image src={feature.image} alt={feature.title} fill className="object-contain" />
+          </div>
+        )}
+        <div className="pointer-events-none absolute -left-8 -bottom-8 h-32 w-32 rounded-full bg-saffron/15 blur-2xl" />
+      </div>
+
+      <div className="relative z-10 flex flex-col justify-between gap-6">
+        <div>
+          <div className="mb-3 flex items-center gap-3">
+            <span className="stamp">Featured · Open Source</span>
+            {feature.stats && feature.stats !== "N/A" && (
+              <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-saffron">
+                {feature.stats}
+              </span>
+            )}
+          </div>
+          <h3 className="font-display text-display-3 text-ink">{feature.title}</h3>
+          <p className="mt-4 max-w-prose text-[16px] leading-[1.65] text-ink-2">
+            {feature.description}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-1.5">
+            {feature.technologies.map((t) => (
+              <span key={t} className="chip">{t}</span>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {feature.links.map((l) => {
+            const Icon = l.icon;
+            return (
+              <a
+                key={l.label}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost"
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {l.label}
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </motion.article>
   );
 }
