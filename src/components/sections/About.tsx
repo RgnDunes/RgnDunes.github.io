@@ -7,6 +7,7 @@ import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import ProfileImage from "../../assets/images/profile.jpg";
 import KiitLogo from "../../assets/images/logos/kiit-logo.png";
+import LogoPlate from "../LogoPlate";
 
 const stats = [
   { n: "530+", k: "Merchants onboarded", note: "MY / SG expansion" },
@@ -98,9 +99,7 @@ export default function About() {
 
           {/* Education pill */}
           <div className="mt-6 flex items-center gap-3 rounded-2xl border border-rule bg-paper-2 p-4">
-            <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-lg bg-paper">
-              <Image src={KiitLogo} alt="KIIT" fill className="object-contain p-1" />
-            </div>
+            <LogoPlate src={KiitLogo} alt="KIIT" size={44} pad={8} surface="paper" />
             <div>
               <div className="font-display text-base text-ink">B.Tech, KIIT University</div>
               <div className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">

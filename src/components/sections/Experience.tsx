@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { FaChevronDown } from "react-icons/fa";
 import { experiences } from "@/data/experience";
+import LogoPlate from "../LogoPlate";
 
 const highlight = (text: string) =>
   text.split(/(\*\*.*?\*\*)/g).map((part, i) =>
@@ -84,9 +85,15 @@ export default function Experience() {
                   {exp.duration}
                 </div>
 
-                {/* Logo */}
-                <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-lg border border-rule bg-paper-2 p-1.5 order-1 md:order-2">
-                  <Image src={exp.logo} alt={exp.company} fill className="object-contain p-1" />
+                {/* Logo — proper plate treatment */}
+                <div className="order-1 md:order-2">
+                  <LogoPlate
+                    src={exp.logo}
+                    alt={exp.company}
+                    size={44}
+                    pad={9}
+                    surface="paper"
+                  />
                 </div>
 
                 {/* Body */}

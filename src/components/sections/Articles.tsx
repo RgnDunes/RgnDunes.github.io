@@ -1,16 +1,19 @@
 "use client";
 
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useMemo, useRef, useState } from "react";
-import { FaSearch, FaArrowRight } from "react-icons/fa";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FaSearch, FaArrowRight, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { articles } from "@/data/articles";
+
+const PER_PAGE = 6;
 
 export default function Articles() {
   const ref = useRef<HTMLElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<string>("All");
-  const [showAll, setShowAll] = useState(false);
+  const [page, setPage] = useState(0);
 
   const types = useMemo(
     () => ["All", ...Array.from(new Set(articles.map((a) => a.type).filter(Boolean)))],
@@ -29,7 +32,22 @@ export default function Articles() {
     [q, tab]
   );
 
-  const shown = showAll ? filtered : filtered.slice(0, 6);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+
+  // Reset to first page when filter/search changes
+  useEffect(() => {
+    setPage(0);
+  }, [tab, q]);
+
+  const start = page * PER_PAGE;
+  const shown = filtered.slice(start, start + PER_PAGE);
+
+  const goto = (next: number) => {
+    const bounded = Math.max(0, Math.min(next, totalPages - 1));
+    setPage(bounded);
+    // Scroll the list top into view so users see the fresh page
+    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <section id="publications" ref={ref} className="page-shell py-28 md:py-36">
@@ -86,7 +104,8 @@ export default function Articles() {
       {/* Results as an editorial list */}
       <AnimatePresence mode="wait">
         <motion.ul
-          key={tab + q}
+          ref={listRef as never}
+          key={tab + q + page}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
@@ -107,7 +126,7 @@ export default function Articles() {
                 className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-4 py-5 md:grid-cols-[80px_120px_1fr_auto] md:gap-8"
               >
                 <span className="col-span-1 font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted md:col-span-1">
-                  {String(i + 1).padStart(2, "0")}
+                  {String(start + i + 1).padStart(2, "0")}
                 </span>
                 <span className="col-span-1 hidden font-mono text-[10.5px] uppercase tracking-[0.15em] text-saffron md:block">
                   {a.type}
@@ -133,26 +152,87 @@ export default function Articles() {
         </motion.ul>
       </AnimatePresence>
 
-      {!showAll && filtered.length > 6 && (
-        <div className="mt-10 text-center">
-          <button onClick={() => setShowAll(true)} className="btn-ghost">
-            View all {filtered.length} pieces <FaArrowRight className="h-3 w-3" />
-          </button>
-        </div>
-      )}
-      {showAll && filtered.length > 6 && (
-        <div className="mt-10 text-center">
-          <button
-            onClick={() => {
-              setShowAll(false);
-              ref.current?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="link-quiet font-mono text-[11px] uppercase tracking-[0.2em]"
-          >
-            Show less ↑
-          </button>
+      {/* Pagination footer — always in view, no growing list */}
+      {filtered.length > PER_PAGE && (
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+            Showing{" "}
+            <span className="text-ink">
+              {start + 1}–{Math.min(start + PER_PAGE, filtered.length)}
+            </span>{" "}
+            of <span className="text-ink">{filtered.length}</span>
+          </span>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => goto(page - 1)}
+              disabled={page === 0}
+              aria-label="Previous page"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-rule text-ink-2 transition-all hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-rule disabled:hover:text-ink-2"
+            >
+              <FaChevronLeft className="h-3 w-3" />
+            </button>
+
+            {/* Compact page numerals */}
+            <div className="mx-2 flex items-center gap-1.5">
+              {getPageWindow(page, totalPages).map((p, i) =>
+                p === -1 ? (
+                  <span
+                    key={`gap-${i}`}
+                    className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted"
+                  >
+                    ·
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => goto(p)}
+                    aria-label={`Page ${p + 1}`}
+                    aria-current={p === page ? "page" : undefined}
+                    className={`flex h-9 min-w-9 items-center justify-center rounded-full border px-2 font-mono text-[11px] uppercase tracking-[0.15em] transition-all ${
+                      p === page
+                        ? "border-ink bg-ink text-paper"
+                        : "border-rule text-ink-2 hover:border-ink hover:text-ink"
+                    }`}
+                  >
+                    {String(p + 1).padStart(2, "0")}
+                  </button>
+                )
+              )}
+            </div>
+
+            <button
+              onClick={() => goto(page + 1)}
+              disabled={page >= totalPages - 1}
+              aria-label="Next page"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-rule text-ink-2 transition-all hover:border-ink hover:text-ink disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-rule disabled:hover:text-ink-2"
+            >
+              <FaChevronRight className="h-3 w-3" />
+            </button>
+          </div>
         </div>
       )}
     </section>
   );
+}
+
+/**
+ * Returns a compact page-number window: [0, 1, -1, current, -1, last]
+ * where -1 marks a gap ellipsis.
+ */
+function getPageWindow(current: number, total: number): number[] {
+  if (total <= 6) {
+    return Array.from({ length: total }, (_, i) => i);
+  }
+  const set = new Set<number>([0, total - 1, current, current - 1, current + 1]);
+  const pages = Array.from(set)
+    .filter((p) => p >= 0 && p < total)
+    .sort((a, b) => a - b);
+
+  const out: number[] = [];
+  for (let i = 0; i < pages.length; i++) {
+    if (i > 0 && pages[i] - pages[i - 1] > 1) out.push(-1);
+    out.push(pages[i]);
+  }
+  return out;
 }

@@ -16,9 +16,6 @@ import Marquee from "@/components/Marquee";
 import GameModeWrapper from "@/components/game3d/GameModeWrapper";
 
 // Below-the-fold sections are code-split
-const Workshop = dynamic(() => import("@/components/sections/Workshop"), {
-  loading: () => <div className="min-h-[70vh]" />,
-});
 const Projects = dynamic(() => import("@/components/sections/Projects"), {
   loading: () => <div className="min-h-[70vh]" />,
 });
@@ -77,7 +74,6 @@ export default function Home() {
             <Marquee />
             <Experience />
             <Skills />
-            <Workshop />
             <Projects />
             <DigitalProducts />
             <Articles />
