@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FaArrowDown, FaArrowRight } from "react-icons/fa";
 import ViewCounter from "../ViewCounter";
+import GlitchSwap from "../kinetic/GlitchSwap";
 
 const verses = [
   { line: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन", lang: "sa", label: "Sanskrit · Bhagavad Gītā 2.47" },
@@ -62,24 +63,35 @@ export default function Hero() {
         {/* Colossal typographic name — kinetic reveal */}
         <div className="mt-10 md:mt-16">
           <div className="eyebrow mb-6">Introducing</div>
-          <h1 className="font-display font-medium text-ink text-[clamp(3rem,11vw,10.5rem)] leading-[0.92] tracking-[-0.035em]">
-            <motion.span
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
-              className="block"
-            >
-              Divyansh
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.1, ease: [0.2, 0.8, 0.2, 1] }}
-              className="block italic text-saffron"
-            >
-              Singh<span className="text-ink">.</span>
-            </motion.span>
-          </h1>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
+            className="min-h-[2.2em]"
+          >
+            <GlitchSwap
+              ariaLabel="Divyansh Singh, also known as rgndunes"
+              hold={4200}
+              glitchMs={520}
+              settleMs={220}
+              className="font-display font-medium text-ink text-[clamp(3rem,11vw,10.5rem)] leading-[0.92] tracking-[-0.035em]"
+              states={[
+                <span key="real" className="block">
+                  <span className="block">Divyansh</span>
+                  <span className="block italic text-saffron">
+                    Singh<span className="text-ink">.</span>
+                  </span>
+                </span>,
+                <span
+                  key="handle"
+                  className="block font-mono text-ink"
+                  style={{ letterSpacing: "-0.02em" }}
+                >
+                  <span className="text-saffron">/</span>rgndunes
+                </span>,
+              ]}
+            />
+          </motion.div>
         </div>
 
         {/* Sub-lede */}

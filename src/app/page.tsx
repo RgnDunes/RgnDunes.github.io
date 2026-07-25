@@ -6,10 +6,13 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import CommandPalette from "@/components/CommandPalette";
+import Cursor from "@/components/Cursor";
+import EasterEgg from "@/components/EasterEgg";
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
 import Experience from "@/components/sections/Experience";
 import Skills from "@/components/sections/Skills";
+import Marquee from "@/components/Marquee";
 import GameModeWrapper from "@/components/game3d/GameModeWrapper";
 
 // Below-the-fold sections are code-split
@@ -56,6 +59,7 @@ export default function Home() {
   return (
     <>
       <ScrollProgress />
+      <Cursor />
       {!gameMode && (
         <>
           <Navbar onGameModeToggle={enterGameMode} onCommandOpen={openCmd} />
@@ -67,6 +71,7 @@ export default function Home() {
           >
             <Hero />
             <About />
+            <Marquee />
             <Experience />
             <Skills />
             <Projects />
@@ -82,6 +87,7 @@ export default function Home() {
             onClose={closeCmd}
             onGameModeToggle={enterGameMode}
           />
+          <EasterEgg />
         </>
       )}
       <GameModeWrapper isActive={gameMode} onExit={exitGameMode} />

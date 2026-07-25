@@ -392,6 +392,19 @@
 .animate-caret { animation: caret-blink 1s steps(1) infinite; }
 .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
 
+/* Cursor overrides (desktop, motion-safe) */
+@media (hover: hover) and (pointer: fine) {
+  html.cursor-hidden,
+  html.cursor-hidden body,
+  html.cursor-hidden * {
+    cursor: none !important;
+  }
+  html.cursor-hidden input,
+  html.cursor-hidden textarea {
+    cursor: text !important;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
