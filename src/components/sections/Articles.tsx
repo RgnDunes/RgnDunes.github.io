@@ -66,9 +66,18 @@ export default function Articles() {
             </h2>
           </div>
         </div>
-        <p className="max-w-md font-mono text-[11.5px] uppercase tracking-[0.18em] text-muted md:justify-self-end md:text-right">
-          Search {articles.length} pieces across performance, tooling, React and system design
-        </p>
+        <div className="flex flex-col items-end gap-3 md:justify-self-end">
+          <p className="max-w-md font-mono text-[11.5px] uppercase tracking-[0.18em] text-muted md:text-right">
+            Search {articles.length} pieces across performance, tooling, React and system design
+          </p>
+          {/* Magazine circulation stamp */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-ink bg-paper px-3 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-ink">
+            <span className="h-1.5 w-1.5 rounded-full bg-saffron" />
+            <span>Circulation · {articles.length}</span>
+            <span className="text-muted">|</span>
+            <span>Vol. V</span>
+          </div>
+        </div>
       </motion.div>
 
       {/* Search bar */}
@@ -125,8 +134,13 @@ export default function Articles() {
                 rel="noopener noreferrer"
                 className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-4 py-5 md:grid-cols-[80px_120px_1fr_auto] md:gap-8"
               >
-                <span className="col-span-1 font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted md:col-span-1">
-                  {String(start + i + 1).padStart(2, "0")}
+                {/* Folio numeral in a mini column rule (magazine-index style) */}
+                <span className="col-span-1 flex items-baseline gap-2 md:col-span-1">
+                  <span className="hidden h-3.5 w-px bg-rule md:block" />
+                  <span className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">
+                    {String(start + i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="hidden h-3.5 w-px bg-rule md:block" />
                 </span>
                 <span className="col-span-1 hidden font-mono text-[10.5px] uppercase tracking-[0.15em] text-saffron md:block">
                   {a.type}
@@ -146,13 +160,13 @@ export default function Articles() {
           ))}
           {shown.length === 0 && (
             <li className="py-16 text-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
-              No pieces match — try a different tab or a broader search.
+              No pieces match - try a different tab or a broader search.
             </li>
           )}
         </motion.ul>
       </AnimatePresence>
 
-      {/* Pagination footer — always in view, no growing list */}
+      {/* Pagination footer - always in view, no growing list */}
       {filtered.length > PER_PAGE && (
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">

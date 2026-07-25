@@ -75,7 +75,7 @@
     line-height: 1.05;
   }
 
-  /* Paper texture — printed page feel */
+  /* Paper texture - printed page feel */
   body::before {
     content: "";
     position: fixed;
@@ -92,7 +92,7 @@
     color: rgb(var(--ink));
   }
 
-  /* Custom scrollbar — thin, editorial */
+  /* Custom scrollbar - thin, editorial */
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: rgb(var(--paper)); }
   ::-webkit-scrollbar-thumb {
@@ -178,7 +178,7 @@
     transition: all 0.3s ease;
   }
 
-  /* Stamp / seal — small typographic ornament */
+  /* Stamp / seal - small typographic ornament */
   .stamp {
     display: inline-flex;
     align-items: center;
@@ -201,7 +201,7 @@
     background: rgb(var(--saffron));
   }
 
-  /* Numeric folio — used as section numerals */
+  /* Numeric folio - used as section numerals */
   .folio {
     font-family: var(--font-fraunces), Georgia, serif;
     font-style: italic;
@@ -209,7 +209,7 @@
     color: rgb(var(--saffron));
   }
 
-  /* Buttons — sharp editorial */
+  /* Buttons - sharp editorial */
   .btn-primary {
     display: inline-flex;
     align-items: center;

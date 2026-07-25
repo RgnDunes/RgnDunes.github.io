@@ -105,7 +105,7 @@ export const articles: Article[] = [
     title: "I Let Claude & GPT-4 Play My Board Game Until It Was Bug-Free",
     type: "Security & Testing",
     description:
-      "How I used two competing AI models as adversarial test players to stress-test a web version of Monopoly Deal and Scotland Yard — and what the simulation taught me about edge cases no human tester would ever find.",
+      "How I used two competing AI models as adversarial test players to stress-test a web version of Monopoly Deal and Scotland Yard - and what the simulation taught me about edge cases no human tester would ever find.",
     link: "/blog/ai_boardgame_testing_article.html",
     icon: FaBookmark,
     date: "March 2025",

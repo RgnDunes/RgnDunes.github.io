@@ -28,7 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Divyansh Singh — Software Engineer",
+  title: "Divyansh Singh - Software Engineer",
   description:
     "The working notebook of Divyansh Singh, a software engineer building web infrastructure, developer tooling, and CI/CD systems at Rippling. Previously Razorpay.",
   keywords: [
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Divyansh Singh" }],
   openGraph: {
-    title: "Divyansh Singh — Software Engineer",
+    title: "Divyansh Singh - Software Engineer",
     description:
       "Web infrastructure, CI/CD, and developer tooling. A working notebook.",
     type: "website",

@@ -27,7 +27,7 @@ export default function ScrollProgress() {
         style={{ scaleX }}
       />
 
-      {/* right-margin folio — page counter */}
+      {/* right-margin folio - page counter */}
       <motion.div
         style={{ opacity }}
         className="pointer-events-none fixed right-3 top-1/2 z-[60] hidden -translate-y-1/2 flex-col items-center gap-2 md:flex"
