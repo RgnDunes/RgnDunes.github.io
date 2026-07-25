@@ -31,7 +31,7 @@ export default function Navbar({ onGameModeToggle, onCommandOpen }: NavbarProps)
 
   return (
     <>
-      {/* Editorial masthead — always visible above nav */}
+      {/* Editorial masthead - always visible above nav */}
       <div className="relative z-30 border-b border-rule bg-paper/70 backdrop-blur-sm">
         <div className="page-shell flex h-8 items-center justify-between text-[10.5px] font-mono uppercase tracking-[0.22em] text-muted">
           <span>Vol. V · The Notebook</span>
@@ -53,7 +53,7 @@ export default function Navbar({ onGameModeToggle, onCommandOpen }: NavbarProps)
         }`}
       >
         <div className="page-shell flex h-16 items-center justify-between">
-          {/* Logo — wordmark */}
+          {/* Logo - wordmark */}
           <Link
             href="/"
             className="group flex items-baseline gap-2"
@@ -107,10 +107,10 @@ export default function Navbar({ onGameModeToggle, onCommandOpen }: NavbarProps)
               <button
                 onClick={onGameModeToggle}
                 className="hidden items-center gap-2 rounded-full bg-ink px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-paper transition-transform hover:-translate-y-0.5 md:inline-flex"
-                aria-label="Enter 3D mode"
+                aria-label="Open Ripple, the debugging game"
               >
                 <FaGamepad className="h-3 w-3" />
-                3D
+                Play
                 <sup className="text-[8px] opacity-70">β</sup>
               </button>
             )}
@@ -171,7 +171,7 @@ export default function Navbar({ onGameModeToggle, onCommandOpen }: NavbarProps)
                       className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-paper"
                     >
                       <FaGamepad className="h-3 w-3" />
-                      3D <sup className="text-[8px] opacity-70">β</sup>
+                      Play <sup className="text-[8px] opacity-70">β</sup>
                     </button>
                   )}
                 </div>

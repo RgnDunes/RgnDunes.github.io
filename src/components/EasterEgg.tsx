@@ -59,7 +59,7 @@ export default function EasterEgg() {
             />
 
             <div className="relative flex items-center gap-4">
-              {/* Ganesha sigil — a stylized Om with a tilak */}
+              {/* Ganesha sigil - a stylized Om with a tilak */}
               <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-ink bg-paper">
                 <span className="font-display text-2xl text-saffron leading-none">ॐ</span>
                 <motion.span

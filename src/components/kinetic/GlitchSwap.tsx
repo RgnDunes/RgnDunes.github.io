@@ -51,7 +51,7 @@ export default function GlitchSwap({
     return () => m.removeEventListener?.("change", on);
   }, []);
 
-  // Main loop — one `cancelled` flag PER effect run so Strict Mode's
+  // Main loop - one `cancelled` flag PER effect run so Strict Mode's
   // double-mount can't leak two overlapping loops (that was cancelling
   // the swaps out and making it look stuck).
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function GlitchSwap({
     };
   }, [hold, glitchMs, settleMs, reduced]);
 
-  // Jitter shake — updates every ~50ms while glitching
+  // Jitter shake - updates every ~50ms while glitching
   useEffect(() => {
     if (phase === "idle" || reduced) {
       setShake({ x: 0, y: 0 });
@@ -115,7 +115,7 @@ export default function GlitchSwap({
 
   const isGlitch = phase !== "idle" && !reduced;
 
-  // RGB split via text-shadow — inherits any color, italic, weight.
+  // RGB split via text-shadow - inherits any color, italic, weight.
   const textShadow = isGlitch
     ? `${(-3 - shake.x * 0.4).toFixed(2)}px ${(1 + shake.y * 0.3).toFixed(2)}px 0 #00e0ff, ${(3 + shake.x * 0.4).toFixed(2)}px ${(-1 - shake.y * 0.3).toFixed(2)}px 0 #ff2b7f`
     : "none";
@@ -130,7 +130,7 @@ export default function GlitchSwap({
       aria-label={ariaLabel}
       data-glitch={phase}
     >
-      {/* Scanline overlay — only during glitch */}
+      {/* Scanline overlay - only during glitch */}
       {isGlitch && (
         <span
           aria-hidden

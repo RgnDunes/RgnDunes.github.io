@@ -13,7 +13,18 @@ import About from "@/components/sections/About";
 import Experience from "@/components/sections/Experience";
 import Skills from "@/components/sections/Skills";
 import Marquee from "@/components/Marquee";
-import GameModeWrapper from "@/components/game3d/GameModeWrapper";
+import SectionOrnament from "@/components/SectionOrnament";
+
+const RippleShell = dynamic(() => import("@/components/ripple/RippleShell"), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-paper">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
+        Loading Ripple…
+      </div>
+    </div>
+  ),
+});
 
 // Below-the-fold sections are code-split
 const Projects = dynamic(() => import("@/components/sections/Projects"), {
@@ -73,11 +84,15 @@ export default function Home() {
             <About />
             <Marquee />
             <Experience />
+            <SectionOrnament index={0} />
             <Skills />
+            <SectionOrnament index={1} />
             <Projects />
             <DigitalProducts />
+            <SectionOrnament index={2} />
             <Articles />
             <LatestBlog />
+            <SectionOrnament index={0} />
             <Testimonials />
             <Contact />
           </motion.main>
@@ -90,7 +105,7 @@ export default function Home() {
           <EasterEgg />
         </>
       )}
-      <GameModeWrapper isActive={gameMode} onExit={exitGameMode} />
+      {gameMode && <RippleShell onExit={exitGameMode} />}
     </>
   );
 }

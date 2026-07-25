@@ -40,9 +40,21 @@ export default function Testimonials() {
         </p>
       </motion.div>
 
-      <div className="mt-14 grid gap-12 md:grid-cols-[auto_1fr] md:items-center md:gap-16">
+      <div className="relative mt-14 grid gap-12 md:grid-cols-[auto_1fr] md:items-center md:gap-16">
+        {/* Column rule between portrait and quote */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-[13rem] top-8 bottom-8 hidden w-px bg-rule md:block"
+          style={{ left: "calc(13rem + 3rem)" }}
+        />
+
         <div className="relative">
           <div className="absolute -inset-3 -z-10 rounded-3xl bg-paper-2" />
+          {/* Corner brackets around the portrait */}
+          <span className="pointer-events-none absolute -left-1 -top-1 h-4 w-4 border-l border-t border-ink/30" />
+          <span className="pointer-events-none absolute -right-1 -top-1 h-4 w-4 border-r border-t border-ink/30" />
+          <span className="pointer-events-none absolute -bottom-1 -left-1 h-4 w-4 border-b border-l border-ink/30" />
+          <span className="pointer-events-none absolute -bottom-1 -right-1 h-4 w-4 border-b border-r border-ink/30" />
           <AnimatePresence mode="wait">
             <motion.div
               key={t.name}
@@ -57,7 +69,16 @@ export default function Testimonials() {
           </AnimatePresence>
         </div>
 
-        <div>
+        <div className="relative">
+          {/* Giant fleuron open-quote as an oversized decoration */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -left-2 -top-8 select-none font-display italic leading-none text-saffron/25 md:-left-6 md:-top-12"
+            style={{ fontSize: "clamp(6rem, 12vw, 10rem)" }}
+          >
+            &ldquo;
+          </span>
+
           <AnimatePresence mode="wait">
             <motion.div
               key={t.name}
@@ -65,8 +86,8 @@ export default function Testimonials() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35 }}
+              className="relative"
             >
-              <span className="folio text-6xl leading-none">"</span>
               <blockquote className="mt-2 font-display text-2xl leading-[1.35] text-ink md:text-[28px]">
                 {t.testimonial}
               </blockquote>

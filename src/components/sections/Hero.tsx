@@ -10,7 +10,7 @@ import GlitchSwap from "../kinetic/GlitchSwap";
 const verses = [
   { line: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन", lang: "sa", label: "Sanskrit · Bhagavad Gītā 2.47" },
   { line: "karmaṇy‑evādhikāras te mā phaleṣu kadācana", lang: "iast", label: "Transliteration" },
-  { line: "You have the right to work — never to its fruits.", lang: "en", label: "English rendering" },
+  { line: "You have the right to work - never to its fruits.", lang: "en", label: "English rendering" },
 ];
 
 const nowItems = [
@@ -60,7 +60,7 @@ export default function Hero() {
           <span>{new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
         </div>
 
-        {/* Colossal typographic name — kinetic reveal */}
+        {/* Colossal typographic name - kinetic reveal */}
         <div className="mt-10 md:mt-16">
           <div className="eyebrow mb-6">Introducing</div>
           <motion.div
@@ -103,7 +103,7 @@ export default function Hero() {
         >
           <div>
             <p className="max-w-[52ch] font-body text-lg leading-[1.55] text-ink-2 md:text-xl">
-              A software engineer building the plumbing of the modern web —
+              A software engineer building the plumbing of the modern web -
               <span className="text-ink"> CI/CD pipelines</span>, developer
               tooling, and <span className="text-ink">deployment infrastructure</span>. Formerly
               a senior frontend engineer at Razorpay, currently at{" "}
@@ -128,7 +128,7 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Right column — animated verse card */}
+          {/* Right column - animated verse card */}
           <div className="relative">
             <div className="absolute -left-4 top-0 h-full w-px bg-rule hidden md:block" />
             <div className="relative flex flex-col gap-3 pt-1">
@@ -171,7 +171,7 @@ export default function Hero() {
           </div>
         </motion.div>
 
-        {/* "Now" strip — the bento of live data, condensed */}
+        {/* "Now" strip - the bento of live data, condensed */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -179,7 +179,7 @@ export default function Hero() {
           className="mt-16 rule-h pt-6 md:mt-24"
         >
           <div className="mb-4 flex items-baseline justify-between">
-            <span className="eyebrow">— Now</span>
+            <span className="eyebrow">- Now</span>
             <ViewCounter pageId="homepage" showLabel={true} />
           </div>
           <div className="grid gap-8 md:grid-cols-4">
@@ -201,7 +201,7 @@ export default function Hero() {
         >
           <FaArrowDown className="h-3 w-3 animate-float-slow" />
           <span className="font-mono text-[10.5px] uppercase tracking-[0.24em]">
-            Continue reading — the notebook begins
+            Continue reading - the notebook begins
           </span>
         </motion.div>
       </motion.div>

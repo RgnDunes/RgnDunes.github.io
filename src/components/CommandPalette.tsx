@@ -58,7 +58,7 @@ export default function CommandPalette({ open, onClose, onGameModeToggle }: Prop
       { id: "resume", label: "Download résumé", group: "Actions", icon: FaArrowRight, hint: "PDF", action: () => { onClose(); window.open("/resume.pdf", "_blank"); } },
       { id: "email", label: "Copy email address", group: "Actions", icon: FaEnvelope, hint: "rgndunes@gmail.com", action: async () => { try { await navigator.clipboard.writeText("rgndunes@gmail.com"); } catch {} onClose(); } },
       ...(onGameModeToggle
-        ? [{ id: "3d", label: "Enter 3D mode", group: "Actions", icon: FaGamepad, hint: "β", action: () => { onClose(); onGameModeToggle(); } } as Cmd]
+        ? [{ id: "play", label: "Play · Debug the fire", group: "Actions", icon: FaGamepad, hint: "β", action: () => { onClose(); onGameModeToggle(); } } as Cmd]
         : []),
 
       { id: "gh", label: "GitHub", group: "Elsewhere", icon: FaGithub, hint: "@RgnDunes", action: () => { onClose(); window.open("https://github.com/RgnDunes", "_blank"); } },

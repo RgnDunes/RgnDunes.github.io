@@ -33,10 +33,10 @@ export default function Projects() {
         </p>
       </motion.div>
 
-      {/* Featured — spotlight follow */}
+      {/* Featured - spotlight follow */}
       <FeaturedCard feature={feature} inView={inView} />
 
-      {/* Rest as a 3-column bento — typographic mastheads, no logo tile */}
+      {/* Rest as a 3-column bento - typographic mastheads, no logo tile */}
       <div className="mt-8 grid gap-6 md:grid-cols-3">
         {rest.map((p, i) => (
           <motion.article
@@ -46,7 +46,7 @@ export default function Projects() {
             transition={{ duration: 0.5, delay: 0.2 + i * 0.08 }}
             className="paper-card group relative flex flex-col overflow-hidden"
           >
-            {/* Typographic masthead — folio numeral instead of an app icon */}
+            {/* Typographic masthead - folio numeral instead of an app icon */}
             <div className="relative flex h-40 items-center justify-center overflow-hidden border-b border-rule bg-paper-2">
               {/* Big italic folio numeral */}
               <span
@@ -153,20 +153,20 @@ function FeaturedCard({ feature, inView }: { feature: Project; inView: boolean }
       onMouseLeave={onLeave}
       className="relative mt-12 grid gap-8 overflow-hidden rounded-3xl border border-rule bg-paper-2 p-6 md:grid-cols-[1.1fr_1fr] md:gap-12 md:p-10"
     >
-      {/* Spotlight overlay — sits above content but below interactives */}
+      {/* Spotlight overlay - sits above content but below interactives */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-100 transition-opacity duration-300"
         style={{ background: spotlight }}
       />
 
-      {/* Corner brackets — echo the colophon */}
+      {/* Corner brackets - echo the colophon */}
       <span className="pointer-events-none absolute left-3 top-3 h-4 w-4 border-l border-t border-ink/30" />
       <span className="pointer-events-none absolute right-3 top-3 h-4 w-4 border-r border-t border-ink/30" />
       <span className="pointer-events-none absolute bottom-3 left-3 h-4 w-4 border-b border-l border-ink/30" />
       <span className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 border-b border-r border-ink/30" />
 
-      {/* Left column — typographic mark, not an app icon */}
+      {/* Left column - typographic mark, not an app icon */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border border-rule bg-paper p-10">
         <span className="eyebrow">npm</span>
         <span

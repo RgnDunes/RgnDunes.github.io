@@ -51,7 +51,15 @@ export default function LatestBlog() {
             transition={{ duration: 0.55, delay: i * 0.1 }}
             className="paper-card flex flex-col overflow-hidden"
           >
-            <Link href={`/blog/${post.slug}`} className="group flex h-full flex-col">
+            <Link href={`/blog/${post.slug}`} className="group relative flex h-full flex-col">
+              {/* Postmark stamp in the top-right */}
+              <Postmark
+                month={new Date(post.publishedAt)
+                  .toLocaleDateString("en-US", { month: "short" })
+                  .toUpperCase()}
+                year={new Date(post.publishedAt).getFullYear()}
+              />
+
               <div className="flex items-center justify-between border-b border-rule bg-paper-2 px-5 py-3 font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">
                 <span className="text-saffron">{post.tags[0]}</span>
                 <span className="flex items-center gap-1.5">
@@ -81,5 +89,62 @@ export default function LatestBlog() {
         ))}
       </div>
     </section>
+  );
+}
+
+/**
+ * A circular postmark stamp — angled slightly, saffron ink, faux
+ * "DISPATCHED · MONTH · YEAR · BLR" text arced around the ring.
+ */
+function Postmark({ month, year }: { month: string; year: number }) {
+  const id = `pm-${month}-${year}`;
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 80 80"
+      className="pointer-events-none absolute right-3 top-3 z-10 h-16 w-16 opacity-70 mix-blend-multiply"
+      style={{ transform: "rotate(-8deg)" }}
+    >
+      <defs>
+        <path id={id} d="M 40 40 m -28 0 a 28 28 0 1 1 56 0 a 28 28 0 1 1 -56 0" fill="none" />
+      </defs>
+      <circle
+        cx="40" cy="40" r="30"
+        fill="none"
+        stroke="#C24E16"
+        strokeWidth="1.2"
+      />
+      <circle
+        cx="40" cy="40" r="22"
+        fill="none"
+        stroke="#C24E16"
+        strokeWidth="0.6"
+        strokeDasharray="2 2"
+      />
+      {/* Text on the arc */}
+      <text
+        fill="#C24E16"
+        fontFamily="JetBrains Mono, monospace"
+        fontSize="6"
+        letterSpacing="1.8"
+        fontWeight="500"
+      >
+        <textPath href={`#${id}`} startOffset="4%">
+          DISPATCHED · {month} {year} · BLR ·
+        </textPath>
+      </text>
+      {/* Centre monogram */}
+      <text
+        x="40" y="44"
+        textAnchor="middle"
+        fill="#C24E16"
+        fontFamily="Fraunces, Georgia, serif"
+        fontStyle="italic"
+        fontWeight="500"
+        fontSize="14"
+      >
+        ds
+      </text>
+    </svg>
   );
 }

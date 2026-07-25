@@ -50,7 +50,7 @@ export default function About() {
       </motion.div>
 
       <div className="mt-14 grid gap-12 md:grid-cols-12 md:gap-16">
-        {/* Left — portrait column */}
+        {/* Left - portrait column */}
         <motion.aside
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -109,30 +109,39 @@ export default function About() {
           </div>
         </motion.aside>
 
-        {/* Middle — long-form column */}
+        {/* Middle - long-form column */}
         <motion.article
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="md:col-span-5"
+          className="relative md:col-span-5"
         >
+          {/* Margin gloss - a decorative "editor's note" next to the lede */}
+          <div className="mb-6 flex items-start gap-3 md:mb-0 md:absolute md:-left-32 md:top-2 md:w-28 md:flex-col md:items-end md:gap-2 md:text-right">
+            <span className="hidden h-px w-8 flex-shrink-0 bg-saffron md:block" />
+            <span className="rotate-0 font-display italic text-[13px] leading-[1.3] text-muted md:rotate-[-1.5deg]">
+              editor's gloss:
+              <br className="hidden md:block" /> the lede
+            </span>
+          </div>
+
           <p className="drop-cap font-display text-[19px] leading-[1.55] text-ink-2 md:text-[20px]">
             I write software for a living. Specifically, I write the software that
-            other engineers depend on to write their software — the pipelines,
+            other engineers depend on to write their software - the pipelines,
             the tooling, the SDKs, the observability. It is the plumbing of
             the modern web, and it is more interesting than it sounds.
           </p>
 
           <p className="mt-6 font-body text-[16.5px] leading-[1.68] text-ink-2">
             At <span className="text-ink">Rippling</span>, I work on the Web
-            Infrastructure team — migrating package auth to AWS Secrets Manager
+            Infrastructure team - migrating package auth to AWS Secrets Manager
             with zero downtime, building a flakiness detection system on top of
             Datadog, and redesigning route attribution so it stops silently
             drifting. Before that, four years at{" "}
             <span className="text-ink">Razorpay</span>: leading the international
             expansion into Malaysia and Singapore, shipping the Mastercard
             Biometric Authentication demoed at GFF 2024, and open-sourcing{" "}
-            <span className="marker">i18nify-js</span> — an SDK now downloaded
+            <span className="marker">i18nify-js</span> - an SDK now downloaded
             over 100,000 times a week.
           </p>
 
@@ -140,16 +149,16 @@ export default function About() {
             Outside the day job, I teach React at <span className="text-ink">AccioJob</span>,
             mentor students at <span className="text-ink">Airtribe</span>, sat on the
             jury for <span className="text-ink">Flipkart GRID 6.0</span>, and write
-            long-form essays about frontend infrastructure — the ones you'll find in the notebook below.
+            long-form essays about frontend infrastructure - the ones you'll find in the notebook below.
           </p>
 
           <div className="mt-8 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
             <span className="h-px w-6 bg-rule" />
-            <span>— DS, Bengaluru</span>
+            <span>- DS, Bengaluru</span>
           </div>
         </motion.article>
 
-        {/* Right — stats sidebar */}
+        {/* Right - stats sidebar */}
         <motion.aside
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}

@@ -59,7 +59,7 @@ export default function Contact() {
       </motion.div>
 
       <div className="mt-14 grid gap-12 md:grid-cols-[1.4fr_1fr] md:gap-20">
-        {/* Left — the letter */}
+        {/* Left - the letter */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -70,23 +70,29 @@ export default function Contact() {
             The second quickest is LinkedIn. I answer both, sometimes even quickly.
           </p>
 
-          {/* Email row */}
+          {/* Email row - styled as an envelope with a wax seal */}
           <div className="mt-10 grid gap-3">
             <div className="eyebrow">Email</div>
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-rule bg-paper-2 p-4">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-ink text-paper">
-                <MdEmail className="h-5 w-5" />
+            <div className="relative overflow-hidden rounded-2xl border border-rule bg-paper-2 p-4">
+              {/* Envelope flap in the top-right */}
+              <EnvelopeFlap />
+
+              <div className="relative flex flex-wrap items-center gap-3 pr-14">
+                <WaxSeal />
+                <a
+                  href={`mailto:${email}`}
+                  className="font-mono text-[15px] text-ink hover:text-saffron"
+                >
+                  {email}
+                </a>
+                <button
+                  onClick={copyEmail}
+                  className="ml-auto flex items-center gap-2 rounded-full border border-rule bg-paper px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] text-ink transition-all hover:border-ink"
+                >
+                  {copied ? <FaCheck className="h-3 w-3 text-seal" /> : <FaCopy className="h-3 w-3" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
               </div>
-              <a href={`mailto:${email}`} className="font-mono text-[15px] text-ink hover:text-saffron">
-                {email}
-              </a>
-              <button
-                onClick={copyEmail}
-                className="ml-auto flex items-center gap-2 rounded-full border border-rule bg-paper px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] text-ink transition-all hover:border-ink"
-              >
-                {copied ? <FaCheck className="h-3 w-3 text-seal" /> : <FaCopy className="h-3 w-3" />}
-                {copied ? "Copied" : "Copy"}
-              </button>
             </div>
           </div>
 
@@ -101,7 +107,7 @@ export default function Contact() {
           </div>
         </motion.div>
 
-        {/* Right — social directory */}
+        {/* Right - social directory */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -138,7 +144,7 @@ export default function Contact() {
           <div className="mt-6 rounded-2xl border border-rule bg-paper-2 p-5">
             <div className="eyebrow">Currently</div>
             <div className="mt-2 font-display text-lg text-ink">
-              Building at Rippling · L6
+              Shipping web infrastructure
             </div>
             <div className="mt-1 font-mono text-[11px] uppercase tracking-[0.15em] text-muted">
               Bengaluru · GMT+5:30
@@ -148,5 +154,63 @@ export default function Contact() {
       </div>
 
     </section>
+  );
+}
+
+/* ─── Wax seal ───────────────────────────────────────
+   A small circular saffron seal with a "ds" monogram.
+   ──────────────────────────────────────────────────── */
+
+function WaxSeal() {
+  return (
+    <div className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center">
+      {/* Outer ring (jagged wax edge) */}
+      <svg viewBox="0 0 40 40" className="absolute inset-0 h-full w-full">
+        <defs>
+          <radialGradient id="wax" cx="45%" cy="40%" r="60%">
+            <stop offset="0%" stopColor="#F09456" />
+            <stop offset="100%" stopColor="#C24E16" />
+          </radialGradient>
+        </defs>
+        {/* Slightly irregular polygon → wax "spread" */}
+        <polygon
+          points="20,2 26,4 30,8 36,10 37,16 39,22 36,28 32,32 26,36 20,38 14,36 8,32 4,28 2,22 3,16 6,10 12,6 16,4"
+          fill="url(#wax)"
+        />
+        {/* Inner concentric ring */}
+        <circle cx="20" cy="20" r="12" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.6" />
+        {/* Monogram */}
+        <text
+          x="20"
+          y="24"
+          textAnchor="middle"
+          fontFamily="Fraunces, Georgia, serif"
+          fontStyle="italic"
+          fontWeight="500"
+          fontSize="13"
+          fill="#F6F0E7"
+        >
+          ds
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+/* ─── Envelope flap corner ───────────────────────────
+   A folded-paper triangle in the top-right of the email
+   card, hinting at "letter". Subtle drop shadow.
+   ──────────────────────────────────────────────────── */
+
+function EnvelopeFlap() {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute right-0 top-0 h-16 w-16"
+      viewBox="0 0 64 64"
+    >
+      <polygon points="64,0 64,32 32,0" fill="rgb(var(--paper))" stroke="rgb(var(--rule))" strokeWidth="0.75" />
+      <line x1="64" y1="0" x2="32" y2="32" stroke="rgb(var(--rule))" strokeWidth="0.75" />
+    </svg>
   );
 }

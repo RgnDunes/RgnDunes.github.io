@@ -32,6 +32,10 @@ export default function DigitalProducts() {
         </p>
       </motion.div>
 
+      {/* A stylised bookshelf strip underneath the section header —
+          a row of book spines that hints at "the shelf". Purely decorative. */}
+      <Bookshelf />
+
       <div className="mt-12 grid gap-8 md:grid-cols-3">
         {products.map((p, i) => (
           <motion.a
@@ -81,5 +85,71 @@ export default function DigitalProducts() {
         ))}
       </div>
     </section>
+  );
+}
+
+/**
+ * A decorative bookshelf strip - a row of thin coloured spines
+ * with typographic labels, resting on a paper "shelf" rule.
+ */
+function Bookshelf() {
+  const spines = [
+    { h: 92, w: 16, fill: "#27584A", label: "System Design", color: "#F6F0E7" },
+    { h: 108, w: 22, fill: "#141416", label: "JavaScript", color: "#F6F0E7" },
+    { h: 96, w: 14, fill: "#E86A2B", label: "", color: "#F6F0E7" },
+    { h: 118, w: 26, fill: "#F6F0E7", label: "CSS Unmasked", color: "#141416", stroked: true },
+    { h: 88, w: 18, fill: "#5A3A6E", label: "Frontend", color: "#F6F0E7" },
+    { h: 100, w: 14, fill: "#0F4C81", label: "", color: "#F6F0E7" },
+    { h: 108, w: 20, fill: "#141416", label: "React", color: "#F6F0E7" },
+    { h: 84, w: 12, fill: "#E86A2B", label: "", color: "#F6F0E7" },
+    { h: 110, w: 22, fill: "#F0E9DD", label: "Node", color: "#141416", stroked: true },
+    { h: 96, w: 18, fill: "#27584A", label: "", color: "#F6F0E7" },
+    { h: 116, w: 24, fill: "#141416", label: "Full Spectrum", color: "#F6F0E7" },
+    { h: 100, w: 14, fill: "#E86A2B", label: "", color: "#F6F0E7" },
+    { h: 92, w: 18, fill: "#5A3A6E", label: "", color: "#F6F0E7" },
+  ];
+
+  return (
+    <div className="mt-10 md:mt-12">
+      <div className="relative">
+        <div className="flex items-end justify-center gap-1">
+          {spines.map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ scaleY: 0, opacity: 0 }}
+              whileInView={{ scaleY: 1, opacity: 1 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: i * 0.05, ease: [0.2, 0.8, 0.2, 1] }}
+              style={{
+                width: s.w,
+                height: s.h,
+                background: s.fill,
+                border: s.stroked ? "1px solid rgb(var(--rule))" : "none",
+                transformOrigin: "bottom",
+                borderRadius: "2px 2px 0 0",
+              }}
+              className="relative flex-shrink-0"
+            >
+              {s.label && (
+                <span
+                  className="absolute left-1/2 top-1/2 origin-center whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.15em]"
+                  style={{
+                    color: s.color,
+                    transform: "translate(-50%, -50%) rotate(-90deg)",
+                  }}
+                >
+                  {s.label}
+                </span>
+              )}
+            </motion.div>
+          ))}
+        </div>
+        {/* Shelf rule underneath */}
+        <div className="h-[3px] w-full bg-ink" />
+        <div className="mt-1 flex justify-center font-mono text-[9.5px] uppercase tracking-[0.24em] text-muted">
+          on the shelf
+        </div>
+      </div>
+    </div>
   );
 }
