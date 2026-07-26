@@ -60,7 +60,6 @@ export default function Articles() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">vi.</span>
           <div>
-            <span className="eyebrow">The Archive</span>
             <h2 className="font-display text-display-3 text-ink">
               Talks & essays<span className="text-saffron">.</span>
             </h2>

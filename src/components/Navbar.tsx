@@ -31,17 +31,6 @@ export default function Navbar({ onGameModeToggle, onCommandOpen }: NavbarProps)
 
   return (
     <>
-      {/* Editorial masthead - always visible above nav */}
-      <div className="relative z-30 border-b border-rule bg-paper/70 backdrop-blur-sm">
-        <div className="page-shell flex h-8 items-center justify-between text-[10.5px] font-mono uppercase tracking-[0.22em] text-muted">
-          <span>Vol. V · The Notebook</span>
-          <span className="hidden md:inline">
-            Bengaluru, IN · <span className="text-saffron">Available for opportunities</span>
-          </span>
-          <span>Issue {new Date().getFullYear()}</span>
-        </div>
-      </div>
-
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

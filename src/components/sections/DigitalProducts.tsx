@@ -21,7 +21,6 @@ export default function DigitalProducts() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">v.</span>
           <div>
-            <span className="eyebrow">The Shelf</span>
             <h2 className="font-display text-display-3 text-ink">
               Books I have written<span className="text-saffron">.</span>
             </h2>

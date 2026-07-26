@@ -22,7 +22,6 @@ export default function Skills() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">iii.</span>
           <div>
-            <span className="eyebrow">The Toolkit</span>
             <h2 className="font-display text-display-3 text-ink">
               Instruments of the trade<span className="text-saffron">.</span>
             </h2>

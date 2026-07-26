@@ -22,7 +22,6 @@ export default function Projects() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">iv.</span>
           <div>
-            <span className="eyebrow">The Notebook</span>
             <h2 className="font-display text-display-3 text-ink">
               Selected work<span className="text-saffron">.</span>
             </h2>
@@ -166,6 +165,9 @@ function FeaturedCard({ feature, inView }: { feature: Project; inView: boolean }
       <span className="pointer-events-none absolute bottom-3 left-3 h-4 w-4 border-b border-l border-ink/30" />
       <span className="pointer-events-none absolute bottom-3 right-3 h-4 w-4 border-b border-r border-ink/30" />
 
+      {/* Dog-ear · a folded top-right corner, hinting at "bookmarked page" */}
+      <DogEar />
+
       {/* Left column - typographic mark, not an app icon */}
       <div className="relative z-10 flex flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border border-rule bg-paper p-10">
         <span className="eyebrow">npm</span>
@@ -223,5 +225,37 @@ function FeaturedCard({ feature, inView }: { feature: Project; inView: boolean }
         </div>
       </div>
     </motion.article>
+  );
+}
+
+/**
+ * A folded top-right corner - a dog-eared page. The triangle's back
+ * shows in paper-2, giving the illusion of a physical fold. Sits
+ * absolutely over the featured card.
+ */
+function DogEar() {
+  return (
+    <span aria-hidden className="pointer-events-none absolute right-0 top-0">
+      <svg width="48" height="48" viewBox="0 0 48 48">
+        {/* The triangle that "peels" up */}
+        <polygon
+          points="48,0 48,24 24,0"
+          fill="rgb(var(--paper-2))"
+          stroke="rgb(var(--rule))"
+          strokeWidth="0.75"
+        />
+        {/* Shadow line at the fold */}
+        <line
+          x1="48"
+          y1="0"
+          x2="24"
+          y2="24"
+          stroke="rgb(var(--ink) / 0.18)"
+          strokeWidth="0.6"
+        />
+        {/* Tiny saffron dot on the fold to draw the eye */}
+        <circle cx="38" cy="10" r="1.2" fill="#E86A2B" />
+      </svg>
+    </span>
   );
 }

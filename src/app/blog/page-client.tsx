@@ -26,15 +26,6 @@ export default function BlogPageClient({ posts }: Props) {
     <>
       <ScrollProgress />
 
-      {/* Editorial masthead */}
-      <div className="border-b border-rule bg-paper/70 backdrop-blur-sm">
-        <div className="page-shell flex h-8 items-center justify-between text-[10.5px] font-mono uppercase tracking-[0.22em] text-muted">
-          <span>Vol. V · The Notebook</span>
-          <span className="hidden md:inline">Engineering Diaries</span>
-          <span>Archive</span>
-        </div>
-      </div>
-
       <div className="page-shell py-16 md:py-24">
         <motion.div
           initial={{ opacity: 0, x: -12 }}

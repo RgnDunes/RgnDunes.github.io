@@ -25,7 +25,6 @@ export default function LatestBlog() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">vii.</span>
           <div>
-            <span className="eyebrow">From the Editor</span>
             <h2 className="font-display text-display-3 text-ink">
               Latest dispatches<span className="text-saffron">.</span>
             </h2>

@@ -47,7 +47,6 @@ export default function Contact() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">ix.</span>
           <div>
-            <span className="eyebrow">The Colophon</span>
             <h2 className="font-display text-display-3 text-ink">
               Say hello<span className="text-saffron">.</span>
             </h2>
@@ -105,6 +104,9 @@ export default function Contact() {
               Or read the notebook
             </Link>
           </div>
+
+          {/* Signature sign-off */}
+          <Signature />
         </motion.div>
 
         {/* Right - social directory */}
@@ -212,5 +214,72 @@ function EnvelopeFlap() {
       <polygon points="64,0 64,32 32,0" fill="rgb(var(--paper))" stroke="rgb(var(--rule))" strokeWidth="0.75" />
       <line x1="64" y1="0" x2="32" y2="32" stroke="rgb(var(--rule))" strokeWidth="0.75" />
     </svg>
+  );
+}
+
+/* ─── Signature sign-off ─────────────────────────────
+   A cursive "DS" drawn with an SVG path, animated to
+   look like it is being written on the page.
+   ────────────────────────────────────────────────── */
+
+function Signature() {
+  return (
+    <div className="mt-10 flex items-center gap-4">
+      <span className="h-px flex-1 max-w-[3rem] bg-rule" />
+      <div className="flex flex-col items-start gap-1">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
+          Yours,
+        </span>
+        <svg
+          viewBox="0 0 200 80"
+          width="140"
+          height="56"
+          className="text-ink"
+          aria-label="Signed, Divyansh Singh"
+        >
+          {/* D */}
+          <motion.path
+            d="M 10 60 C 8 34, 18 12, 30 12 C 62 12, 70 62, 40 62 C 34 62, 24 60, 20 58"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
+          />
+          {/* S curl */}
+          <motion.path
+            d="M 90 22 C 74 18, 62 30, 74 40 C 90 50, 110 40, 106 56 C 102 68, 84 68, 76 60"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.0, delay: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+          />
+          {/* Long underline flourish */}
+          <motion.path
+            d="M 20 70 C 60 74, 110 66, 170 72"
+            fill="none"
+            stroke="#E86A2B"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.2, delay: 1.3, ease: [0.2, 0.8, 0.2, 1] }}
+          />
+        </svg>
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+          Divyansh Singh · Bengaluru
+        </span>
+      </div>
+    </div>
   );
 }
