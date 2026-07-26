@@ -29,7 +29,6 @@ export default function Testimonials() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">viii.</span>
           <div>
-            <span className="eyebrow">The Testimony</span>
             <h2 className="font-display text-display-3 text-ink">
               Kind words<span className="text-saffron">.</span>
             </h2>
@@ -55,18 +54,27 @@ export default function Testimonials() {
           <span className="pointer-events-none absolute -right-1 -top-1 h-4 w-4 border-r border-t border-ink/30" />
           <span className="pointer-events-none absolute -bottom-1 -left-1 h-4 w-4 border-b border-l border-ink/30" />
           <span className="pointer-events-none absolute -bottom-1 -right-1 h-4 w-4 border-b border-r border-ink/30" />
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={t.name}
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.94 }}
-              transition={{ duration: 0.35 }}
-              className="relative h-40 w-40 overflow-hidden rounded-2xl border border-rule md:h-52 md:w-52"
-            >
-              <Image src={t.image} alt={t.name} fill className="object-cover" sizes="208px" />
-            </motion.div>
-          </AnimatePresence>
+          <div className="relative h-40 w-40 overflow-hidden rounded-2xl border border-rule md:h-52 md:w-52">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.94 }}
+                transition={{ duration: 0.35 }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={t.image}
+                  alt={t.name}
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 768px) 208px, 160px"
+                  priority={i === 0}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="relative">
@@ -97,6 +105,15 @@ export default function Testimonials() {
                   {t.role} · {t.company}
                 </span>
               </div>
+
+              {/* Marginalia gloss - a small italic annotation "verified · <relationship>" */}
+              <div className="mt-3 flex items-center gap-2">
+                <span className="h-px w-4 bg-saffron" />
+                <span className="font-display italic text-[13px] text-muted">
+                  verified · {relationshipFor(i)}
+                </span>
+              </div>
+
               <a
                 href={t.linkedinUrl}
                 target="_blank"
@@ -143,4 +160,14 @@ export default function Testimonials() {
       </div>
     </section>
   );
+}
+
+/**
+ * A tiny label describing how the quoted person knew me. Used as
+ * marginalia under the name row. Cycles through a hand-picked list
+ * matching testimonials.ts order.
+ */
+function relationshipFor(i: number) {
+  const map = ["past manager", "engineering mentor", "team lead", "colleague"];
+  return map[i % map.length];
 }

@@ -85,7 +85,6 @@ export default function Experience() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">ii.</span>
           <div>
-            <span className="eyebrow">The Log</span>
             <h2 className="font-display text-display-3 text-ink">
               A working history<span className="text-saffron">.</span>
             </h2>
@@ -187,7 +186,10 @@ export default function Experience() {
                   </div>
 
                   {/* Body */}
-                  <div className="order-2 md:order-3">
+                  <div className="relative order-2 md:order-3">
+                    {/* Still-writing postmark on the current role */}
+                    {parsed?.current && <StillWritingStamp />}
+
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <h3 className="font-display text-2xl text-ink md:text-3xl">
                         {exp.position}
@@ -463,5 +465,61 @@ function TabBtn({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * A postmark-family "STILL WRITING" stamp for the current role.
+ * Angled slightly and mix-blend-multiply to look like it was ink-stamped
+ * onto the paper. Same family as the LatestBlog postmarks.
+ */
+function StillWritingStamp() {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute -top-4 right-2 z-10 hidden select-none md:inline-flex"
+      style={{ transform: "rotate(-6deg)" }}
+    >
+      <svg
+        viewBox="0 0 130 32"
+        width="120"
+        height="30"
+        className="opacity-80 mix-blend-multiply"
+      >
+        <rect
+          x="1"
+          y="1"
+          width="128"
+          height="30"
+          rx="15"
+          fill="none"
+          stroke="#C24E16"
+          strokeWidth="1.4"
+        />
+        <rect
+          x="5"
+          y="5"
+          width="120"
+          height="22"
+          rx="11"
+          fill="none"
+          stroke="#C24E16"
+          strokeWidth="0.6"
+          strokeDasharray="2 2"
+        />
+        <text
+          x="65"
+          y="20"
+          textAnchor="middle"
+          fontFamily="JetBrains Mono, monospace"
+          fontSize="9"
+          fontWeight="600"
+          letterSpacing="2"
+          fill="#C24E16"
+        >
+          STILL WRITING
+        </text>
+      </svg>
+    </span>
   );
 }

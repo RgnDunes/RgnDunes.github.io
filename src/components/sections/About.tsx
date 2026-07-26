@@ -38,7 +38,6 @@ export default function About() {
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">i.</span>
           <div>
-            <span className="eyebrow">The Feature</span>
             <h2 className="font-display text-display-3 text-ink">
               A note from the desk<span className="text-saffron">.</span>
             </h2>
@@ -68,14 +67,6 @@ export default function About() {
                 priority
               />
             </div>
-            <figcaption className="mt-3 flex items-baseline justify-between">
-              <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted">
-                Fig. 1 · The subject
-              </span>
-              <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted">
-                {new Date().getFullYear()}
-              </span>
-            </figcaption>
           </figure>
 
           {/* Contact quick row */}
@@ -116,15 +107,6 @@ export default function About() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative md:col-span-5"
         >
-          {/* Margin gloss - a decorative "editor's note" next to the lede */}
-          <div className="mb-6 flex items-start gap-3 md:mb-0 md:absolute md:-left-32 md:top-2 md:w-28 md:flex-col md:items-end md:gap-2 md:text-right">
-            <span className="hidden h-px w-8 flex-shrink-0 bg-saffron md:block" />
-            <span className="rotate-0 font-display italic text-[13px] leading-[1.3] text-muted md:rotate-[-1.5deg]">
-              editor's gloss:
-              <br className="hidden md:block" /> the lede
-            </span>
-          </div>
-
           <p className="drop-cap font-display text-[19px] leading-[1.55] text-ink-2 md:text-[20px]">
             I write software for a living. Specifically, I write the software that
             other engineers depend on to write their software - the pipelines,
@@ -132,7 +114,10 @@ export default function About() {
             the modern web, and it is more interesting than it sounds.
           </p>
 
-          <p className="mt-6 font-body text-[16.5px] leading-[1.68] text-ink-2">
+          {/* Dinkus - three centered dots signal a soft break between the lede and the details */}
+          <Dinkus />
+
+          <p className="font-body text-[16.5px] leading-[1.68] text-ink-2">
             At <span className="text-ink">Rippling</span>, I work on the Web
             Infrastructure team - migrating package auth to AWS Secrets Manager
             with zero downtime, building a flakiness detection system on top of
@@ -142,10 +127,12 @@ export default function About() {
             expansion into Malaysia and Singapore, shipping the Mastercard
             Biometric Authentication demoed at GFF 2024, and open-sourcing{" "}
             <span className="marker">i18nify-js</span> - an SDK now downloaded
-            over 100,000 times a week.
+            over <span className="marker">100,000 times a week</span>.
           </p>
 
-          <p className="mt-6 font-body text-[16.5px] leading-[1.68] text-ink-2">
+          <Dinkus />
+
+          <p className="font-body text-[16.5px] leading-[1.68] text-ink-2">
             Outside the day job, I teach React at <span className="text-ink">AccioJob</span>,
             mentor students at <span className="text-ink">Airtribe</span>, sat on the
             jury for <span className="text-ink">Flipkart GRID 6.0</span>, and write
@@ -182,5 +169,19 @@ export default function About() {
         </motion.aside>
       </div>
     </section>
+  );
+}
+
+/**
+ * A small "dinkus" — three centered dots that traditionally mark a
+ * soft section break in books. Saffron on paper, mono spacing.
+ */
+function Dinkus() {
+  return (
+    <div className="my-8 flex items-center justify-center gap-3" aria-hidden>
+      <span className="h-1 w-1 rounded-full bg-saffron" />
+      <span className="h-1 w-1 rounded-full bg-saffron" />
+      <span className="h-1 w-1 rounded-full bg-saffron" />
+    </div>
   );
 }
