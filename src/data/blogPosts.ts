@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "devtools-breakpoints-v8-inspector-protocol",
+    title: "How Does DevTools Actually Pause Your Code at a Breakpoint? The V8 Inspector Protocol Nobody Understands",
+    description: "You hit F8 and time stops. Every variable frozen. But how does DevTools actually pause a running JavaScript engine? The answer is a WebSocket, a bespoke protocol from Chrome, and a debugger statement that is not what you think it is.",
+    contentPath: "/blog/devtools-breakpoints-v8-inspector-protocol_article.html",
+    publishedAt: "2026-08-06",
+    tags: ["Browser Internals", "V8", "DevTools"],
+    readingTime: "~15 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "ai-model-paralysis",
     title: "There Are 47 AI Models. I Have Credits for 12 of Them. I Still Don't Know Which One to Use.",
     description: "When your org gives you access to Claude, Gemini, ChatGPT, and a dozen others - each with different models, effort levels, and credit caps - how do you decide? A framework for choosing AI models that maximises accuracy without burning through your budget.",
