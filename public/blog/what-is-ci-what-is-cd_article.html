@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What CI Actually Is. What CD Actually Is. And Why Most Engineers Confuse The Two.</title>
+<meta name="description" content="Everyone says CI/CD. Almost nobody, when asked, can cleanly define the two letters, or draw the line between them. This is a definitions-first walkthrough: what CI is, what CD is, why there are two CDs, and where one ends and the other begins. No pipelines, no vendors - just the words." />
+<meta property="og:title" content="What CI Actually Is. What CD Actually Is. And Why Most Engineers Confuse The Two." />
+<meta property="og:description" content="A definitions-first walkthrough: what CI is, what CD is, why there are two CDs, and where one ends and the other begins." />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&h=630&fit=crop&q=80" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="What CI Actually Is. What CD Actually Is. And Why Most Engineers Confuse The Two." />
+<meta name="twitter:description" content="A definitions-first walkthrough: what CI is, what CD is, why there are two CDs, and where one ends and the other begins." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&h=630&fit=crop&q=80" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --accent: #c84b31;
+    --accent2: #2a6e4a;
+    --muted: #8a8275;
+    --rule: #d4cdc0;
+    --highlight: #fff3b0;
+    --code-bg: #1e1e1e;
+    --code-text: #d4d4d4;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+    padding: 12px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .cover-image-wrap {
+    width: 100%;
+    max-height: 420px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+  .hero {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 64px 32px 40px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 640px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    flex-wrap: wrap;
+  }
+  .byline-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--rule);
+  }
+  .content-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  section {
+    padding: 52px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  section:last-child { border-bottom: none; }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 32px 0 12px;
+    font-style: italic;
+  }
+  p { margin-bottom: 18px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 500; }
+  .pull-quote {
+    border-left: 4px solid var(--accent);
+    padding: 4px 0 4px 28px;
+    margin: 36px 0;
+  }
+  .pull-quote p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+  .callout {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin: 32px 0;
+  }
+  .callout .callout-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .callout p {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #d8d2c6;
+    margin-bottom: 10px;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .highlight-box {
+    background: var(--highlight);
+    border: 1px solid #e0d06a;
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 28px 0;
+    font-size: 0.93rem;
+  }
+  .highlight-box strong {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: #7a6a00;
+  }
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 24px 28px;
+    margin: 28px 0;
+    overflow-x: auto;
+  }
+  .code-block .code-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6a9955;
+    margin-bottom: 14px;
+  }
+  .code-block pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--code-text);
+    white-space: pre;
+  }
+  .code-kw  { color: #569cd6; }
+  .code-fn  { color: #dcdcaa; }
+  .code-str { color: #ce9178; }
+  .code-cmt { color: #6a9955; font-style: italic; }
+  .code-num { color: #b5cea8; }
+  .code-var { color: #9cdcfe; }
+  ul.bullet-list {
+    list-style: none;
+    margin: 20px 0;
+    padding: 0;
+  }
+  ul.bullet-list li {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  ul.bullet-list li::before {
+    content: '\25CF';
+    font-size: 10px;
+    color: var(--accent);
+    min-width: 12px;
+    padding-top: 6px;
+    flex-shrink: 0;
+  }
+  ul.bullet-list li span {
+    line-height: 1.7;
+  }
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 32px 0;
+  }
+  .stat-item {
+    background: #fff;
+    padding: 20px 20px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--rule);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    margin: 2px 3px 2px 0;
+    color: var(--muted);
+  }
+  .tag.green { background: #d4ede0; color: var(--accent2); }
+  .tag.red   { background: #fde8e3; color: var(--accent); }
+  .ornament {
+    text-align: center;
+    color: var(--muted);
+    font-size: 1.4rem;
+    letter-spacing: 0.5em;
+    padding: 8px 0;
+  }
+  .footnote {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+    margin-top: 40px;
+  }
+  code.inline {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88em;
+    background: rgba(200, 75, 49, 0.08);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 28px 0;
+    font-size: 0.95rem;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .compare-table th, .compare-table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .compare-table th {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table td:first-child {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    width: 22%;
+  }
+  @media (max-width: 600px) {
+    .hero, .content-wrap { padding-left: 20px; padding-right: 20px; }
+    .compare-table th, .compare-table td { padding: 10px 12px; font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; CI vs CD &nbsp;&middot;&nbsp; Definitions &nbsp;&middot;&nbsp; DevOps</div>
+
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&h=630&fit=crop&q=80" alt="Abstract pipelines and code flow - dark background with glowing infrastructure lines" />
+</div>
+
+<div class="hero">
+  <div class="hero-label">CI vs CD &middot; Definitions First</div>
+  <h1>What CI Actually Is. What CD Actually Is. <em>And Where One Ends And The Other Begins.</em></h1>
+  <p class="hero-sub">Everyone in the industry says CI/CD. Almost nobody, when asked to unpack it, can cleanly define the two letters or draw the line between them. This is a definitions-first walkthrough - what CI is, what CD is, why there are actually two CDs, and where the boundary between them sits.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>August 2026</span>
+    <span class="byline-dot"></span>
+    <span>~12 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag red">CI vs CD</span>
+    <span class="tag">Definitions</span>
+    <span class="tag">DevOps</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 &middot; The Interview That Made This Article Necessary</div>
+    <h2>Nobody Can Say Where CI Ends And CD Begins</h2>
+    <p>I was on the interview panel for a senior frontend role recently. Strong candidate, clean design round, solid coding. Near the end I asked what I thought was a warm-up question: <em>"What does CI/CD stand for, and what is the difference between the two?"</em></p>
+    <p>The answer was: "CI/CD is the pipeline that runs your tests and deploys your code." That is not exactly wrong, but it is not really an answer. I pushed a little: "Okay, but what specifically is the difference between CI and CD?" Long pause. "One is the build, one is the deploy."</p>
+    <p>I have heard that same fuzzy answer from staff engineers. From people running platform teams. If I am being honest, from the version of myself a couple of years into the job. The two acronyms have been squashed together into a single blob that means "the yellow tick on my PR", and the actual definitions - which are precise, historic, and quite different - have been quietly lost.</p>
+    <p>This article is one thing: the definitions, laid out clearly, and the line between them drawn where it actually sits. No pipeline YAML, no vendor comparisons, no war stories. Just the words and what they mean.</p>
+    <div class="pull-quote">
+      <p>"CI and CD are two distinct engineering disciplines. If you cannot say which one you are talking about, you probably do not do the second one at all."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">02 &middot; The Three Terms Hiding In Two Letters</div>
+    <h2>CI/CD Is Not Two Terms. It Is Three.</h2>
+    <p>The first thing that trips people up is that there are three distinct terms folded into the abbreviation, not two:</p>
+    <ul class="bullet-list">
+      <li><span><strong>CI - Continuous Integration.</strong> The practice of merging every developer's in-progress work into a shared main branch several times a day, with every merge automatically built and tested to prove the shared branch still works.</span></li>
+      <li><span><strong>CD - Continuous Delivery.</strong> The practice of making sure every commit that passes CI produces a build artefact that is ready to go to production, on demand. The release itself is a deliberate human action - one button, one approval - but the artefact is always shippable.</span></li>
+      <li><span><strong>CD - Continuous Deployment.</strong> Same as Continuous Delivery, except the button is removed. If the commit passes CI, it goes to production automatically. No human in the loop.</span></li>
+    </ul>
+    <p>Both of the last two are called CD, and this is the single biggest source of confusion in the whole vocabulary. When someone says "we do CD", the correct follow-up question is: "delivery or deployment?" One is a discipline. The other is a specific choice on top of that discipline.</p>
+    <div class="highlight-box">
+      <strong>The three-part expansion</strong>
+      CI/CD is a shorthand for CI plus one of two possible CDs. Continuous Delivery = every commit is releasable at the press of a button. Continuous Deployment = every commit is released automatically. If a conversation is not clear on which CD is being discussed, it is not clear on anything.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 &middot; Defining CI</div>
+    <h2>Continuous Integration - The Definition</h2>
+    <p>Continuous Integration is a software engineering practice where every developer on a team integrates their work into a shared main branch frequently - at least once a day, ideally more - and every integration is verified by an automated build and test suite.</p>
+    <p>Two words in that definition do the heavy lifting: <em>integrates</em> and <em>frequently</em>.</p>
+    <ul class="bullet-list">
+      <li><span><strong>"Integrates"</strong> means merged into the shared main branch. Not pushed to a personal feature branch. Not opened as a draft PR. Actually merged into the trunk that everyone else is also building on.</span></li>
+      <li><span><strong>"Frequently"</strong> means at least once a day per engineer. Not once a sprint. Not "when the feature is done". If your branches routinely live longer than a day, you have adopted the tooling of CI without adopting the practice.</span></li>
+    </ul>
+    <p>The automated build and test suite is not what CI <em>is</em>. It is what makes CI <em>safe</em>. Without automated verification, merging half-finished changes daily would break the main branch constantly. With it, small, well-tested changes can flow through the trunk on a rhythm that keeps everyone's local state aligned with everyone else's.</p>
+    <p>This is why "we have CI" is a weaker claim than most teams realise. Running tests on a PR is table stakes. Merging every developer's work every day into a shared main branch - that is the practice. Everything else is tooling in support of it.</p>
+    <div class="pull-quote">
+      <p>"The 'continuous' in CI is not about the pipeline. It is about the humans - about how often they merge their work into each other's."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">04 &middot; Defining CD - Delivery</h2>
+    <h2>Continuous Delivery - The Definition</h2>
+    <p>Continuous Delivery is a software engineering practice where every commit that passes CI produces a build artefact that is ready to be released to production, at any moment, without any additional engineering work.</p>
+    <p>The important word here is <em>ready</em>. Continuous Delivery does not mean "we release often". It means "we could release right now". Whether we choose to release is a separate decision. The engineering promise is that the choice is always available.</p>
+    <p>What "ready" means concretely:</p>
+    <ul class="bullet-list">
+      <li><span>Every merged commit produces an artefact that could go to production as-is. No re-building, no last-minute config edits, no cherry-picks.</span></li>
+      <li><span>No feature sitting in main is half-shipped. Anything incomplete is behind a flag, off by default. Merging into main and being exposed to users are two different events.</span></li>
+      <li><span>Environment differences are runtime configuration, not build-time forks. The exact artefact that runs in staging is the exact artefact that runs in production.</span></li>
+      <li><span>Nothing about the release requires a human running a manual step, remembering to warm a cache, or coordinating a handoff between teams.</span></li>
+      <li><span>Rollback is as fast and as one-click as release. If release is a five-minute job, rollback is not a forty-minute job.</span></li>
+    </ul>
+    <p>Every one of those is an engineering discipline. Feature flags, backward-compatible migrations, config isolation, artefact signing. Continuous Delivery is not a pipeline setting. It is what a team commits to when it says "every green commit is releasable, right now".</p>
+    <div class="callout">
+      <div class="callout-label">The Test For Continuous Delivery</div>
+      <p>Pick a random green commit from main in the last month. Can that exact commit be released to production right now, without cherry-picking, without a hotfix branch, without a config change? If the answer is anything other than a clean yes, the team does not have Continuous Delivery. They have hopeful releasability.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">05 &middot; Defining CD - Deployment</div>
+    <h2>Continuous Deployment - The Definition</h2>
+    <p>Continuous Deployment is Continuous Delivery with the human button removed. Every commit that passes CI is automatically released to production. There is no manual approval, no scheduled release window, no gatekeeper.</p>
+    <p>The important thing about this definition is what it does <em>not</em> change. It does not lower the engineering bar - if anything, it raises it. Continuous Delivery says "the artefact is ready, humans decide when to release". Continuous Deployment says "the artefact is ready, and we trust the pipeline to release it without human review".</p>
+    <p>That trust is not free. Continuous Deployment sensibly requires:</p>
+    <ul class="bullet-list">
+      <li><span>Real observability - within a minute or two of a deploy, the team can answer "is this deploy healthy" from metrics, not from feelings.</span></li>
+      <li><span>Progressive rollout - the new version is exposed to a small slice of traffic first, and only expanded if the health signal is clean.</span></li>
+      <li><span>Automated rollback - if the health signal is not clean, the system rolls back without waiting for someone to click a button.</span></li>
+      <li><span>Cultural buy-in that rollbacks are routine, not failures. If a rollback is seen as a career hit, engineers will suppress them, and Continuous Deployment turns dangerous.</span></li>
+    </ul>
+    <p>Notice that none of these are strictly required for Continuous Delivery. Delivery is a lower bar because a human is the gate. Deployment automates the gate away and therefore has to reproduce the gate's judgement in software.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 &middot; The Line Between Them</div>
+    <h2>Where CI Ends And CD Begins</h2>
+    <p>Now that both sides have definitions, the boundary is easier to draw than the fog around "CI/CD" suggests. The line is not "before vs after the tests run". It is not "PR pipeline vs deploy pipeline". It sits at a very specific point.</p>
+    <p><strong>CI ends the moment a commit is merged into main and its build artefact has been produced and verified.</strong> That artefact - a compiled binary, a signed bundle, a container image, whatever your platform is - is CI's output.</p>
+    <p><strong>CD begins the moment that artefact exists and asks: what do we do with it?</strong> Continuous Delivery keeps that artefact permanently releasable and lets a human choose when to release it. Continuous Deployment releases it immediately.</p>
+    <p>Everything before the artefact is CI. Everything after it is CD. That is the whole boundary.</p>
+    <div class="pull-quote">
+      <p>"The artefact is the border between CI and CD. Before the artefact, you are integrating. After it, you are delivering."</p>
+    </div>
+    <p>This has one interesting consequence. If your CI pipeline stops at "the tests passed" and does not produce a versioned, signed, addressable artefact, you have no output to hand over to CD. You have not built the border stone. This is why so many teams that claim CI/CD are actually only doing CI - their CI never produced the thing that CD is defined to operate on.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 &middot; The Comparison In One Table</div>
+    <h2>CI vs CD, Side By Side</h2>
+    <p>If you take one thing from this article, this is the shape:</p>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>CI - Continuous Integration</th>
+          <th>CD - Continuous Delivery / Deployment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>What it does</td>
+          <td>Merges every developer's in-progress work into a shared main branch, verified by an automated build and test suite.</td>
+          <td>Turns every merged commit into a production-ready artefact and, in the deployment variant, releases it automatically.</td>
+        </tr>
+        <tr>
+          <td>Primary output</td>
+          <td>A stable, always-green main branch and a signed build artefact.</td>
+          <td>A production release - or the standing ability to trigger one at any moment.</td>
+        </tr>
+        <tr>
+          <td>Runs against</td>
+          <td>Every push to a branch under review, and every merge to main.</td>
+          <td>Every artefact produced by CI on main.</td>
+        </tr>
+        <tr>
+          <td>Human involvement</td>
+          <td>Engineers merge frequently. The pipeline runs itself.</td>
+          <td>Delivery: a human presses release. Deployment: no human, the pipeline releases.</td>
+        </tr>
+        <tr>
+          <td>Failure mode</td>
+          <td>Main branch is broken and the team is blocked.</td>
+          <td>A bad release reaches users; requires rollback and (for deployment) automated safety nets.</td>
+        </tr>
+        <tr>
+          <td>Prerequisite</td>
+          <td>Trunk-based development. Fast, trustworthy tests. Small, frequent commits.</td>
+          <td>A working CI. Feature flags. Backward-compatible migrations. Rollback capability.</td>
+        </tr>
+        <tr>
+          <td>Question it answers</td>
+          <td>"Does the shared codebase still work after this change?"</td>
+          <td>"Is this change ready for users - and (deployment only) do we send it to them right now?"</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Read that table again. Every row has a different answer for CI and for CD, and that is the point - they are not two halves of one thing, they are two things that happen to be adjacent in the pipeline.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 &middot; What CI Is Not</div>
+    <h2>Common Misconceptions About CI</h2>
+    <p>Once the definition is clear, several widely-held beliefs about CI start to look wrong.</p>
+    <h3>"CI is running tests on my PR."</h3>
+    <p>Running tests on a PR is a mechanism CI depends on. It is not what CI is. A team can run tests on every PR and still not be doing Continuous Integration - if the average branch lives two weeks before merging, the "continuous" part is missing.</p>
+    <h3>"CI catches bugs before they reach production."</h3>
+    <p>CI catches integration bugs before they reach main. That is a much narrower claim, and it is the correct one. Whether the code reaches production or not is CD's problem, not CI's.</p>
+    <h3>"CI requires GitHub Actions / Buildkite / CircleCI."</h3>
+    <p>CI requires a build server that can run reliably on every commit. The vendor is a choice. Teams did CI for years with Jenkins, with custom shell scripts, with cron jobs pulling from svn. The tooling has changed. The practice has not.</p>
+    <h3>"CI is the same as automated testing."</h3>
+    <p>Automated testing is what makes CI cheap. But you can have automated tests without CI (they just run on your machine, or once a night, disconnected from merges) and, in theory, you can have CI with no tests at all (just build verification). The tests are the fuel. CI is the engine.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 &middot; What CD Is Not</div>
+    <h2>Common Misconceptions About CD</h2>
+    <p>The same clean-up is worth doing for CD, because there is arguably more myth around it.</p>
+    <h3>"CD means we deploy on every commit."</h3>
+    <p>Only Continuous Deployment means that. Continuous Delivery, the other CD, means we <em>could</em> deploy on every commit. Many mature teams practise the delivery flavour deliberately because their business does not want automatic releases.</p>
+    <h3>"CD is a pipeline stage."</h3>
+    <p>CD is a discipline. The pipeline stage that runs a deploy is a mechanism CD relies on, but the discipline is about the promise the team makes: <em>every green commit is production-ready</em>. Without that promise, all the deploy automation in the world is just a fast way to ship broken code.</p>
+    <h3>"CD requires Kubernetes / a service mesh / a fancy platform."</h3>
+    <p>CD requires versioned artefacts, safe rollout, and reliable rollback. That can be a Kubernetes deployment or it can be a CDN invalidation for a static bundle. The mechanics vary; the discipline does not.</p>
+    <h3>"CD is riskier than manual releases."</h3>
+    <p>Sometimes. But manual releases have their own failure mode - they are rare, high-stakes events where a lot of changes ship together and a bug is hard to attribute. CD, done well, means each release is small and traceable to one change, which is often safer than a monthly manual release of thirty changes. The risk depends on how the discipline is implemented, not on the automation itself.</p>
+  </section>
+
+  <section>
+    <div class="section-num">10 &middot; The One-Sentence Version</div>
+    <h2>The Whole Article In Two Sentences</h2>
+    <p>If you want to walk away with the shortest correct version of this article, it is these two sentences.</p>
+    <p><strong>Continuous Integration is the practice of merging every developer's work into a shared main branch several times a day, verified by an automated build and test suite that produces a shippable artefact.</strong></p>
+    <p><strong>Continuous Delivery is the practice of keeping that artefact permanently ready to release to production at the press of a button; Continuous Deployment removes the button and releases every green artefact automatically.</strong></p>
+    <p>Everything else in this article is elaboration on those two sentences. The next time you hear "we do CI/CD", pin down exactly which of the three practices the speaker means. You will almost always find they mean one of them, sometimes two, and very rarely all three - and the conversation gets a lot sharper the moment you know which.</p>
+    <div class="pull-quote">
+      <p>"CI is a discipline about how humans work with each other. CD is a discipline about how code moves through a system. Squashing them into one acronym hides both."</p>
+    </div>
+    <div class="footnote">
+      Written by Divyansh Singh - senior frontend engineer with a decade in the industry, ex-fintech, currently working on frontend infrastructure at a large HR / payroll platform. Author of Frontend System Design Decoded. This piece was written after one too many interview conversations where the definitions of CI and CD came out fuzzy - it is the version of the answer I wish I could have handed to interviewees to read after the round.
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

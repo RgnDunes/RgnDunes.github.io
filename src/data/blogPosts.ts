@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "what-is-ci-what-is-cd",
+    title: "What CI Actually Is. What CD Actually Is. And Why Most Engineers Confuse The Two.",
+    description: "Everyone says CI/CD. Almost nobody can cleanly define the two letters or draw the line between them. A definitions-first walkthrough: what CI is, what CD is, why there are actually two CDs, and where one ends and the other begins.",
+    contentPath: "/blog/what-is-ci-what-is-cd_article.html",
+    publishedAt: "2026-08-11",
+    tags: ["CI/CD", "DevOps", "Frontend Infrastructure"],
+    readingTime: "~12 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "devtools-breakpoints-v8-inspector-protocol",
     title: "How Does DevTools Actually Pause Your Code at a Breakpoint? The V8 Inspector Protocol Nobody Understands",
     description: "You hit F8 and time stops. Every variable frozen. But how does DevTools actually pause a running JavaScript engine? The answer is a WebSocket, a bespoke protocol from Chrome, and a debugger statement that is not what you think it is.",
