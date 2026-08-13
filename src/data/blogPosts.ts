@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "react-key-is-a-reset-button",
+    title: "React's key Prop Is A Reset Button, Not An Identity Prop. Here Is What Most Engineers Get Wrong.",
+    description: "Every React tutorial teaches keys the same way - 'they help React tell items apart in a list'. That framing is why production React code is full of stale state, ghost animations, and forms that remember the last user's input. key is a reset primitive, not an identity marker.",
+    contentPath: "/blog/react-key-is-a-reset-button_article.html",
+    publishedAt: "2026-08-13",
+    tags: ["React", "Reconciliation", "Frontend Internals"],
+    readingTime: "~13 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "what-is-ci-what-is-cd",
     title: "What CI Actually Is. What CD Actually Is. And Why Most Engineers Confuse The Two.",
     description: "Everyone says CI/CD. Almost nobody can cleanly define the two letters or draw the line between them. A definitions-first walkthrough: what CI is, what CD is, why there are actually two CDs, and where one ends and the other begins.",
