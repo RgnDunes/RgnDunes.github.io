@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>React's key Prop Is A Reset Button, Not An Identity Prop. Here Is What Most Engineers Get Wrong.</title>
+<meta name="description" content="Every React tutorial tells you the same thing about keys: 'they help React tell items apart'. That framing is why so much production React code has stale state, ghost animations, and the mysterious bug where a form remembers the last user's input. The key prop is not an identity prop. It is a reset primitive. Once you see it that way, half your useEffect resets and forceUpdate hacks vanish." />
+<meta property="og:title" content="React's key Prop Is A Reset Button, Not An Identity Prop. Here Is What Most Engineers Get Wrong." />
+<meta property="og:description" content="The key prop is not an identity prop. It is a reset primitive. Once you see it that way, half your useEffect resets and forceUpdate hacks vanish." />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=1200&h=630&fit=crop&q=80" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="React's key Prop Is A Reset Button, Not An Identity Prop. Here Is What Most Engineers Get Wrong." />
+<meta name="twitter:description" content="The key prop is not an identity prop. It is a reset primitive. Once you see it that way, half your useEffect resets and forceUpdate hacks vanish." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=1200&h=630&fit=crop&q=80" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --accent: #c84b31;
+    --accent2: #2a6e4a;
+    --muted: #8a8275;
+    --rule: #d4cdc0;
+    --highlight: #fff3b0;
+    --code-bg: #1e1e1e;
+    --code-text: #d4d4d4;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+    padding: 12px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .cover-image-wrap {
+    width: 100%;
+    max-height: 420px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+  .hero {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 64px 32px 40px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 640px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    flex-wrap: wrap;
+  }
+  .byline-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rule); }
+  .content-wrap { max-width: 860px; margin: 0 auto; padding: 0 32px; }
+  section { padding: 52px 0; border-bottom: 1px solid var(--rule); }
+  section:last-child { border-bottom: none; }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 32px 0 12px;
+    font-style: italic;
+  }
+  p { margin-bottom: 18px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 500; }
+  .pull-quote {
+    border-left: 4px solid var(--accent);
+    padding: 4px 0 4px 28px;
+    margin: 36px 0;
+  }
+  .pull-quote p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+  .callout {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin: 32px 0;
+  }
+  .callout .callout-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .callout p { font-size: 0.95rem; line-height: 1.7; color: #d8d2c6; margin-bottom: 10px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .highlight-box {
+    background: var(--highlight);
+    border: 1px solid #e0d06a;
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 28px 0;
+    font-size: 0.93rem;
+  }
+  .highlight-box strong {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: #7a6a00;
+  }
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 24px 28px;
+    margin: 28px 0;
+    overflow-x: auto;
+  }
+  .code-block .code-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6a9955;
+    margin-bottom: 14px;
+  }
+  .code-block pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--code-text);
+    white-space: pre;
+  }
+  .code-kw  { color: #569cd6; }
+  .code-fn  { color: #dcdcaa; }
+  .code-str { color: #ce9178; }
+  .code-cmt { color: #6a9955; font-style: italic; }
+  .code-num { color: #b5cea8; }
+  .code-var { color: #9cdcfe; }
+  ul.bullet-list { list-style: none; margin: 20px 0; padding: 0; }
+  ul.bullet-list li { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+  ul.bullet-list li::before {
+    content: '\25CF';
+    font-size: 10px;
+    color: var(--accent);
+    min-width: 12px;
+    padding-top: 6px;
+    flex-shrink: 0;
+  }
+  ul.bullet-list li span { line-height: 1.7; }
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 32px 0;
+  }
+  .stat-item { background: #fff; padding: 20px 20px; text-align: center; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--rule);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    margin: 2px 3px 2px 0;
+    color: var(--muted);
+  }
+  .tag.green { background: #d4ede0; color: var(--accent2); }
+  .tag.red   { background: #fde8e3; color: var(--accent); }
+  .footnote {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+    margin-top: 40px;
+  }
+  code.inline {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88em;
+    background: rgba(200, 75, 49, 0.08);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  @media (max-width: 600px) {
+    .hero, .content-wrap { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; React &nbsp;&middot;&nbsp; Reconciliation &nbsp;&middot;&nbsp; Frontend Internals</div>
+
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=1200&h=630&fit=crop&q=80" alt="Vintage keys hanging on a wall - abstract representation of React keys" />
+</div>
+
+<div class="hero">
+  <div class="hero-label">React &middot; Reconciliation Deep Dive</div>
+  <h1>React's <em>key</em> Prop Is A Reset Button, Not An Identity Prop.</h1>
+  <p class="hero-sub">Every React tutorial teaches keys the same way - "they help React tell items apart in a list". That framing is why production React code is full of stale state, ghost animations, and the bug where a form remembers the last user's input. The key prop is a reset primitive, not an identity marker. Once you see it that way, half your useEffect resets and forceUpdate hacks vanish.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>August 2026</span>
+    <span class="byline-dot"></span>
+    <span>~13 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag red">React</span>
+    <span class="tag">Reconciliation</span>
+    <span class="tag">Frontend Internals</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 &middot; The Bug That Started This</div>
+    <h2>The Ghost State That Would Not Go Away</h2>
+    <p>A while back on a payroll app at scale I inherited a page that did something haunting. Users would open the employee-detail drawer, edit two fields, close it, click on a different employee, and see the previous employee's edits sitting in the input boxes. Not from the database - visually, in the drawer, the old text was still there.</p>
+    <p>The team had already tried the usual patches. They had added a <code class="inline">useEffect</code> that called <code class="inline">setLocalDraft(null)</code> when the employeeId prop changed. It missed some edge cases. Someone added a second effect for a related bit of state. That one also missed. Someone tried a <code class="inline">forceUpdate</code>. It briefly appeared to work, then broke a scroll-position thing three sprints later.</p>
+    <p>The eventual fix was one line. Not in the drawer. In the parent.</p>
+    <div class="code-block">
+      <div class="code-label">the actual fix - one line, in the parent</div>
+<pre>&lt;<span class="code-fn">EmployeeDrawer</span> <span class="code-var">key</span>={selectedEmployeeId} employeeId={selectedEmployeeId} /&gt;</pre>
+    </div>
+    <p>That was it. Every reset effect got deleted. The forceUpdate got deleted. The scroll bug from the earlier fix went away because the earlier fix went away. And the page started behaving like a page that had been designed by people who knew what they were doing.</p>
+    <p>What that one line did is what most engineers I have worked with think keys are for lists, and only for lists. Once you see it, you cannot unsee it.</p>
+    <div class="pull-quote">
+      <p>"key is not an identifier. It is an instruction: when this value changes, throw the old component instance away and mount a fresh one."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">02 &middot; What The Tutorials Say</div>
+    <h2>The Framing That Every Beginner Article Uses (And Why It Misleads)</h2>
+    <p>If you learned React in the last five years, the framing you got for keys was almost certainly this: <em>"When you render a list, add a unique key so React can tell the items apart."</em> That framing is not wrong. It is just so incomplete that it leads to a wrong mental model.</p>
+    <p>The wrong mental model is that <code class="inline">key</code> is a kind of ID. That React looks at keys the way a database looks at primary keys - "which row is this". If you hold that model, you never think to use a key outside of a list, because outside of a list there is no ambiguity. There is only one drawer. Why would it need an identifier?</p>
+    <p>The actual role of key is different. It is a hint to React's reconciler about whether two renders of the same JSX position refer to the same component instance or a different one. If the key changes, React does not reuse the instance - it throws it away and mounts a new one from scratch. All state resets. All effects re-fire. All refs re-attach.</p>
+    <p>The list use-case is a special case of this general rule. In a list, React needs to decide which of the previously-rendered items each new item corresponds to, and keys are the tie-breaker. But that is one application. Keys work outside of lists too, and outside of lists they are less about identity and more about deliberate resets.</p>
+  </section>
+
+  <section>
+    <div class="section-num">03 &middot; What key Actually Does</div>
+    <h2>The Reconciler's Rule In One Paragraph</h2>
+    <p>The precise rule, from React's own reconciliation docs, is this: when React re-renders a parent, at each position in the JSX tree it compares the previous element to the new element. If the element type is the same and (in a keyed position) the key is the same, React reuses the existing component instance and calls its update path. If either the element type changes or the key changes, React unmounts the previous instance and mounts a new one.</p>
+    <p>So the two things that make React "reset" a subtree are:</p>
+    <ul class="bullet-list">
+      <li><span><strong>The element type changes.</strong> <code class="inline">&lt;A /&gt;</code> becomes <code class="inline">&lt;B /&gt;</code>. Old instance dies, new one mounts. This is why swapping <code class="inline">&lt;input /&gt;</code> for <code class="inline">&lt;textarea /&gt;</code> loses the typed value.</span></li>
+      <li><span><strong>The key changes.</strong> Same element type, different key. Also: old instance dies, new one mounts. Same effect on state.</span></li>
+    </ul>
+    <p>That is the whole rule. Everything key-related in the framework flows from those two lines.</p>
+    <div class="highlight-box">
+      <strong>The one-sentence definition</strong>
+      key is a stable label attached to a JSX position. When the label changes, React treats the child at that position as a different component - unmount old, mount new. When the label stays the same, React reuses the instance across renders.
+    </div>
+    <p>Which is why calling it an "identity prop" is misleading. It is not the identity of the item. It is the identity of the instance. And you get to choose when that identity should change.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 &middot; The Reset Trick In One Example</div>
+    <h2>How The Drawer Actually Got Fixed</h2>
+    <p>Back to the drawer story. Here is the "before" version, stripped down. The drawer keeps a local draft of the edits, plus effects that reset it whenever the target employee changes.</p>
+    <div class="code-block">
+      <div class="code-label">before - state resets by hand</div>
+<pre><span class="code-kw">function</span> <span class="code-fn">EmployeeDrawer</span>({ employeeId }) {
+  <span class="code-kw">const</span> [draft, setDraft] = <span class="code-fn">useState</span>(<span class="code-kw">null</span>);
+  <span class="code-kw">const</span> [tab, setTab] = <span class="code-fn">useState</span>(<span class="code-str">'details'</span>);
+
+  <span class="code-fn">useEffect</span>(() =&gt; {
+    <span class="code-fn">setDraft</span>(<span class="code-kw">null</span>);
+    <span class="code-fn">setTab</span>(<span class="code-str">'details'</span>);
+    <span class="code-cmt">// don't forget the scroll position, the search filter, the pinned tab...</span>
+  }, [employeeId]);
+
+  <span class="code-cmt">// ...</span>
+}</pre>
+    </div>
+    <p>Every field of local state has to be listed in that effect. Miss one - and this is what happened in the ghost-state bug - and it silently persists across employees. The bug is not a mystery once you find it. The problem is that every new field of state added to the drawer is a chance to miss the reset.</p>
+    <p>Now here is the "after". The drawer keeps its local state exactly as it was. But the parent hands it a key.</p>
+    <div class="code-block">
+      <div class="code-label">after - the parent tells React to reset the subtree</div>
+<pre><span class="code-kw">function</span> <span class="code-fn">EmployeePage</span>() {
+  <span class="code-kw">const</span> [selectedId, setSelectedId] = <span class="code-fn">useState</span>(<span class="code-kw">null</span>);
+
+  <span class="code-kw">return</span> (
+    &lt;&gt;
+      &lt;<span class="code-fn">EmployeeList</span> onSelect={setSelectedId} /&gt;
+      &lt;<span class="code-fn">EmployeeDrawer</span> <span class="code-var">key</span>={selectedId} employeeId={selectedId} /&gt;
+    &lt;/&gt;
+  );
+}</pre>
+    </div>
+    <p>The key is on the outside of the component boundary. When <code class="inline">selectedId</code> changes, the entire <code class="inline">EmployeeDrawer</code> instance is thrown away and a new one is mounted. The draft, the tab, the scroll position, the pinned filter, and any field of state we might add later - all of it starts fresh. Because it is a new instance.</p>
+    <p>The drawer's own code did not have to change. It did not have to know that a reset is happening. And every future engineer who adds a new piece of local state to that drawer gets the reset for free.</p>
+    <div class="pull-quote">
+      <p>"The right layer to solve 'reset when this identifier changes' is the parent. State that a parent controls should be controlled with a key, not with reset effects inside the child."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">05 &middot; Where Else This Applies</div>
+    <h2>Five Patterns Where key Replaces Whole Categories Of Code</h2>
+    <p>The drawer is one example. The general shape - a subtree that should reset when some external identifier changes - shows up in a lot of places. Once you spot the pattern, you find it every couple of files.</p>
+    <h3>1. Modal that shouldn't remember the last dialog</h3>
+    <p>A confirmation modal that opens for different actions. If it uses <code class="inline">defaultValue</code> on its inputs, the previous action's typed text leaks through. Key on the action id, not on "isOpen".</p>
+    <h3>2. Route-based form pages</h3>
+    <p>A profile page and a settings page that both mount the same generic <code class="inline">&lt;Form&gt;</code>. Without a key, navigating between them can reuse the same form instance, and any uncontrolled inputs carry state across the routes. Key on the route or the form id.</p>
+    <h3>3. Charts that need to re-run enter animations</h3>
+    <p>A d3 or Recharts chart that runs an entry animation on mount. When the dataset changes to a different scenario, you want the animation to play again. Instead of imperatively rebuilding the chart, key on the scenario id.</p>
+    <h3>4. Infinite scrolls after filter changes</h3>
+    <p>An infinite list with pagination state, cache, and scroll position. When the filter changes, all that internal state is wrong for the new filter. Reset effects grow. A key on the filter signature resets everything.</p>
+    <h3>5. Editors bound to a document</h3>
+    <p>A rich-text editor with undo history bound to a document id. When the document changes, the old undo history is meaningless for the new one. Key on the document id and the editor mounts fresh.</p>
+    <p>In every one of those cases, the alternative is a growing pile of "reset X when Y changes" effects inside the child. Every new field of state means another line in the reset list. The key approach is one line at the parent, and every new field gets reset automatically because a fresh instance has no memory of the old one.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 &middot; The Cost To Be Honest About</div>
+    <h2>What Changes When You Force A Remount</h2>
+    <p>This is not a free trick. Changing a key throws away the instance, and that has real consequences worth naming.</p>
+    <ul class="bullet-list">
+      <li><span><strong>All effects re-fire.</strong> Any <code class="inline">useEffect</code> in the subtree runs its cleanup and then its setup again. If you have expensive setup - opening a WebSocket, warming a cache, requesting a permission - it will pay the cost every time the key changes.</span></li>
+      <li><span><strong>All refs re-attach.</strong> DOM refs are re-established. If you have imperative code that stored a handle to the old DOM node, it is stale.</span></li>
+      <li><span><strong>Focus is lost.</strong> A new DOM element means the previous focus is gone. If the reset happens while the user is typing, that is a jarring UX.</span></li>
+      <li><span><strong>Enter animations replay.</strong> Anything animated on mount plays again. Usually a feature; sometimes surprising.</span></li>
+      <li><span><strong>Suspense boundaries can re-suspend.</strong> A fresh instance that reads from a resource may re-suspend, showing a fallback again.</span></li>
+    </ul>
+    <p>The rule of thumb after living with this pattern for a while: use key resets for state that <em>should</em> reset with the identifier. If the state is genuinely tied to the identifier - draft edits for an employee, undo history for a document, animation state for a scenario - a remount is exactly what you want. If the state is more like a global preference or a cross-cutting cache, do not attach it to a key-driven subtree.</p>
+    <div class="callout">
+      <div class="callout-label">The Guardrail I Use In Reviews</div>
+      <p>When someone writes a useEffect whose entire body is calling setState back to defaults because a prop changed, that is almost always a signal that the parent should be using key. If the reset logic exists for correctness rather than for a side-effect, it belongs at the parent as a key, not inside the child as an effect.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">07 &middot; The Anti-Patterns</div>
+    <h2>Two Ways To Use key That Go Very Wrong</h2>
+    <p>The reset power of key cuts both ways. Two anti-patterns show up often enough to name.</p>
+    <h3>1. Key on Math.random or a per-render value</h3>
+    <div class="code-block">
+      <div class="code-label">what NOT to do</div>
+<pre>&lt;<span class="code-fn">MyThing</span> <span class="code-var">key</span>={<span class="code-fn">Math</span>.<span class="code-fn">random</span>()} /&gt;
+&lt;<span class="code-fn">MyThing</span> <span class="code-var">key</span>={<span class="code-fn">Date</span>.<span class="code-fn">now</span>()} /&gt;</pre>
+    </div>
+    <p>Every render produces a new key, so the instance is thrown away every single render. All state resets on every re-render. All effects re-fire. This is essentially forceUpdate-on-steroids and it will destroy performance and correctness in equal measure. If you see this in a codebase, someone was fighting a symptom - almost always with the wrong tool - and never came back to fix it.</p>
+    <h3>2. Using array index as key in a list that reorders or filters</h3>
+    <div class="code-block">
+      <div class="code-label">what LOOKS fine but is a bug factory</div>
+<pre>{items.<span class="code-fn">map</span>((item, i) =&gt; &lt;<span class="code-fn">Row</span> <span class="code-var">key</span>={i} item={item} /&gt;)}</pre>
+    </div>
+    <p>If the list order can change, this is a bug. React thinks position 0 is still the same component after items are re-sorted, so it keeps the previous instance and just updates its props. Any local state on the row - a form draft, an expand/collapse toggle - stays attached to whatever item happens to be at index 0 now, which is not the item it was attached to before. This is the archetypal "why did my checkbox state jump to the wrong row after I deleted an item" bug, and it always traces back to index-as-key.</p>
+    <p>The rule: key must be stable across time for the same logical item, and unique across items in the same list. Anything that violates that is almost certainly wrong.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 &middot; The Mental Model To Keep</div>
+    <h2>Two Simple Rules That Cover Almost Every Case</h2>
+    <p>After a few years of writing React with keys used deliberately, I have settled on two rules that cover almost every real-world case.</p>
+    <ul class="bullet-list">
+      <li><span><strong>In a list, key must be stable and unique per item.</strong> Not index. Not <code class="inline">Math.random</code>. The item's own ID or a hash of its content. If the item does not have a natural ID, you are usually one refactor away from being able to give it one.</span></li>
+      <li><span><strong>Outside a list, key is your reset button.</strong> Use it whenever a subtree's identity is tied to an external value. Change the external value, get a fresh instance for free. Do not chase resets from inside the child.</span></li>
+    </ul>
+    <p>Two lines. That is the whole thing.</p>
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-num">1</div>
+        <div class="stat-label">rule for lists</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">1</div>
+        <div class="stat-label">rule for non-lists</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">many</div>
+        <div class="stat-label">reset effects deleted</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Math.random keys</div>
+      </div>
+    </div>
+    <p>Every advanced pattern - controlled resets, deliberate remounts, animation replays, undo-history clearing, uncontrolled input reset on route change - falls out of those two rules. You do not need a library. You do not need a hook. You need to think of key as a knob you can turn.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 &middot; The Broader Lesson</div>
+    <h2>Reset Primitives Beat Reset Choreography</h2>
+    <p>Zooming out a bit, this is one instance of a broader principle in frontend engineering: <em>reset primitives beat reset choreography</em>. The choreography approach says "when X changes, I have to remember to reset A, B, C, D, and E". Every new field of state is a new thing to remember. Every new field is a new bug waiting to happen.</p>
+    <p>The primitive approach says "when X changes, the whole thing is a new instance". You do not remember to reset A through E. There is no A through E - there is a fresh instance whose state started as its initial state, because it is a fresh instance. This is the same reason immutable data structures beat mutation-plus-invalidation, why derived state beats synchronised state, and why Suspense beats manual loading states.</p>
+    <p>React's key prop is one of the cleanest examples of this principle available anywhere in frontend. It is a single-character contract - the letter k, plus an equals sign - that lets you say "throw this instance away when this value changes". Once you internalise that, code that used to be full of imperative reset dance becomes a declarative statement about identity.</p>
+    <div class="pull-quote">
+      <p>"The best React feature that most codebases underuse is not a hook and it is not a component. It is a five-letter attribute you were told was for lists."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">10 &middot; The Practical Ask</div>
+    <h2>What To Actually Do Next</h2>
+    <p>Two concrete things you can do this week if you write React for a living.</p>
+    <ul class="bullet-list">
+      <li><span>Grep your codebase for <code class="inline">useEffect</code> calls whose body is only setState calls back to initial values. Every one of those is a candidate for being deleted in favour of a key on the parent. Some will legitimately have to stay - a reset that is more than a state-reset, say cancelling an in-flight request - but a lot of them will just disappear.</span></li>
+      <li><span>Read the "Preserving and resetting state" page in the React docs. It is one of the most useful pages in the entire documentation set, and it is one that most engineers I have talked to have never opened. Everything in this article is on that page in one form or another; it just does not get taught.</span></li>
+    </ul>
+    <p>The next time a state-carrying component is behaving as if it remembers something it should not remember, resist the urge to add a reset effect. Ask if the parent has an identifier that could go on a key instead. It usually does.</p>
+    <div class="footnote">
+      Written by Divyansh Singh - senior frontend engineer, ex-fintech, currently on frontend infrastructure at a large HR / payroll platform. Author of Frontend System Design Decoded. This piece grew out of a real bug from a payroll app at scale where a drawer would leak the previous employee's edits, and the fix turned out to be a single key attribute on the parent. The underlying rule is straight from the React reconciler and the "Preserving and resetting state" section of the official docs.
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
