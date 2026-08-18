@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "node-libuv-thread-pool-of-four",
+    title: "Your Node.js Server Is Blocked By A Thread Pool Of 4. Nobody Told You.",
+    description: "Every 'JavaScript is single-threaded' explanation forgets that Node.js is not single-threaded. It runs on libuv, which spins up a fixed thread pool of four workers by default. crypto, fs, dns.lookup, zlib - they all queue on those four.",
+    contentPath: "/blog/node-libuv-thread-pool-of-four_article.html",
+    publishedAt: "2026-08-18",
+    tags: ["Node.js", "libuv", "Backend"],
+    readingTime: "~14 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "react-key-is-a-reset-button",
     title: "React's key Prop Is A Reset Button, Not An Identity Prop. Here Is What Most Engineers Get Wrong.",
     description: "Every React tutorial teaches keys the same way - 'they help React tell items apart in a list'. That framing is why production React code is full of stale state, ghost animations, and forms that remember the last user's input. key is a reset primitive, not an identity marker.",
