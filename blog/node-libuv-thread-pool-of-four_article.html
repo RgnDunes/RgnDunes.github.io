@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Node.js Server Is Blocked By A Thread Pool Of 4. Nobody Told You.</title>
+<meta name="description" content="Every 'JavaScript is single-threaded' explanation forgets that Node.js is not single-threaded. It runs on libuv, which spins up a fixed thread pool of exactly four workers by default. Every crypto.pbkdf2, every fs.readFile, every DNS lookup, every zlib gzip queues on those four. Under load, your Node server can be sitting almost idle while requests pile up behind a thread pool starving on its own defaults." />
+<meta property="og:title" content="Your Node.js Server Is Blocked By A Thread Pool Of 4. Nobody Told You." />
+<meta property="og:description" content="Node.js is not single-threaded. It runs on libuv, which uses a fixed thread pool of four workers by default. That pool is why your server queues under load - and one env var fixes it." />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=1200&h=630&fit=crop&q=80" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Your Node.js Server Is Blocked By A Thread Pool Of 4. Nobody Told You." />
+<meta name="twitter:description" content="Node.js is not single-threaded. libuv gives you exactly four worker threads by default. Everything - crypto, fs, DNS, zlib - queues on them." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=1200&h=630&fit=crop&q=80" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --accent: #c84b31;
+    --accent2: #2a6e4a;
+    --muted: #8a8275;
+    --rule: #d4cdc0;
+    --highlight: #fff3b0;
+    --code-bg: #1e1e1e;
+    --code-text: #d4d4d4;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+    padding: 12px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .cover-image-wrap {
+    width: 100%;
+    max-height: 420px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+  .hero {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 64px 32px 40px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 640px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    flex-wrap: wrap;
+  }
+  .byline-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rule); }
+  .content-wrap { max-width: 860px; margin: 0 auto; padding: 0 32px; }
+  section { padding: 52px 0; border-bottom: 1px solid var(--rule); }
+  section:last-child { border-bottom: none; }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 32px 0 12px;
+    font-style: italic;
+  }
+  p { margin-bottom: 18px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 500; }
+  .pull-quote {
+    border-left: 4px solid var(--accent);
+    padding: 4px 0 4px 28px;
+    margin: 36px 0;
+  }
+  .pull-quote p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+  .callout {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin: 32px 0;
+  }
+  .callout .callout-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .callout p { font-size: 0.95rem; line-height: 1.7; color: #d8d2c6; margin-bottom: 10px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .highlight-box {
+    background: var(--highlight);
+    border: 1px solid #e0d06a;
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 28px 0;
+    font-size: 0.93rem;
+  }
+  .highlight-box strong {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: #7a6a00;
+  }
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 24px 28px;
+    margin: 28px 0;
+    overflow-x: auto;
+  }
+  .code-block .code-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6a9955;
+    margin-bottom: 14px;
+  }
+  .code-block pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--code-text);
+    white-space: pre;
+  }
+  .code-kw  { color: #569cd6; }
+  .code-fn  { color: #dcdcaa; }
+  .code-str { color: #ce9178; }
+  .code-cmt { color: #6a9955; font-style: italic; }
+  .code-num { color: #b5cea8; }
+  .code-var { color: #9cdcfe; }
+  ul.bullet-list { list-style: none; margin: 20px 0; padding: 0; }
+  ul.bullet-list li { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+  ul.bullet-list li::before {
+    content: '\25CF';
+    font-size: 10px;
+    color: var(--accent);
+    min-width: 12px;
+    padding-top: 6px;
+    flex-shrink: 0;
+  }
+  ul.bullet-list li span { line-height: 1.7; }
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 32px 0;
+  }
+  .stat-item { background: #fff; padding: 20px 20px; text-align: center; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--rule);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    margin: 2px 3px 2px 0;
+    color: var(--muted);
+  }
+  .tag.green { background: #d4ede0; color: var(--accent2); }
+  .tag.red   { background: #fde8e3; color: var(--accent); }
+  .footnote {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+    margin-top: 40px;
+  }
+  code.inline {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88em;
+    background: rgba(200, 75, 49, 0.08);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  @media (max-width: 600px) {
+    .hero, .content-wrap { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Node.js &nbsp;&middot;&nbsp; libuv &nbsp;&middot;&nbsp; Backend Internals</div>
+
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=1200&h=630&fit=crop&q=80" alt="Data centre server racks - representation of Node.js runtime infrastructure" />
+</div>
+
+<div class="hero">
+  <div class="hero-label">Node.js &middot; libuv Deep Dive</div>
+  <h1>Your Node.js Server Is Blocked By A <em>Thread Pool Of 4.</em> Nobody Told You.</h1>
+  <p class="hero-sub">Every "JavaScript is single-threaded" explanation forgets that Node.js is not single-threaded. It runs on libuv, which spins up a fixed thread pool of exactly four workers by default. crypto, fs, dns.lookup, zlib - they all queue on those four. Under real load your server can sit at 15 percent CPU while requests pile up behind a pool that never grew.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>August 2026</span>
+    <span class="byline-dot"></span>
+    <span>~14 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag red">Node.js</span>
+    <span class="tag">libuv</span>
+    <span class="tag">Backend</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 &middot; The Bug That Made No Sense</div>
+    <h2>An 8-Core Box Doing 15 Percent CPU, And Every Request Timing Out</h2>
+    <p>A while back on an internal service we watched something that should not have been possible. An 8-core Node.js box, load balanced with three siblings, and the p99 latency on a fairly ordinary endpoint quietly climbed from 80ms to 4 seconds over the course of a busy day. The requests were not doing anything exotic. Bcrypt a password, sign a JWT, do a DNS lookup, hit Redis, done.</p>
+    <p>Every graph looked wrong for what was happening. CPU on the box was sitting around 15 to 20 percent. Event loop lag was reported at under 5ms. Memory was flat. GC was fine. From every dashboard the process looked bored. From the client side, half the requests were timing out at 30 seconds.</p>
+    <p>We spent the better part of a day chasing ghosts. Was it the load balancer? Was DNS slow? Was Redis having a bad afternoon? None of it held up. The service metrics were all fine. It was Node.js itself that was queueing, and nothing in the standard observability stack was showing it.</p>
+    <p>What we eventually found is the single most consequential Node.js internals fact that most engineers who write Node for a living do not know. The one that makes the "JavaScript is single-threaded, but I/O is non-blocking" story a half-truth. Every book on Node draws the same picture: an event loop, a callback queue, some magic that makes I/O non-blocking. The magic has a name. It is called libuv. And by default it gives you exactly four threads to do that magic on.</p>
+    <div class="pull-quote">
+      <p>"Your Node server is not blocked on JavaScript. It is blocked on a fixed pool of four C threads that were sized when the machine had one CPU and 4GB of RAM."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">02 &middot; The Model You Were Taught</div>
+    <h2>The "Single-Threaded Event Loop" Story Skips A Whole Component</h2>
+    <p>The story every engineer learns for Node.js goes something like this: Node has one event loop, running on one thread. JavaScript is single-threaded. When you call something like <code class="inline">fs.readFile</code>, Node hands the request off to the operating system, keeps running JavaScript, and calls your callback when the file is ready.</p>
+    <p>That story is not wrong, but it hides the part that matters. There is no "hands off to the operating system" that is free. Some system calls are genuinely asynchronous at the OS level - epoll on Linux, kqueue on macOS, IOCP on Windows. For those, Node really does hand the request off to the kernel and go do other things. But a lot of the operations you think of as async are not async at the OS level. They are synchronous system calls that Node hides behind an async facade by running them on a background thread.</p>
+    <p>That background thread is not one thread. It is a pool. And the pool has a specific size.</p>
+    <div class="highlight-box">
+      <strong>The one fact most Node engineers do not know</strong>
+      Node.js ships with a default libuv thread pool size of 4. Every filesystem call, every DNS lookup done via getaddrinfo (the default), every crypto pbkdf2 / bcrypt / scrypt, every zlib compression - all of them queue for a slot on those four threads. If you have five in-flight bcrypts, one of them is waiting for the other four to finish.
+    </div>
+    <p>So the "single-threaded" answer is more accurately: the JavaScript execution is single-threaded, but the async operations Node depends on for its performance story run on a pool of C threads, and that pool is small enough to become a bottleneck on essentially any real production workload.</p>
+  </section>
+
+  <section>
+    <div class="section-num">03 &middot; What libuv Actually Is</div>
+    <h2>The C Library You Have Been Depending On Without Knowing It</h2>
+    <p>libuv is a cross-platform asynchronous I/O library, originally built for Node.js and now used by a fair number of other projects. Written in C. It is what sits between V8 and the operating system. When your JavaScript calls <code class="inline">fs.readFile</code>, that call goes to Node's C++ bindings, which call into libuv, which decides how to actually perform the read.</p>
+    <p>libuv has two very different mechanisms for async work:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Native async where the OS supports it.</strong> Network I/O uses epoll on Linux, kqueue on macOS, IOCP on Windows. libuv registers interest with the kernel and returns to the event loop. When the socket is ready, the kernel notifies libuv. No thread pool needed.</span></li>
+      <li><span><strong>Thread pool for everything else.</strong> When the underlying syscall is inherently blocking - filesystem reads on many systems, DNS resolution through the C library, CPU-bound crypto - libuv puts the work on a background thread from its pool, and signals the event loop when the thread finishes.</span></li>
+    </ul>
+    <p>The second bucket is bigger than most people realise. On Linux specifically, filesystem operations are treated as blocking because the kernel's async filesystem support (io_uring is the modern answer) is still not universally usable, so libuv defaults to running fs work on threads. DNS lookups via the default <code class="inline">dns.lookup</code> function go through <code class="inline">getaddrinfo</code>, which is a blocking system call, and therefore also runs on a thread. All of Node's built-in crypto primitives that do heavy work (bcrypt, scrypt, pbkdf2, hash streams, zlib gzip/gunzip) are dispatched to the thread pool because they are CPU-bound and would otherwise pin the event loop.</p>
+    <p>Add all of that together, and a surprising fraction of the "async" surface of Node.js is not natively async at the OS level. It is thread-pool async. And the thread pool defaults to four.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 &middot; The Symptom We Saw</div>
+    <h2>How A Pool Of Four Becomes A Latency Nightmare</h2>
+    <p>Back to the bug. Our endpoint was doing:</p>
+    <ul class="bullet-list">
+      <li><span>One <code class="inline">bcrypt.compare</code> against the incoming password.</span></li>
+      <li><span>One <code class="inline">dns.lookup</code> on a downstream hostname (because we used the http client's default resolver).</span></li>
+      <li><span>One <code class="inline">crypto.sign</code> to mint the JWT.</span></li>
+      <li><span>One <code class="inline">zlib.gzip</code> on the response body before sending.</span></li>
+    </ul>
+    <p>Every single one of those operations goes to the libuv thread pool. Every single one. Four operations per request, four threads in the pool. One in-flight request is already saturating three quarters of the pool. Two in-flight requests are actively competing.</p>
+    <p>The math gets worse fast. Under peak load we were seeing 30 to 60 concurrent requests to this endpoint. That means, roughly, 120 to 240 thread-pool operations wanting to run at the same time, and exactly four slots to run them in. Requests were not slow because the work was slow. They were slow because they were sitting in a queue in libuv, invisible to any userland instrumentation, waiting for one of four threads to become free.</p>
+    <div class="pull-quote">
+      <p>"The queue was not in our code. It was inside libuv, in a linked list that no metric we had ever surfaced."</p>
+    </div>
+    <p>This is what makes the bug so hard to spot. The event loop lag metric that most Node teams watch is measured from the JavaScript side. It cannot see queueing inside the thread pool. CPU usage looks low because the JavaScript thread is bored and the four C threads are busy but capped. Memory looks fine because nothing is leaking. Every dashboard confirms the server is healthy. It is only when you correlate concurrent-in-flight-requests with p99 latency that the staircase shape shows up, and even then it looks like a downstream problem, not a runtime problem.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05 &middot; The Fix Is One Environment Variable</div>
+    <h2>UV_THREADPOOL_SIZE, And Where To Put It</h2>
+    <p>libuv exposes the pool size through a single environment variable. Set it before Node starts, and libuv sizes the pool accordingly.</p>
+    <div class="code-block">
+      <div class="code-label">the fix</div>
+<pre><span class="code-cmt"># in your process manager, docker file, systemd unit, etc</span>
+<span class="code-var">UV_THREADPOOL_SIZE</span>=<span class="code-num">16</span> node server.js</pre>
+    </div>
+    <p>There are two critical details worth calling out, because both of them trip people up.</p>
+    <h3>1. The variable must be set before Node starts</h3>
+    <p>libuv creates the thread pool lazily, but it reads <code class="inline">UV_THREADPOOL_SIZE</code> exactly once, when the pool is first needed - typically during the first thread-pool operation. Setting the variable from within JavaScript, after Node has already started, does not always work reliably; even when it does, it is a race with the first pool use. The safe path is to set it in the environment before the process launches.</p>
+    <h3>2. There is an upper bound</h3>
+    <p>libuv caps <code class="inline">UV_THREADPOOL_SIZE</code> at 1024. Above that, it silently clamps. Below that, whatever you set is honoured. So you cannot ask libuv for 100,000 threads and have it accept the request - which is a good thing, because that would blow through your file descriptor and memory budgets in about a second.</p>
+    <div class="callout">
+      <div class="callout-label">A Rule Of Thumb That Actually Works</div>
+      <p>A workable starting point on a modern multi-core box is UV_THREADPOOL_SIZE = 2 x number-of-CPU-cores, with a floor of 8 and a ceiling of 128. This is not a science - it depends on how much of your work is thread-pool-bound versus network-bound - but it is enough to keep the pool from being the immediate bottleneck under moderate load. Then measure. Do not treat any number as sacred without profiling.</p>
+    </div>
+    <p>In our bug, going from 4 to 32 collapsed the p99 latency by more than an order of magnitude and got the box back to behaving like a well-tuned server. CPU rose to a healthy 55-70 percent, which is what you want - a server running at 15 percent is a server that is being cheated of the work it could be doing.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 &middot; What Uses The Pool (And What Does Not)</div>
+    <h2>The Actual Inventory Of Thread-Pool Work</h2>
+    <p>If you are going to tune this number sensibly, you have to know what is actually using the pool. This trips people up because the docs are scattered and half the community advice is folklore. Here is the sharp version.</p>
+    <p><strong>Uses the thread pool</strong>:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Filesystem operations.</strong> <code class="inline">fs.readFile</code>, <code class="inline">fs.writeFile</code>, <code class="inline">fs.stat</code>, everything in <code class="inline">fs/promises</code>. On Linux especially, these run on the pool.</span></li>
+      <li><span><strong>DNS via <code class="inline">dns.lookup</code>.</strong> This is what happens when you use the default resolver for any http client - <code class="inline">http.get</code>, <code class="inline">fetch</code> in older Node versions, <code class="inline">axios</code>, most drivers. Under the hood it calls <code class="inline">getaddrinfo</code>, which is blocking and therefore pool-bound.</span></li>
+      <li><span><strong>CPU-bound crypto.</strong> <code class="inline">bcrypt</code> (via node-bcrypt), <code class="inline">crypto.pbkdf2</code>, <code class="inline">crypto.scrypt</code>, <code class="inline">crypto.randomBytes</code> in async form, and hashing / signing operations that are dispatched to the pool.</span></li>
+      <li><span><strong>zlib.</strong> Async compression and decompression - gzip, gunzip, deflate, brotli - all queue on the pool.</span></li>
+      <li><span><strong>Certain native addons.</strong> Any C++ addon that uses <code class="inline">uv_queue_work</code> to run work off the main thread ends up on the same pool. Which means library authors are silently sharing your budget.</span></li>
+    </ul>
+    <p><strong>Does not use the thread pool</strong>:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Network I/O.</strong> TCP and UDP sockets, HTTP client and server sockets, TLS. These all use the OS-native async facilities (epoll / kqueue / IOCP) directly.</span></li>
+      <li><span><strong><code class="inline">dns.resolve</code> and friends.</strong> Unlike <code class="inline">dns.lookup</code>, these use direct DNS network calls, which are network-async, not pool-bound. Which is why swapping <code class="inline">dns.lookup</code> for <code class="inline">dns.resolve4</code> is often a real win in high-throughput HTTP clients.</span></li>
+      <li><span><strong>Child processes and worker threads.</strong> They are their own thing, not a libuv thread.</span></li>
+      <li><span><strong>Timers and immediates.</strong> Those live on the event loop itself.</span></li>
+    </ul>
+    <p>The pattern that leaps out once you see this list is that anything CPU-bound is on the pool, anything network-bound is not. If your service is mostly a proxy in front of downstream APIs, the pool matters less. If your service is doing password hashing, compression, or heavy filesystem work, the pool is the single most important knob you have.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 &middot; The Interaction With CPU Cores</div>
+    <h2>Why Raising The Pool Size Above Cores Still Helps</h2>
+    <p>A reasonable objection: "if my box has 8 cores, having more than 8 threads is pointless because they cannot all run at once". This is true for pure CPU-bound work. It is not true for the mix a real Node server does.</p>
+    <p>Two things save you. First, most thread-pool work is a mix of CPU and waiting - a bcrypt is CPU-bound but a filesystem read on a network filesystem spends most of its time waiting on the disk / network, and a DNS lookup spends most of its time waiting on a UDP round trip. Threads that are waiting are not competing for CPU; they are competing for a slot in the pool. Having more slots means fewer requests sitting in the queue waiting for a slot they could have used to just wait.</p>
+    <p>Second, the OS scheduler is fine with more threads than cores. That is the OS's job. What it cannot recover from is queueing inside a userland pool that it cannot see. Moving the queueing from libuv (opaque, uncontrolled) to the OS (observable, priority-managed, preemptively scheduled) is a strict improvement for anything that is not compute-bound.</p>
+    <div class="pull-quote">
+      <p>"You are not trying to run more work in parallel than your CPU can handle. You are trying to make the pool wide enough that it is not the bottleneck before your CPU is."</p>
+    </div>
+    <p>The one caveat is that if your workload is genuinely 100 percent CPU-bound - image resizing, ML inference, heavy encryption - piling up threads beyond the core count starts to hurt because of context switching. In that case, worker threads and a work-stealing queue are the right answer, not raising <code class="inline">UV_THREADPOOL_SIZE</code>. But for a typical mixed I/O and CPU workload, more pool threads is almost always a win up to the point where memory becomes the constraint.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 &middot; How To Actually Measure This</div>
+    <h2>The Signals That Tell You Your Pool Is The Problem</h2>
+    <p>If the standard event-loop-lag metric cannot see thread-pool queueing, what can? Three concrete signals I have found useful.</p>
+    <h3>1. Time from schedule to start for a known operation</h3>
+    <p>Wrap a representative thread-pool operation (say, a small <code class="inline">crypto.pbkdf2</code>) and measure the wall-clock time from the moment you called it to the moment its callback fires. Then compare against a synchronous benchmark of the same operation. The difference is queue wait plus scheduling. If the queue wait grows with concurrent request count, you are pool-bound.</p>
+    <h3>2. Perf-level thread state on the Node process</h3>
+    <p>On Linux, <code class="inline">perf</code> or <code class="inline">top -H</code> shows you per-thread activity for the Node process. If you see the four libuv threads pinned at close to 100 percent while the main JavaScript thread is bored, and the box has spare CPU, the pool is the bottleneck. Even simpler: if you see exactly four busy worker threads and eight or more idle cores, the answer is right there.</p>
+    <h3>3. Ratio of concurrent requests to pool size</h3>
+    <p>If your steady-state concurrent-in-flight-request count is meaningfully higher than your <code class="inline">UV_THREADPOOL_SIZE</code>, and each request touches even one pool-bound operation, you are guaranteed to be queueing. This is not a subtle correlation. It is arithmetic.</p>
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-num">4</div>
+        <div class="stat-label">default pool size</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">1024</div>
+        <div class="stat-label">libuv upper bound</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">2x</div>
+        <div class="stat-label">good starting multiplier of cores</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">0</div>
+        <div class="stat-label">standard metrics that show pool queue</div>
+      </div>
+    </div>
+    <p>Adding a small custom metric that measures pool wait time is one of the highest-value observability changes you can make to a Node service, and I have almost never seen it in place by default.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 &middot; The Anti-Patterns</div>
+    <h2>Two Common Mistakes When People Try To Fix This</h2>
+    <p>Once teams learn about the pool, the pendulum sometimes swings too far the other way. Two anti-patterns I have seen in practice.</p>
+    <h3>1. Setting UV_THREADPOOL_SIZE to a huge number and walking away</h3>
+    <p>Setting it to 512 or 1024 is not free. Each thread has a stack allocation (default around 2MB on many platforms), plus file descriptors, plus the OS's own bookkeeping. A pool of 1024 threads is not a magical performance boost; it is a real memory and scheduling cost. The right number is "big enough to not be the bottleneck", not "the maximum the library allows".</p>
+    <h3>2. Wrapping everything in a worker thread</h3>
+    <p>Node's <code class="inline">worker_threads</code> module is a different animal. It is a proper JavaScript execution isolate for CPU-bound work. Moving all your thread-pool operations into workers does not fix the pool problem, because <em>each worker has its own libuv thread pool of four</em>. Now you have the same bottleneck, distributed across N workers, with cross-thread messaging overhead layered on top. Workers are the right tool for parallelising truly CPU-bound JavaScript. They are not the right tool for making libuv's pool wider.</p>
+    <p>The right tool for making the pool wider is <code class="inline">UV_THREADPOOL_SIZE</code>. It has one job.</p>
+  </section>
+
+  <section>
+    <div class="section-num">10 &middot; The Reframe</div>
+    <h2>Node's Best Kept Secret Is A Config Variable</h2>
+    <p>The strange thing about libuv's thread pool is that it is one of the highest-leverage bits of Node.js knobs, and it is almost never taught. The books skip it. The bootcamps skip it. The docs mention it in a footnote. The default of 4 is a decade-old choice from when Node was primarily running on machines that looked nothing like modern servers, and it has stuck around because the failure mode of the default is not "your server crashes" - it is "your server quietly costs you three times as many boxes as it should".</p>
+    <p>Once you internalise this, a lot of vaguely-mysterious Node performance stories click into place. "Why does bcrypt make my API slow beyond what bcrypt itself costs?" Pool queueing. "Why does adding gzip compression tank throughput on a load-balanced fleet?" Pool queueing. "Why does DNS look fast in isolation and terrible at scale?" Pool queueing on <code class="inline">getaddrinfo</code>. The single-thread-plus-event-loop mental model does not have room for any of these. The event-loop-plus-libuv-thread-pool model has room for all of them.</p>
+    <div class="pull-quote">
+      <p>"Node.js is single-threaded the way an office is single-lobby. You still have to walk past the four receptionists to talk to anyone in the building."</p>
+    </div>
+    <p>Two concrete things you can do this week if you run a Node service in production.</p>
+    <ul class="bullet-list">
+      <li><span>Set <code class="inline">UV_THREADPOOL_SIZE</code> explicitly in your process manager, docker file, or systemd unit. Not because 4 is wrong for every workload, but because "the default someone chose in 2011" should not be a load-bearing part of your production tuning. Pick a deliberate number, even if it happens to be 4.</span></li>
+      <li><span>Instrument a tiny thread-pool queue-wait metric. A single-run <code class="inline">crypto.pbkdf2</code> with a fixed cost, measured against wall clock at intervals, tells you exactly when the pool is a bottleneck. It is a five-line change and it is the difference between guessing and knowing.</span></li>
+    </ul>
+    <p>Everything else follows from that. Once you can see it, you can tune it. And you will spend less time wondering why an 8-core box, running a healthy-looking Node process, is somehow only doing what a 1-core box should do.</p>
+    <div class="footnote">
+      Written by Divyansh Singh - senior frontend engineer, ex-fintech, currently on frontend infrastructure at a large HR / payroll platform. Author of Frontend System Design Decoded. This piece grew out of an internal-service latency bug where the actual bottleneck turned out to be the libuv thread pool. The technical facts here are from libuv's own documentation and Node.js source; the specific numbers in the "audit" section reflect what we saw on our workload and are not universal - your mix of pool-bound work will differ.
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
