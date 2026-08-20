@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your CI Runs Every Test On Every PR. That Is Not A Feature. That Is Waste.</title>
+<meta name="description" content="Most teams run their entire test suite on every PR and call it thorough. It is not thorough - it is expensive, slow, and it teaches everyone to distrust the results. Change-based test selection is not a new idea (Bazel has done it for a decade) but frontend teams are still stuck running 40 minutes of tests to validate a one-line CSS change. Here is what the alternative actually looks like." />
+<meta property="og:title" content="Your CI Runs Every Test On Every PR. That Is Not A Feature. That Is Waste." />
+<meta property="og:description" content="Change-based test selection is not new - Bazel has done it for a decade. Frontend teams are still running 40 minutes of tests to validate a one-line CSS change. Here is what the alternative actually looks like." />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=630&fit=crop&q=80" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Your CI Runs Every Test On Every PR. That Is Not A Feature. That Is Waste." />
+<meta name="twitter:description" content="Change-based test selection has been the answer for a decade. Frontend teams are still running the whole suite for a one-line change. Here is the sharp version of why." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=630&fit=crop&q=80" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --accent: #c84b31;
+    --accent2: #2a6e4a;
+    --muted: #8a8275;
+    --rule: #d4cdc0;
+    --highlight: #fff3b0;
+    --code-bg: #1e1e1e;
+    --code-text: #d4d4d4;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+    padding: 12px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .cover-image-wrap {
+    width: 100%;
+    max-height: 420px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cover-image { width: 100%; max-height: 420px; object-fit: cover; display: block; }
+  .hero { max-width: 860px; margin: 0 auto; padding: 64px 32px 40px; border-bottom: 2px solid var(--ink); }
+  .hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 640px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    flex-wrap: wrap;
+  }
+  .byline-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rule); }
+  .content-wrap { max-width: 860px; margin: 0 auto; padding: 0 32px; }
+  section { padding: 52px 0; border-bottom: 1px solid var(--rule); }
+  section:last-child { border-bottom: none; }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 32px 0 12px;
+    font-style: italic;
+  }
+  p { margin-bottom: 18px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 500; }
+  .pull-quote { border-left: 4px solid var(--accent); padding: 4px 0 4px 28px; margin: 36px 0; }
+  .pull-quote p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+  .callout { background: var(--ink); color: var(--paper); border-radius: 4px; padding: 28px 32px; margin: 32px 0; }
+  .callout .callout-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .callout p { font-size: 0.95rem; line-height: 1.7; color: #d8d2c6; margin-bottom: 10px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .highlight-box {
+    background: var(--highlight);
+    border: 1px solid #e0d06a;
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 28px 0;
+    font-size: 0.93rem;
+  }
+  .highlight-box strong {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: #7a6a00;
+  }
+  .code-block { background: var(--code-bg); border-radius: 6px; padding: 24px 28px; margin: 28px 0; overflow-x: auto; }
+  .code-block .code-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6a9955;
+    margin-bottom: 14px;
+  }
+  .code-block pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--code-text);
+    white-space: pre;
+  }
+  .code-kw  { color: #569cd6; }
+  .code-fn  { color: #dcdcaa; }
+  .code-str { color: #ce9178; }
+  .code-cmt { color: #6a9955; font-style: italic; }
+  .code-num { color: #b5cea8; }
+  .code-var { color: #9cdcfe; }
+  ul.bullet-list { list-style: none; margin: 20px 0; padding: 0; }
+  ul.bullet-list li { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+  ul.bullet-list li::before {
+    content: '\25CF';
+    font-size: 10px;
+    color: var(--accent);
+    min-width: 12px;
+    padding-top: 6px;
+    flex-shrink: 0;
+  }
+  ul.bullet-list li span { line-height: 1.7; }
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 32px 0;
+  }
+  .stat-item { background: #fff; padding: 20px 20px; text-align: center; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--rule);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    margin: 2px 3px 2px 0;
+    color: var(--muted);
+  }
+  .tag.green { background: #d4ede0; color: var(--accent2); }
+  .tag.red   { background: #fde8e3; color: var(--accent); }
+  .footnote {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+    margin-top: 40px;
+  }
+  code.inline {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88em;
+    background: rgba(200, 75, 49, 0.08);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  @media (max-width: 600px) {
+    .hero, .content-wrap { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; CI &nbsp;&middot;&nbsp; Test Selection &nbsp;&middot;&nbsp; Frontend Infrastructure</div>
+
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=630&fit=crop&q=80" alt="Server infrastructure at night - abstract representation of CI pipelines" />
+</div>
+
+<div class="hero">
+  <div class="hero-label">CI &middot; Contrarian Take</div>
+  <h1>Your CI Runs Every Test On Every PR. That Is Not A Feature. <em>That Is Waste.</em></h1>
+  <p class="hero-sub">Most teams run their entire test suite on every PR and call it thorough. It is not thorough - it is expensive, slow, and it quietly teaches everyone to distrust the results. Change-based test selection is not a new idea; Bazel has done it for a decade. But most frontend teams are still running 40 minutes of tests to validate a one-line CSS change.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>August 2026</span>
+    <span class="byline-dot"></span>
+    <span>~13 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag red">CI</span>
+    <span class="tag">Test Selection</span>
+    <span class="tag">Frontend Infra</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 &middot; The Moment</div>
+    <h2>The PR That Sat In CI Longer Than It Took To Write</h2>
+    <p>A friend messaged me a screenshot last month. A PR that changed one line in a CSS file. The change was updating a hex colour on a button. It took him about 40 seconds to write. It sat in CI for 47 minutes.</p>
+    <p>The CI run had done everything. Type-checked every file in the monorepo. Ran every unit test. Ran every integration test. Ran a full end-to-end suite in three browsers against a full-app deployment. Rebuilt every downstream package. Regenerated a translations bundle. All to prove that <code class="inline">#c84b31</code> was safe to merge.</p>
+    <p>The maddening part is not that this happens. The maddening part is that most teams do not think of it as a problem. They think of it as thoroughness. "We run every test on every PR" gets said like a virtue at design reviews, like "we type-check strictly" or "we have 90 percent coverage". Nobody thinks to ask whether running every test is doing any work at all beyond what running the tests that touch the change would have done.</p>
+    <p>Because in this case - a CSS colour swap - the answer is unambiguous. Zero. Not one of those 47 minutes of test execution had a chance of failing because of the change. Zero of them exercised the code the PR modified. All of them were, in the most literal sense, waste. And the team spent real cloud money and real engineering wall-clock time to prove nothing they did not already know.</p>
+    <div class="pull-quote">
+      <p>"Running every test on every PR is not thoroughness. It is a confession that the CI does not understand your codebase well enough to know which tests are relevant."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">02 &middot; The Excuse</div>
+    <h2>"But What If A Distant Test Would Have Caught It"</h2>
+    <p>The first defence when this topic comes up in code review is a version of this: "But what if the CSS change somehow broke something in an unrelated module, and only that module's test caught it?" It sounds reasonable on the surface. It also gets waved around like a trump card that ends the conversation.</p>
+    <p>The honest response is two-parted. First: this concern is answered by change-based selection done properly, not by running everything blindly. If your build system can prove that module X does not depend on the file you touched - transitively - then module X's tests literally cannot fail because of your change. Any failure in module X's tests on your PR is either a flaky test or a pre-existing failure. Both need to be handled, but neither is a case for running module X's tests on your PR.</p>
+    <p>Second: the "but what if" framing has an opportunity cost that never gets counted. Every minute of CI wall-clock time on your PR is a minute the reviewer does not spend reviewing, and a minute the machine cannot spend running the actually-affected tests to a higher signal (say, more retries for flakiness, or against real infrastructure instead of mocks). Running the full suite has a cost, not just a benefit. Most teams pretend the cost is zero.</p>
+    <div class="highlight-box">
+      <strong>The real question, not the strawman</strong>
+      The choice is not "run every test on every PR" vs "run nothing". The choice is "run every test poorly on every PR" vs "run the tests that could plausibly be affected, thoroughly, and run the whole suite on main." The second version catches more real regressions and takes less time on the review path. But it requires the CI to know something about your codebase.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 &middot; The Old Idea That Frontend Teams Missed</div>
+    <h2>Bazel Has Done This Since Roughly 2015</h2>
+    <p>The mildly humbling part of this whole story is that change-based test selection is not a novel idea somebody dreamed up in 2024. Bazel has been shipping it for something like a decade. So has Buck, Meta's build system. Nx has had affected-graph-based selection since its early days. Turbo does its own version. So does Pants. It is not new. Frontend teams are just very good at pretending build-system innovations from the last decade did not happen if they were not born in the npm ecosystem.</p>
+    <p>The core idea in all of these systems is the same, and it is boring once you see it:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Every unit of code has a declared set of dependencies.</strong> A package, a target, a project - whatever the granularity - names the other units it consumes. Not "we all live in one repo, everything depends on everything". Explicit, tracked dependencies.</span></li>
+      <li><span><strong>Every test is attached to a unit.</strong> When you run tests, you are running the tests belonging to a set of units.</span></li>
+      <li><span><strong>Given a diff, the build system computes the reverse transitive closure.</strong> Which units directly changed, then which units depend on those, then which units depend on those, all the way out. That set is the affected set. Tests belonging to units outside that set cannot be affected.</span></li>
+    </ul>
+    <p>That is the whole thing. Once you have that, "run every test that could plausibly be affected" is a single graph query, not a manually-maintained list of exceptions.</p>
+    <p>Frontend teams have every ingredient for this. Package.json dependencies. Import statements. Workspace manifests. What they usually lack is the discipline to keep the dependencies explicit and the willingness to trust a computed affected set. Both of those are cultural problems, not technical ones.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 &middot; What The Frontend Version Looks Like</div>
+    <h2>Nx, Turbo, And What Actually Works Today</h2>
+    <p>You do not have to adopt Bazel to do this. The frontend ecosystem has caught up enough that there are two real, workable answers depending on the shape of your repo.</p>
+    <h3>Nx - the "monorepo with a proper graph" answer</h3>
+    <p>Nx computes a dependency graph across all projects in the workspace and exposes it via <code class="inline">nx affected</code>. On a PR, you run:</p>
+    <div class="code-block">
+      <div class="code-label">the one command you need on PR</div>
+<pre><span class="code-var">nx</span> <span class="code-fn">affected</span> --target=test --base=origin/main</pre>
+    </div>
+    <p>Nx diffs the PR against main, walks the graph, and runs the test target on only the affected projects. If your PR only touches a leaf package that nothing depends on, only that one test target runs. If your PR touches a shared utility that seventeen packages depend on, all seventeen run. The math is the reverse-transitive closure, done by the tool.</p>
+    <h3>Turbo - the "npm workspaces with caching" answer</h3>
+    <p>Turbo is less opinionated about the graph but wins the other side of the battle: aggressive, correct build caching. If test outputs for a package are cached against the exact input hash and the inputs have not changed, the tests do not re-run. Cache hit means instant success. Cache miss means run the tests, then cache the result. Cross-CI-run and cross-machine caching makes the "second CI run costs nothing" experience genuinely achievable.</p>
+    <p>You can combine both approaches. Nx for the graph, remote caching for the reruns. The point is not any specific tool. The point is that "the machine should know which tests to run" is a solved problem, and the tooling to do it is one config file and a mildly disciplined dependency layout away.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05 &middot; The Cultural Problem</div>
+    <h2>Why Teams Refuse To Ship This Even After They Understand It</h2>
+    <p>Every time this comes up in a real team, the technical arguments end pretty quickly. Somebody demos <code class="inline">nx affected</code> or Turbo cache hits and the room agrees: yes, this is obviously the right shape. Then nothing happens for six months.</p>
+    <p>Because the actual blocker is not tooling. It is fear plus habit.</p>
+    <ul class="bullet-list">
+      <li><span><strong>Fear.</strong> Teams have been burned once by a green CI hiding a real bug. Somebody remembers a specific PR that was merged with a green tick and broke production, and the story got told at post-mortems. Now nobody wants to be the person who suggested running fewer tests. "I did not run the tests that would have caught it" is a career hit; "I ran every test we have, and it turned out we had a flakiness problem" is not.</span></li>
+      <li><span><strong>Habit.</strong> The current pipeline works, in the sense that it does not obviously break. Changing it is a project. Projects need staffing, buy-in, and a champion. Meanwhile the current pipeline is silently costing the team the equivalent of half an engineer a year in CI compute and much more in wall-clock time, but that cost is diffuse and easy to ignore.</span></li>
+      <li><span><strong>Tool inertia.</strong> "We are already on GitHub Actions" or "we already have a Buildkite pipeline" or "we are on Jenkins for historical reasons" becomes the reason not to consider a different shape, even though these tools are perfectly capable of running affected-only. The tool is not the blocker; the pipeline shape is.</span></li>
+    </ul>
+    <p>The counter-move for each of these is not an argument. It is data.</p>
+    <div class="callout">
+      <div class="callout-label">The Data That Actually Moves Teams</div>
+      <p>Instrument your existing CI to log, per PR, two numbers: how long the run took, and what fraction of the tests that ran actually touched the changed files (via a simple reverse-graph query, run for analytics, not for gating). Look at the distribution. On a typical mixed-workload frontend monorepo, the number is often below 5 percent. That is the graph the room needs to see to move.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">06 &middot; The Anti-Pattern Team B Uses</div>
+    <h2>"We Already Split Tests Into Fast And Slow, Isn't That The Same Thing"</h2>
+    <p>No. And this confusion is common enough to spell out.</p>
+    <p>Splitting the test suite into "fast" and "slow" - unit tests on every PR, integration tests only on main, or unit + integration on PR but E2E only nightly - is a different optimisation. It is a coarse-grained bucket approach. It says "we do not run the slow tests on your PR because slow is scary", but within each bucket it still runs everything.</p>
+    <p>The bucket approach and the affected-graph approach solve different problems. The bucket approach reduces wall time by dropping the slow tests. The affected approach reduces wall time by dropping <em>irrelevant</em> tests, fast or slow. A well-configured team does both. They run only the affected unit tests, and only the affected integration tests, and only the affected E2E flows. What is unaffected does not run.</p>
+    <p>Buckets by themselves have a nasty failure mode: they defer risk. Integration tests that only run on main mean the first time you learn about an integration break is after merge, when it costs more to fix. Affected-graph selection catches the break on the PR, if the PR could have caused it, without paying the full-suite cost.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 &middot; The Correctness Bar</div>
+    <h2>The Two Things That Have To Be True For This To Be Safe</h2>
+    <p>The reason "run every test" persists in the wild is that affected-graph selection is only safe if the graph is correct. If the graph says module X does not depend on file Y, and it turns out module X reaches file Y via some clever runtime import you forgot to declare, you can merge a PR that broke X without ever running X's tests. That is a bad day.</p>
+    <p>The two correctness conditions:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Dependencies must be static and complete.</strong> Every dependency between two units must be visible to the graph-computing tool. In practice this means: package.json <code class="inline">dependencies</code> declared honestly, no <code class="inline">require(dynamicVar)</code>, no runtime module loading that bypasses the resolver. The typical frontend monorepo is 95 percent of the way there because bundlers already need this to work. The remaining 5 percent - a hand-written module loader, an unused-import that turns out to actually be used - is what breaks the affected-graph safety.</span></li>
+      <li><span><strong>Non-code inputs must be tracked.</strong> Tests can fail because a fixture changed, because a snapshot needs updating, because a translation file was regenerated, because an environment variable flipped. If your affected-graph only considers .ts and .tsx files, you can miss real breakage from a JSON change. The good tools support declaring input globs for a target; use them.</span></li>
+    </ul>
+    <p>Both of these are enforceable via CI checks. There are lint rules that catch runtime <code class="inline">require</code> patterns. There are tools that verify the declared dependency set matches the actual imports. The correctness bar is real, but it is enforceable, and the payoff for enforcing it is that you finally get to trust the graph.</p>
+    <div class="pull-quote">
+      <p>"Correctness of the dependency graph is a code-quality investment. The reward is that you get to stop running tests you did not need to run."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">08 &middot; What A Well-Tuned Pipeline Actually Looks Like</h2>
+    <h2>The Shape You Should Be Aiming For</h2>
+    <p>Concretely, what does a good CI pipeline look like once you take this seriously? Not one shape - it depends on your repo - but here is a template that works for most frontend monorepos I have seen.</p>
+    <div class="code-block">
+      <div class="code-label">a real, defensible pipeline shape</div>
+<pre><span class="code-cmt"># on every push to a PR branch</span>
+
+<span class="code-var">stage 1</span>  install (from cache)                     <span class="code-cmt"># ~seconds</span>
+<span class="code-var">stage 2</span>  static checks on changed files only      <span class="code-cmt"># lint + typecheck</span>
+<span class="code-var">stage 3</span>  build affected packages                  <span class="code-cmt"># nx affected --build</span>
+<span class="code-var">stage 4</span>  unit tests for affected packages         <span class="code-cmt"># nx affected --test</span>
+<span class="code-var">stage 5</span>  integration tests for affected surfaces  <span class="code-cmt"># flow-tagged</span>
+<span class="code-var">stage 6</span>  E2E only for affected user journeys      <span class="code-cmt"># by owner + tag</span>
+
+<span class="code-cmt"># on merge to main - the full-suite safety net</span>
+
+<span class="code-var">stage 7</span>  full type-check, full unit + integration
+<span class="code-var">stage 8</span>  full E2E across the full journey matrix
+<span class="code-var">stage 9</span>  block deploy if red, alert on-call</pre>
+    </div>
+    <p>Two things about that shape worth noting. The PR path runs only what the change could affect. The main path runs everything. That is the "buckets and affected graphs" combination working together - fast, precise feedback on PRs, thorough validation before anything reaches users.</p>
+    <p>And on the main path, if a test breaks, it breaks a merge that has already been reviewed and approved. That is a different failure mode than a broken PR; it is a "main is red" event, which pages an on-call, blocks further merges, and gets fixed in minutes. The full suite is not skipped; it is moved to the place where it can actually catch things that the PR path could not.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 &middot; The Cost You Are Not Counting</div>
+    <h2>What "Run Everything" Actually Costs You</h2>
+    <p>Skeptical readers may still be wondering if this is worth the investment. Here is the cost side that usually does not make it into the room.</p>
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-num">Wall time</div>
+        <div class="stat-label">every PR waits for the slowest 1% of tests</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">Compute cost</div>
+        <div class="stat-label">CI minutes on tests that could not fail</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">Flake tax</div>
+        <div class="stat-label">the more tests you run, the more flakes you hit</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">Retry cost</div>
+        <div class="stat-label">every flake reruns the whole suite</div>
+      </div>
+    </div>
+    <p>The flake tax is the one that quietly destroys team velocity. Running every test on every PR means every PR has the odds of hitting at least one flaky test approaching 1. So the team gets used to red CI meaning "probably flaky, retry it". Which means when a red CI actually indicates a real regression, nobody believes it. The signal has been trained out of the pipeline.</p>
+    <p>Affected-graph selection improves this because the number of tests running is smaller, so the flake surface is smaller, so a red CI is more informative. It is not "we ran less to save money". It is "we ran less to make the results actually mean something".</p>
+    <div class="pull-quote">
+      <p>"A CI that runs 40 minutes and is right 90 percent of the time is a worse tool than a CI that runs 4 minutes and is right 99 percent of the time. The second one you actually trust."</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">10 &middot; The Practical Ask</div>
+    <h2>What To Do This Week If You Own A CI Pipeline</h2>
+    <p>None of this needs a six-month project. Three things in decreasing order of effort, any one of which is a real step in the right direction.</p>
+    <ul class="bullet-list">
+      <li><span><strong>Instrument the "affected fraction" metric.</strong> On every existing CI run, compute what fraction of the tests that ran actually touched the changed files. Log it. Chart it. Do not gate anything on it yet - just make it visible. Once the room has seen the number, the conversation about selecting tests becomes an easy one, not a philosophical one.</span></li>
+      <li><span><strong>Turn on remote build caching for one test target.</strong> Even without affected-graph selection, remote caching alone gives you "second CI run costs nothing" for unchanged code. This is one config change and it is a strict improvement.</span></li>
+      <li><span><strong>Adopt affected selection on a single non-critical path first.</strong> Storybook builds, docs generation, ancillary test suites - anything where a wrong graph would be caught in review rather than in production. Get the team used to trusting the graph on low-stakes decisions, then extend it to unit tests, then integration tests. Do not try to convert the whole pipeline in one PR.</span></li>
+    </ul>
+    <p>The larger point is that "we run every test on every PR" is not the safe default. It is a specific tradeoff that has costs, and those costs are underweighted in most conversations because they are diffuse. Change-based selection is not risky; running the whole suite badly is risky. It just does not feel that way, because the failure mode of the current approach is invisible to everyone except the people who watch the CI queue depth graph.</p>
+    <div class="footnote">
+      Written by Divyansh Singh - senior frontend engineer, ex-fintech, currently on frontend infrastructure at a large HR / payroll platform. Author of Frontend System Design Decoded. This piece draws on years of maintaining CI systems for medium and large monorepos, and on watching teams argue about the same "but what if we miss something" question in a dozen different Slack threads. The tooling references (Nx, Turbo, Bazel) are the actual state of the art; none of the numbers in the article are audited figures beyond what you would find in the tools' own documentation.
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
