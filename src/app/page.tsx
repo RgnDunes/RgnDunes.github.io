@@ -1,111 +1,82 @@
-"use client";
-
-import { useCallback, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
-import Navbar from "@/components/Navbar";
-import ScrollProgress from "@/components/ScrollProgress";
-import CommandPalette from "@/components/CommandPalette";
-import Cursor from "@/components/Cursor";
-import EasterEgg from "@/components/EasterEgg";
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
 import Experience from "@/components/sections/Experience";
 import Skills from "@/components/sections/Skills";
+import Projects from "@/components/sections/Projects";
+import DigitalProducts from "@/components/sections/DigitalProducts";
+import Articles from "@/components/sections/Articles";
+import LatestBlog from "@/components/sections/LatestBlog";
+import Testimonials from "@/components/sections/Testimonials";
+import Contact from "@/components/sections/Contact";
 import Marquee from "@/components/Marquee";
 import SectionOrnament from "@/components/SectionOrnament";
+import HomeShell from "@/components/HomeShell";
+import { SITE, SITE_URL } from "@/lib/site";
+import { blogPosts } from "@/data/blogPosts";
 
-const RippleShell = dynamic(() => import("@/components/ripple/RippleShell"), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-paper">
-      <div className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
-        Loading Ripple…
-      </div>
-    </div>
-  ),
-});
-
-// Below-the-fold sections are code-split
-const Projects = dynamic(() => import("@/components/sections/Projects"), {
-  loading: () => <div className="min-h-[70vh]" />,
-});
-const DigitalProducts = dynamic(
-  () => import("@/components/sections/DigitalProducts"),
-  { loading: () => <div className="min-h-[70vh]" /> }
-);
-const Articles = dynamic(() => import("@/components/sections/Articles"), {
-  loading: () => <div className="min-h-[70vh]" />,
-});
-const LatestBlog = dynamic(() => import("@/components/sections/LatestBlog"), {
-  loading: () => <div className="min-h-[70vh]" />,
-});
-const Testimonials = dynamic(() => import("@/components/sections/Testimonials"), {
-  loading: () => <div className="min-h-[70vh]" />,
-});
-const Contact = dynamic(() => import("@/components/sections/Contact"), {
-  loading: () => <div className="min-h-[70vh]" />,
-});
+function homePageJsonLd() {
+  const url = `${SITE_URL}/`;
+  const latest = [...blogPosts]
+    .sort(
+      (a, b) =>
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    )
+    .slice(0, 6);
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      url,
+      inLanguage: SITE.language,
+      mainEntity: { "@id": `${SITE_URL}#person` },
+      breadcrumb: {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: url },
+        ],
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Latest essays",
+      itemListElement: latest.map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `${SITE_URL}/blog/${p.slug}`,
+        name: p.title,
+      })),
+    },
+  ];
+}
 
 export default function Home() {
-  const [gameMode, setGameMode] = useState(false);
-  const [cmdOpen, setCmdOpen] = useState(false);
-
-  const enterGameMode = useCallback(() => setGameMode(true), []);
-  const exitGameMode = useCallback(() => setGameMode(false), []);
-  const openCmd = useCallback(() => setCmdOpen(true), []);
-  const closeCmd = useCallback(() => setCmdOpen(false), []);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setCmdOpen((v) => !v);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
+  const jsonLd = homePageJsonLd();
   return (
     <>
-      <ScrollProgress />
-      <Cursor />
-      {!gameMode && (
-        <>
-          <Navbar onGameModeToggle={enterGameMode} onCommandOpen={openCmd} />
-          <motion.main
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7 }}
-            className="relative"
-          >
-            <Hero />
-            <About />
-            <Marquee />
-            <Experience />
-            <SectionOrnament index={0} />
-            <Skills />
-            <SectionOrnament index={1} />
-            <Projects />
-            <DigitalProducts />
-            <SectionOrnament index={2} />
-            <Articles />
-            <LatestBlog />
-            <SectionOrnament index={0} />
-            <Testimonials />
-            <Contact />
-          </motion.main>
-
-          <CommandPalette
-            open={cmdOpen}
-            onClose={closeCmd}
-            onGameModeToggle={enterGameMode}
-          />
-          <EasterEgg />
-        </>
-      )}
-      {gameMode && <RippleShell onExit={exitGameMode} />}
+      <HomeShell>
+        <main className="relative">
+          <Hero />
+          <About />
+          <Marquee />
+          <Experience />
+          <SectionOrnament index={0} />
+          <Skills />
+          <SectionOrnament index={1} />
+          <Projects />
+          <DigitalProducts />
+          <SectionOrnament index={2} />
+          <Articles />
+          <LatestBlog />
+          <SectionOrnament index={0} />
+          <Testimonials />
+          <Contact />
+        </main>
+      </HomeShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </>
   );
 }
