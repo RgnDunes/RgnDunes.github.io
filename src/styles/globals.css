@@ -414,3 +414,269 @@
 }
 
 /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography — "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity, and adds styles for elements the raw article HTML
+   ships with (h2/h3, pre/code, blockquote, tables, callout classes).
+   ============================================================ */
+
+.prose-notebook {
+  --tw-prose-body: rgb(var(--ink-2));
+  --tw-prose-headings: rgb(var(--ink));
+  --tw-prose-lead: rgb(var(--ink-2));
+  --tw-prose-links: rgb(var(--saffron));
+  --tw-prose-bold: rgb(var(--ink));
+  --tw-prose-counters: rgb(var(--muted));
+  --tw-prose-bullets: rgb(var(--rule));
+  --tw-prose-hr: rgb(var(--rule));
+  --tw-prose-quotes: rgb(var(--ink));
+  --tw-prose-quote-borders: rgb(var(--saffron));
+  --tw-prose-captions: rgb(var(--muted));
+  --tw-prose-code: rgb(var(--ink));
+  --tw-prose-pre-code: #e6e0d4;
+  --tw-prose-pre-bg: #1e1c19;
+  --tw-prose-th-borders: rgb(var(--rule));
+  --tw-prose-td-borders: rgb(var(--rule));
+
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  font-size: 17.5px;
+  line-height: 1.75;
+}
+
+/* Headings — serif display face, editorial rhythm */
+.prose-notebook :where(h1, h2, h3, h4) {
+  font-family: var(--font-fraunces), 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.prose-notebook :where(h2) {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  margin-top: 2.75em;
+  margin-bottom: 0.9em;
+  padding-top: 0.6em;
+  border-top: 1px solid rgb(var(--rule));
+}
+.prose-notebook :where(h2:first-child) {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+.prose-notebook :where(h3) {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin-top: 2.25em;
+  margin-bottom: 0.7em;
+}
+.prose-notebook :where(h4) {
+  font-size: 1.15rem;
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
+}
+
+/* Body paragraphs */
+.prose-notebook :where(p) {
+  margin-top: 1.15em;
+  margin-bottom: 1.15em;
+  max-width: 68ch;
+}
+
+/* Lead / first paragraph after the header */
+.prose-notebook > :where(p:first-of-type) {
+  font-size: 1.18em;
+  line-height: 1.65;
+  color: rgb(var(--ink));
+}
+
+/* Links — saffron with a soft underline */
+.prose-notebook :where(a) {
+  color: rgb(var(--saffron));
+  text-decoration: underline;
+  text-decoration-color: rgba(232, 106, 43, 0.35);
+  text-underline-offset: 3px;
+  font-weight: 500;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+.prose-notebook :where(a:hover) {
+  color: rgb(var(--saffron-deep));
+  text-decoration-color: rgb(var(--saffron-deep));
+}
+
+/* Blockquotes — pulled quote, saffron rule */
+.prose-notebook :where(blockquote) {
+  border-left: 3px solid rgb(var(--saffron));
+  padding-left: 1.5em;
+  margin: 2em 0;
+  font-family: var(--font-fraunces), 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.25em;
+  line-height: 1.5;
+  color: rgb(var(--ink));
+  quotes: none;
+}
+.prose-notebook :where(blockquote p) {
+  margin: 0.5em 0;
+}
+.prose-notebook :where(blockquote p::before, blockquote p::after) {
+  content: none;
+}
+
+/* Inline code */
+.prose-notebook :where(code) {
+  font-family: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.87em;
+  font-weight: 500;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: rgba(20, 20, 22, 0.06);
+  color: rgb(var(--ink));
+}
+.prose-notebook :where(code::before, code::after) {
+  content: none;
+}
+.prose-notebook :where(a code) {
+  color: rgb(var(--saffron));
+  background: rgba(232, 106, 43, 0.09);
+}
+
+/* Code blocks */
+.prose-notebook :where(pre) {
+  background: #1e1c19;
+  color: #e6e0d4;
+  border-radius: 10px;
+  padding: 1.1em 1.3em;
+  font-size: 0.86em;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 1.75em 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 0 rgb(var(--rule));
+}
+.prose-notebook :where(pre code) {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 1em;
+  font-weight: 400;
+  border-radius: 0;
+}
+
+/* Lists */
+.prose-notebook :where(ul, ol) {
+  padding-left: 1.6em;
+  margin: 1.15em 0;
+}
+.prose-notebook :where(li) {
+  margin: 0.5em 0;
+}
+.prose-notebook :where(ul > li) {
+  list-style-type: disc;
+}
+.prose-notebook :where(ul > li::marker) {
+  color: rgb(var(--saffron));
+}
+.prose-notebook :where(ol > li::marker) {
+  color: rgb(var(--muted));
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.9em;
+}
+
+/* Horizontal rule */
+.prose-notebook :where(hr) {
+  border: 0;
+  border-top: 1px solid rgb(var(--rule));
+  margin: 3em 0;
+}
+
+/* Tables */
+.prose-notebook :where(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.75em 0;
+  font-size: 0.94em;
+}
+.prose-notebook :where(th) {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.8em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0.65em 0.9em;
+  border-bottom: 1px solid rgb(var(--ink));
+  color: rgb(var(--ink));
+}
+.prose-notebook :where(td) {
+  padding: 0.75em 0.9em;
+  border-bottom: 1px solid rgb(var(--rule));
+  vertical-align: top;
+}
+
+/* Images inside the article */
+.prose-notebook :where(img) {
+  border-radius: 8px;
+  border: 1px solid rgb(var(--rule));
+  margin: 2em auto;
+}
+.prose-notebook :where(figcaption) {
+  color: rgb(var(--muted));
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.78em;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.6em;
+}
+
+/* Strong / emphasis */
+.prose-notebook :where(strong) {
+  color: rgb(var(--ink));
+  font-weight: 600;
+}
+.prose-notebook :where(em) {
+  font-style: italic;
+  color: rgb(var(--ink));
+}
+
+/* Marker highlight (some source articles use <mark>) */
+.prose-notebook :where(mark) {
+  background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+  );
+  color: inherit;
+  padding: 0 2px;
+}
+
+/* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.prose-notebook.drop-cap > p:first-of-type::first-letter {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  color: rgb(var(--saffron));
+  float: left;
+  font-size: 4.5rem;
+  line-height: 0.85;
+  padding-right: 0.5rem;
+  padding-top: 0.4rem;
+}
+
+/* Callout / aside classes commonly used in the source articles */
+.prose-notebook :where(.callout, .aside, .note) {
+  border-left: 3px solid rgb(var(--seal));
+  background: rgba(39, 88, 74, 0.06);
+  padding: 1em 1.2em;
+  border-radius: 6px;
+  margin: 1.75em 0;
+  font-size: 0.96em;
+}
+.prose-notebook :where(.warning) {
+  border-left-color: rgb(var(--saffron));
+  background: rgba(232, 106, 43, 0.08);
+}

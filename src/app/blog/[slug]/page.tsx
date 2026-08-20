@@ -283,34 +283,33 @@ export default function BlogPostPage({ params }: Props) {
   const { newer, older } = findPrevNext(post, blogPosts);
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="border-b border-ink bg-ink py-3 text-center font-mono text-xs uppercase tracking-[0.18em] text-paper">
-        Engineering Diaries
+    <div className="min-h-screen bg-paper text-ink-2">
+      {/* Editorial masthead — thin ink bar, matches the notebook identity */}
+      <div className="border-b border-rule bg-ink py-3 text-center font-mono text-[10.5px] uppercase tracking-[0.28em] text-paper/90">
+        Engineering Diaries · {post.tags[0]}
       </div>
 
-      <article className="mx-auto max-w-[860px] px-8 py-16">
-        <nav aria-label="Breadcrumb" className="mb-8">
-          <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+      <article className="mx-auto max-w-[720px] px-5 pb-24 pt-10 md:px-8 md:pt-16">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-10">
+          <ol className="flex flex-wrap items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted">
             <li>
-              <Link href="/" className="hover:text-gray-800 transition-colors">
+              <Link href="/" className="hover:text-ink transition-colors">
                 Home
               </Link>
             </li>
-            <li aria-hidden className="text-gray-400">
-              /
+            <li aria-hidden className="text-rule">
+              ·
             </li>
             <li>
-              <Link
-                href="/blog"
-                className="hover:text-gray-800 transition-colors"
-              >
+              <Link href="/blog" className="hover:text-ink transition-colors">
                 Blog
               </Link>
             </li>
-            <li aria-hidden className="text-gray-400">
-              /
+            <li aria-hidden className="text-rule">
+              ·
             </li>
-            <li className="text-gray-800" aria-current="page">
+            <li className="text-ink" aria-current="page">
               {post.title.length > 60
                 ? `${post.title.slice(0, 60)}…`
                 : post.title}
@@ -318,71 +317,86 @@ export default function BlogPostPage({ params }: Props) {
           </ol>
         </nav>
 
-        <header className="mb-10">
-          <h1 className="font-display text-3xl leading-tight text-ink md:text-5xl">
+        {/* Article header — folio numeral, title, dek, byline strip */}
+        <header className="mb-12">
+          <div className="mb-6 flex items-baseline gap-4">
+            <span className="folio text-4xl md:text-5xl">§</span>
+            <div className="eyebrow">
+              {post.tags.slice(0, 3).join(" · ")}
+            </div>
+          </div>
+          <h1 className="font-display text-[2rem] font-medium leading-[1.08] tracking-[-0.02em] text-ink md:text-[3rem] lg:text-[3.5rem]">
             {post.title}
           </h1>
-          <p className="mt-4 text-lg text-gray-700 md:text-xl">
+          <p className="mt-6 max-w-[60ch] font-body text-lg leading-[1.55] text-ink-2 md:text-xl">
             {post.description}
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-4 border-b border-gray-200 pb-6 font-mono text-xs uppercase tracking-[0.12em] text-gray-600">
-            <span>By {post.author.name}</span>
-            <span className="h-1 w-1 rounded-full bg-rule" aria-hidden />
-            <time dateTime={post.publishedAt}>{publishedLabel}</time>
-            <span className="h-1 w-1 rounded-full bg-rule" aria-hidden />
+          <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-rule py-4 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted">
+            <span>
+              By <span className="text-ink">{post.author.name}</span>
+            </span>
+            <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
+            <time dateTime={post.publishedAt} className="text-ink-2">
+              {publishedLabel}
+            </time>
+            <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
             <span>{post.readingTime}</span>
-            <span className="h-1 w-1 rounded-full bg-rule" aria-hidden />
+            <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
             <ViewCounter pageId={`blog-${post.slug}`} showLabel={false} />
           </div>
         </header>
 
+        {/* Article body — prose-notebook applies typography via globals.css */}
         <div
-          className="prose prose-lg max-w-none"
+          className="prose prose-notebook max-w-none"
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
 
+        {/* Fleuron divider */}
         <div
-          className="mt-16 text-center text-2xl tracking-[0.5em] text-gray-600"
+          className="mt-16 text-center font-display text-2xl italic tracking-[0.4em] text-saffron/50"
           aria-hidden
         >
           · · ·
         </div>
 
+        {/* Tags */}
         <div className="mt-8 flex flex-wrap gap-2">
           {post.tags.map((tag) => (
             <Link
               key={tag}
               href={`/blog?tag=${encodeURIComponent(tag)}`}
               rel="nofollow"
-              className="rounded-sm bg-rule px-3 py-1 font-mono text-xs uppercase tracking-wider text-gray-600 transition-colors hover:text-ink"
+              className="chip"
             >
               {tag}
             </Link>
           ))}
         </div>
 
+        {/* Related essays */}
         {related.length > 0 && (
           <section
             aria-labelledby="related-heading"
-            className="mt-16 border-t border-gray-200 pt-10"
+            className="mt-20 border-t border-rule pt-10"
           >
             <h2
               id="related-heading"
-              className="mb-6 font-mono text-xs uppercase tracking-[0.18em] text-gray-600"
+              className="mb-6 font-mono text-[10.5px] uppercase tracking-[0.22em] text-muted"
             >
               Related essays
             </h2>
-            <ul className="grid gap-6 md:grid-cols-3">
+            <ul className="grid gap-8 md:grid-cols-3">
               {related.map((r) => (
                 <li key={r.slug}>
                   <Link href={`/blog/${r.slug}`} className="group block">
-                    <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.15em] text-gray-500">
+                    <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-saffron">
                       {r.tags.slice(0, 2).join(" · ")}
                     </div>
-                    <h3 className="font-display text-lg leading-snug text-ink transition-colors group-hover:text-orange-500">
+                    <h3 className="font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
                       {r.title}
                     </h3>
-                    <p className="mt-2 line-clamp-3 text-sm text-gray-700">
+                    <p className="mt-2 clamp-3 text-sm leading-[1.55] text-ink-2">
                       {r.description}
                     </p>
                   </Link>
@@ -392,9 +406,10 @@ export default function BlogPostPage({ params }: Props) {
           </section>
         )}
 
+        {/* Prev/next navigation */}
         <nav
           aria-label="Post navigation"
-          className="mt-12 grid gap-6 border-t border-gray-200 pt-10 md:grid-cols-2"
+          className="mt-16 grid gap-6 border-t border-rule pt-10 md:grid-cols-2"
         >
           {older ? (
             <Link
@@ -402,10 +417,10 @@ export default function BlogPostPage({ params }: Props) {
               href={`/blog/${older.slug}`}
               className="group block"
             >
-              <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-gray-500">
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                 ← Older essay
               </span>
-              <span className="mt-2 block font-display text-base leading-snug text-ink transition-colors group-hover:text-orange-500">
+              <span className="mt-2 block font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
                 {older.title}
               </span>
             </Link>
@@ -418,22 +433,20 @@ export default function BlogPostPage({ params }: Props) {
               href={`/blog/${newer.slug}`}
               className="group block md:text-right"
             >
-              <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-gray-500">
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
                 Newer essay →
               </span>
-              <span className="mt-2 block font-display text-base leading-snug text-ink transition-colors group-hover:text-orange-500">
+              <span className="mt-2 block font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
                 {newer.title}
               </span>
             </Link>
           ) : null}
         </nav>
 
-        <div className="mt-12 border-t border-gray-200 pt-8 text-center">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 font-medium text-orange-500 hover:text-orange-500/80 transition-colors"
-          >
-            ← Read more articles
+        {/* Back link */}
+        <div className="mt-16 flex justify-center border-t border-rule pt-10">
+          <Link href="/blog" className="link-quiet font-mono text-[11px] uppercase tracking-[0.22em]">
+            ← Return to the full archive
           </Link>
         </div>
       </article>
