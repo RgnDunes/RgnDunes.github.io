@@ -94,7 +94,7 @@ export const blogPosts: BlogPost[] = [
     slug: "i-stopped-using-npm-install-heres-the-40-second-trick-that-changed-how-i-debug-dependencies",
     title: "I Stopped Using npm install. Here's the 40-Second Trick That Changed How I Debug Dependencies.",
     description: "Most engineers reinstall node_modules when debugging dependency issues. There's a faster way that lets you patch, test, and iterate on third-party packages in seconds - without waiting for CI or publishing to a test registry.",
-    contentPath: "/blog/i-stopped-using-npm-install-heres-the-40-second-trick-that-changed-how-i-debug-dependencies_article.html?v=2",
+    contentPath: "/blog/i-stopped-using-npm-install-heres-the-40-second-trick-that-changed-how-i-debug-dependencies_article.html",
     publishedAt: "2026-07-11",
     tags: ["Frontend Infrastructure", "npm", "Developer Experience"],
     readingTime: "~17 min read",

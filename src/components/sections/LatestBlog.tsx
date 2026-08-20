@@ -66,13 +66,16 @@ export default function LatestBlog() {
                 </span>
               </div>
               <div className="flex flex-1 flex-col p-6">
-                <div className="mb-3 font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">
+                <time
+                  dateTime={post.publishedAt}
+                  className="mb-3 block font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted"
+                >
                   {new Date(post.publishedAt).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
                   })}
-                </div>
+                </time>
                 <h3 className="font-display text-xl leading-[1.15] text-ink transition-colors group-hover:text-saffron">
                   {post.title}
                 </h3>
