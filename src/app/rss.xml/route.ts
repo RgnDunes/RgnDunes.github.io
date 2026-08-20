@@ -53,6 +53,17 @@ export async function GET() {
     <description>${escapeXml(SITE.description)}</description>
     <language>${SITE.language}</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <managingEditor>${SITE.author.email} (${escapeXml(SITE.author.name)})</managingEditor>
+    <webMaster>${SITE.author.email} (${escapeXml(SITE.author.name)})</webMaster>
+    <category>Software Engineering</category>
+    <category>Web Development</category>
+    <image>
+      <url>${SITE_URL}/og-default.png</url>
+      <title>${escapeXml(SITE.siteName)}</title>
+      <link>${SITE_URL}</link>
+      <width>144</width>
+      <height>144</height>
+    </image>
     ${items}
   </channel>
 </rss>`;

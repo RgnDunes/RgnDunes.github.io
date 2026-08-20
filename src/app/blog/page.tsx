@@ -54,12 +54,12 @@ function blogJsonLd(posts: typeof blogPosts) {
     {
       "@context": "https://schema.org",
       "@type": "Blog",
-      "@id": blogUrl,
+      "@id": `${blogUrl}#blog`,
       url: blogUrl,
       name: title,
       description,
       inLanguage: SITE.language,
-      publisher: { "@id": `${SITE_URL}#person` },
+      publisher: { "@id": `${SITE_URL}#publisher` },
       blogPost: posts.map((p) => ({
         "@type": "BlogPosting",
         "@id": `${SITE_URL}/blog/${p.slug}#article`,

@@ -57,6 +57,7 @@ export default function LatestBlog() {
                   .toLocaleDateString("en-US", { month: "short" })
                   .toUpperCase()}
                 year={new Date(post.publishedAt).getFullYear()}
+                uid={post.slug}
               />
 
               <div className="flex items-center justify-between border-b border-rule bg-paper-2 px-5 py-3 font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">
@@ -98,8 +99,16 @@ export default function LatestBlog() {
  * A circular postmark stamp — angled slightly, saffron ink, faux
  * "DISPATCHED · MONTH · YEAR · BLR" text arced around the ring.
  */
-function Postmark({ month, year }: { month: string; year: number }) {
-  const id = `pm-${month}-${year}`;
+function Postmark({
+  month,
+  year,
+  uid,
+}: {
+  month: string;
+  year: number;
+  uid: string;
+}) {
+  const id = `pm-${month}-${year}-${uid}`;
   return (
     <svg
       aria-hidden

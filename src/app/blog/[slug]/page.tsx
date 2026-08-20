@@ -34,9 +34,16 @@ function seoTitle(raw: string, brand = "Divyansh Singh", maxLen = 65): string {
 function seoDescription(raw: string, maxLen = 160): string {
   const one = raw.replace(/\s+/g, " ").trim();
   if (one.length <= maxLen) return one;
-  const slice = one.slice(0, maxLen - 1);
-  const lastSpace = slice.lastIndexOf(" ");
-  return `${slice.slice(0, lastSpace > 100 ? lastSpace : slice.length).trimEnd()}…`;
+  // Prefer to cut at the first sentence boundary within budget.
+  const slice = one.slice(0, maxLen);
+  const sentenceEnd = slice.search(/[.!?](?:\s|$)/);
+  if (sentenceEnd >= 80) {
+    return one.slice(0, sentenceEnd + 1);
+  }
+  // Fall back to last word boundary.
+  const cut = slice.slice(0, maxLen - 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${cut.slice(0, lastSpace > 100 ? lastSpace : cut.length).trimEnd()}…`;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -431,6 +438,12 @@ export default function BlogPostPage({ params }: Props) {
         </div>
       </article>
 
+      {older && (
+        <link rel="prev" href={`${SITE_URL}/blog/${older.slug}`} />
+      )}
+      {newer && (
+        <link rel="next" href={`${SITE_URL}/blog/${newer.slug}`} />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

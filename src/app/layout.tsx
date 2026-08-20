@@ -138,11 +138,6 @@ function siteJsonLd() {
       inLanguage: SITE.language,
       description: SITE.description,
       publisher: { "@id": orgId },
-      potentialAction: {
-        "@type": "SearchAction",
-        target: `${SITE_URL}/blog?q={search_term_string}`,
-        "query-input": "required name=search_term_string",
-      },
     },
     {
       "@context": "https://schema.org",
