@@ -120,6 +120,46 @@ function readArticleHtml(contentPath: string | undefined): string {
  * body. Some articles were authored as full documents; some as fragments.
  * Also strips <script>/<style> and <title>/<meta> for safety.
  */
+/**
+ * Strip a top-level element by class name (removes the wrapper div plus
+ * everything inside it, brace-matched by tag depth).
+ */
+function stripByClass(html: string, className: string): string {
+  const re = new RegExp(
+    `<(div|section|header|nav|footer)\\s[^>]*class=["'][^"']*\\b${className}\\b[^"']*["'][^>]*>`,
+    "i"
+  );
+  let out = html;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(out))) {
+    const openTag = m[1];
+    const start = m.index;
+    // Walk forward, tracking open/close of the same tag to find the match.
+    const tagOpen = new RegExp(`<${openTag}\\b`, "gi");
+    const tagClose = new RegExp(`</${openTag}\\s*>`, "gi");
+    tagOpen.lastIndex = start + 1;
+    tagClose.lastIndex = start;
+    let depth = 1;
+    let cursor = start + m[0].length;
+    while (depth > 0) {
+      tagOpen.lastIndex = cursor;
+      tagClose.lastIndex = cursor;
+      const nextOpen = tagOpen.exec(out);
+      const nextClose = tagClose.exec(out);
+      if (!nextClose) break;
+      if (nextOpen && nextOpen.index < nextClose.index) {
+        depth++;
+        cursor = nextOpen.index + nextOpen[0].length;
+      } else {
+        depth--;
+        cursor = nextClose.index + nextClose[0].length;
+      }
+    }
+    out = out.slice(0, start) + out.slice(cursor);
+  }
+  return out;
+}
+
 function normaliseArticleHtml(raw: string): string {
   if (!raw) return "";
   let html = raw;
@@ -131,11 +171,25 @@ function normaliseArticleHtml(raw: string): string {
     .replace(/<link[^>]*rel=["']stylesheet["'][^>]*>/gi, "")
     .replace(/<meta[\s\S]*?>/gi, "")
     .replace(/<title[\s\S]*?<\/title>/gi, "");
+  // The article ships its own top-block ("hero", "masthead", "byline",
+  // "tag" list, "cover-image-wrap") — we render an equivalent header in
+  // React, so remove those to avoid duplication.
+  html = stripByClass(html, "masthead");
+  html = stripByClass(html, "hero");
+  html = stripByClass(html, "byline");
+  html = stripByClass(html, "cover-image-wrap");
+  html = stripByClass(html, "cover-image");
+  // Strip the article's own inline tag pills (we render our own).
+  html = html.replace(
+    /<(div|nav|ul|p)[^>]*class=["'][^"']*\btags?\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi,
+    ""
+  );
   // The article page template already renders the post title in an <h1>;
-  // the article body sometimes repeats it in its own <h1>. Demote any
-  // <h1>s inside the body to <h2> so there is exactly one <h1> per page.
-  html = html.replace(/<h1(\s[^>]*)?>/gi, "<h2$1>").replace(/<\/h1>/gi, "</h2>");
-  // Any external <a href="http…"> without rel gets rel=noopener + target=_blank
+  // some body variants repeat it. Demote any residual <h1>s to <h2>.
+  html = html
+    .replace(/<h1(\s[^>]*)?>/gi, "<h2$1>")
+    .replace(/<\/h1>/gi, "</h2>");
+  // External <a href="http…"> without rel gets rel=noopener + target=_blank
   // so click targets are safe and Google isn't fed link-equity leaks.
   html = html.replace(/<a\s+([^>]*href=["']https?:[^"']+["'][^>]*)>/gi, (m, attrs) => {
     let out = attrs;
