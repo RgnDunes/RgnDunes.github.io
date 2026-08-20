@@ -16,7 +16,7 @@ export const articles: Article[] = [
     type: "Performance",
     description:
       "The pitch is very attractive: ship no JavaScript, score 100 on Lighthouse. But the developer experience of working with Qwik, Astro Islands, and their cousins is a different story altogether.",
-    link: "/blog/zero-bundle-size-dx-cost_article.html",
+    link: "/blog/zero-bundle-size-dx-cost",
     icon: FaBookmark,
     date: "May 2025",
     stats: "Blog",
@@ -26,7 +26,7 @@ export const articles: Article[] = [
     type: "Tooling",
     description:
       "For years we quietly assumed Rollup was the library bundler and Webpack was the application bundler. That line has blurred considerably. Here is why Rollup deserves a second look for your next production application.",
-    link: "/blog/rollup_article.html",
+    link: "/blog/rollup-not-just-for-libraries",
     icon: FaBookmark,
     date: "April 2025",
     stats: "Blog",
@@ -36,7 +36,7 @@ export const articles: Article[] = [
     type: "React",
     description:
       "The new Actions API is a solid improvement for handling async mutations and form submissions. But teams are already reaching for it as a Zustand or Redux replacement, and that's a category error that will bite them at scale.",
-    link: "/blog/react19_actions_article.html",
+    link: "/blog/react19-actions",
     icon: FaBookmark,
     date: "April 2025",
     stats: "Blog",
@@ -46,7 +46,7 @@ export const articles: Article[] = [
     type: "Tooling",
     description:
       "npm workspaces make monorepo dependency management feel very convenient, but they deliberately share a single node_modules tree across every package. This design has consequences that quietly break reproducibility.",
-    link: "/blog/npm_workspaces_isolation.html",
+    link: "/blog/npm-workspaces-isolation",
     icon: FaBookmark,
     date: "April 2025",
     stats: "Blog",
@@ -56,7 +56,7 @@ export const articles: Article[] = [
     type: "Security & Testing",
     description:
       "A proper look at how attackers get into your dependency tree, what they do once they are in, and why your lockfile alone is not going to save you.",
-    link: "/blog/npm_supply_chain_attacks.html",
+    link: "/blog/npm-supply-chain-attacks",
     icon: FaBookmark,
     date: "April 2025",
     stats: "Blog",
@@ -66,7 +66,7 @@ export const articles: Article[] = [
     type: "Performance",
     description:
       "Your servers are green. Your APIs are healthy. Your dashboards look perfectly fine. And somewhere out there, a real user is staring at a blank white screen. Here is why that gap exists, and what you can actually do about it.",
-    link: "/blog/frontend_observability_article.html",
+    link: "/blog/frontend-observability",
     icon: FaBookmark,
     date: "April 2025",
     stats: "Blog",
@@ -76,7 +76,7 @@ export const articles: Article[] = [
     type: "Tooling",
     description:
       "How AI-assisted deployments, platform engineering, and a new generation of tooling are dismantling the pipeline model we've relied on for a decade, and what actually comes next.",
-    link: "/blog/cicd_pipeline_article.html",
+    link: "/blog/death-of-traditional-cicd",
     icon: FaBookmark,
     date: "April 2025",
     stats: "Blog",
@@ -86,7 +86,7 @@ export const articles: Article[] = [
     type: "Tooling",
     description:
       "I have spent the better part of two years running both of these in production across teams of different shapes and sizes. Here is everything I wish someone had told me before I started forming opinions.",
-    link: "/blog/buildkite_vs_github_actions.html",
+    link: "/blog/buildkite-vs-github-actions",
     icon: FaBookmark,
     date: "April 2025",
     stats: "Blog",
@@ -96,7 +96,7 @@ export const articles: Article[] = [
     type: "Best Practices",
     description:
       "Everyone is merging faster, the PR backlog is clean, and the dashboards look very good. So why does opening a module from eight months ago feel like reading someone else's fever dream?",
-    link: "/blog/ai_code_review_article.html",
+    link: "/blog/ai-code-review",
     icon: FaBookmark,
     date: "April 2025",
     stats: "Blog",
@@ -106,7 +106,7 @@ export const articles: Article[] = [
     type: "Security & Testing",
     description:
       "How I used two competing AI models as adversarial test players to stress-test a web version of Monopoly Deal and Scotland Yard - and what the simulation taught me about edge cases no human tester would ever find.",
-    link: "/blog/ai_boardgame_testing_article.html",
+    link: "/blog/ai-boardgame-testing",
     icon: FaBookmark,
     date: "March 2025",
     stats: "Blog",

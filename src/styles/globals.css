@@ -414,3 +414,541 @@
 }
 
 /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography — "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity, and adds styles for elements the raw article HTML
+   ships with (h2/h3, pre/code, blockquote, tables, callout classes).
+   ============================================================ */
+
+.prose-notebook {
+  --tw-prose-body: rgb(var(--ink-2));
+  --tw-prose-headings: rgb(var(--ink));
+  --tw-prose-lead: rgb(var(--ink-2));
+  --tw-prose-links: rgb(var(--saffron));
+  --tw-prose-bold: rgb(var(--ink));
+  --tw-prose-counters: rgb(var(--muted));
+  --tw-prose-bullets: rgb(var(--rule));
+  --tw-prose-hr: rgb(var(--rule));
+  --tw-prose-quotes: rgb(var(--ink));
+  --tw-prose-quote-borders: rgb(var(--saffron));
+  --tw-prose-captions: rgb(var(--muted));
+  --tw-prose-code: rgb(var(--ink));
+  --tw-prose-pre-code: #e6e0d4;
+  --tw-prose-pre-bg: #1e1c19;
+  --tw-prose-th-borders: rgb(var(--rule));
+  --tw-prose-td-borders: rgb(var(--rule));
+
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  font-size: 17.5px;
+  line-height: 1.75;
+}
+
+/* Headings — serif display face, editorial rhythm */
+.prose-notebook :where(h1, h2, h3, h4) {
+  font-family: var(--font-fraunces), 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.prose-notebook :where(h2) {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  margin-top: 2.75em;
+  margin-bottom: 0.9em;
+  padding-top: 0.6em;
+  border-top: 1px solid rgb(var(--rule));
+}
+.prose-notebook :where(h2:first-child) {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+.prose-notebook :where(h3) {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin-top: 2.25em;
+  margin-bottom: 0.7em;
+}
+.prose-notebook :where(h4) {
+  font-size: 1.15rem;
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
+}
+
+/* Body paragraphs */
+.prose-notebook :where(p) {
+  margin-top: 1.15em;
+  margin-bottom: 1.15em;
+  max-width: 68ch;
+}
+
+/* Lead / first paragraph after the header */
+.prose-notebook > :where(p:first-of-type) {
+  font-size: 1.18em;
+  line-height: 1.65;
+  color: rgb(var(--ink));
+}
+
+/* Links — saffron with a soft underline */
+.prose-notebook :where(a) {
+  color: rgb(var(--saffron));
+  text-decoration: underline;
+  text-decoration-color: rgba(232, 106, 43, 0.35);
+  text-underline-offset: 3px;
+  font-weight: 500;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+.prose-notebook :where(a:hover) {
+  color: rgb(var(--saffron-deep));
+  text-decoration-color: rgb(var(--saffron-deep));
+}
+
+/* Blockquotes — pulled quote, saffron rule */
+.prose-notebook :where(blockquote) {
+  border-left: 3px solid rgb(var(--saffron));
+  padding-left: 1.5em;
+  margin: 2em 0;
+  font-family: var(--font-fraunces), 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.25em;
+  line-height: 1.5;
+  color: rgb(var(--ink));
+  quotes: none;
+}
+.prose-notebook :where(blockquote p) {
+  margin: 0.5em 0;
+}
+.prose-notebook :where(blockquote p::before, blockquote p::after) {
+  content: none;
+}
+
+/* Inline code */
+.prose-notebook :where(code) {
+  font-family: var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.87em;
+  font-weight: 500;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: rgba(20, 20, 22, 0.06);
+  color: rgb(var(--ink));
+}
+.prose-notebook :where(code::before, code::after) {
+  content: none;
+}
+.prose-notebook :where(a code) {
+  color: rgb(var(--saffron));
+  background: rgba(232, 106, 43, 0.09);
+}
+
+/* Code blocks */
+.prose-notebook :where(pre) {
+  background: #1e1c19;
+  color: #e6e0d4;
+  border-radius: 10px;
+  padding: 1.1em 1.3em;
+  font-size: 0.86em;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 1.75em 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 0 rgb(var(--rule));
+}
+.prose-notebook :where(pre code) {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 1em;
+  font-weight: 400;
+  border-radius: 0;
+}
+
+/* Lists */
+.prose-notebook :where(ul, ol) {
+  padding-left: 1.6em;
+  margin: 1.15em 0;
+}
+.prose-notebook :where(li) {
+  margin: 0.5em 0;
+}
+.prose-notebook :where(ul > li) {
+  list-style-type: disc;
+}
+.prose-notebook :where(ul > li::marker) {
+  color: rgb(var(--saffron));
+}
+.prose-notebook :where(ol > li::marker) {
+  color: rgb(var(--muted));
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.9em;
+}
+
+/* Horizontal rule */
+.prose-notebook :where(hr) {
+  border: 0;
+  border-top: 1px solid rgb(var(--rule));
+  margin: 3em 0;
+}
+
+/* Tables */
+.prose-notebook :where(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.75em 0;
+  font-size: 0.94em;
+}
+.prose-notebook :where(th) {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.8em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0.65em 0.9em;
+  border-bottom: 1px solid rgb(var(--ink));
+  color: rgb(var(--ink));
+}
+.prose-notebook :where(td) {
+  padding: 0.75em 0.9em;
+  border-bottom: 1px solid rgb(var(--rule));
+  vertical-align: top;
+}
+
+/* Images inside the article */
+.prose-notebook :where(img) {
+  border-radius: 8px;
+  border: 1px solid rgb(var(--rule));
+  margin: 2em auto;
+}
+.prose-notebook :where(figcaption) {
+  color: rgb(var(--muted));
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.78em;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.6em;
+}
+
+/* Strong / emphasis */
+.prose-notebook :where(strong) {
+  color: rgb(var(--ink));
+  font-weight: 600;
+}
+.prose-notebook :where(em) {
+  font-style: italic;
+  color: rgb(var(--ink));
+}
+
+/* Marker highlight (some source articles use <mark>) */
+.prose-notebook :where(mark) {
+  background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+  );
+  color: inherit;
+  padding: 0 2px;
+}
+
+/* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.prose-notebook.drop-cap > p:first-of-type::first-letter {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  color: rgb(var(--saffron));
+  float: left;
+  font-size: 4.5rem;
+  line-height: 0.85;
+  padding-right: 0.5rem;
+  padding-top: 0.4rem;
+}
+
+/* Callout / aside classes commonly used in the source articles */
+.prose-notebook :where(.callout, .aside, .note) {
+  border-left: 3px solid rgb(var(--seal));
+  background: rgba(39, 88, 74, 0.06);
+  padding: 1em 1.2em;
+  border-radius: 6px;
+  margin: 1.75em 0;
+  font-size: 0.96em;
+}
+.prose-notebook :where(.callout > .callout-label) {
+  display: block;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.72em;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(var(--seal));
+  margin-bottom: 0.5em;
+}
+.prose-notebook :where(.callout p) {
+  margin: 0;
+  max-width: none;
+}
+.prose-notebook :where(.warning) {
+  border-left-color: rgb(var(--saffron));
+  background: rgba(232, 106, 43, 0.08);
+}
+.prose-notebook :where(.warning > .callout-label) {
+  color: rgb(var(--saffron-deep));
+}
+
+/* Section numeral — small mono label preceding an <h2> chapter break */
+.prose-notebook :where(.section-num) {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.72em;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(var(--saffron));
+  margin-top: 3.5em;
+  margin-bottom: 0.4em;
+}
+/* When a section-num precedes an h2, tighten the spacing between them. */
+.prose-notebook :where(.section-num + h2) {
+  margin-top: 0.1em;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* Stat strip — grid of "big number + tiny label" tiles */
+.prose-notebook :where(.stat-strip) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75em;
+  margin: 2em 0;
+  padding: 0;
+  border-top: 1px solid rgb(var(--rule));
+  border-bottom: 1px solid rgb(var(--rule));
+  padding-top: 1.4em;
+  padding-bottom: 1.4em;
+}
+@media (min-width: 640px) {
+  .prose-notebook :where(.stat-strip) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.prose-notebook :where(.stat-item) {
+  padding: 0 0.5em;
+  border-left: 1px solid rgb(var(--rule));
+}
+.prose-notebook :where(.stat-item:first-child) {
+  border-left: 0;
+  padding-left: 0;
+}
+.prose-notebook :where(.stat-num) {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 2.25rem;
+  line-height: 1;
+  font-weight: 500;
+  color: rgb(var(--saffron));
+  margin-bottom: 0.3em;
+}
+.prose-notebook :where(.stat-label) {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.72em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+  line-height: 1.4;
+}
+
+/* Pull-quote — oversized italic serif with saffron rule */
+.prose-notebook :where(.pull-quote) {
+  border-left: 3px solid rgb(var(--saffron));
+  padding: 0.5em 0 0.5em 1.5em;
+  margin: 2.5em 0;
+}
+.prose-notebook :where(.pull-quote p) {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-size: 1.35em;
+  line-height: 1.45;
+  color: rgb(var(--ink));
+  margin: 0;
+  max-width: none;
+}
+
+/* Highlight box — "the one fact most X don't know" callout */
+.prose-notebook :where(.highlight-box) {
+  background: rgba(255, 232, 143, 0.35);
+  border: 1px solid rgba(232, 106, 43, 0.25);
+  padding: 1.2em 1.4em;
+  border-radius: 8px;
+  margin: 2em 0;
+  font-size: 1.02em;
+}
+.prose-notebook :where(.highlight-box strong) {
+  display: block;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.15em;
+  color: rgb(var(--ink));
+  margin-bottom: 0.5em;
+}
+
+/* Custom code block wrapper the articles emit around a <pre> */
+.prose-notebook :where(.code-block) {
+  background: #1e1c19;
+  color: #e6e0d4;
+  border-radius: 10px;
+  margin: 1.75em 0;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.prose-notebook :where(.code-block > .code-label) {
+  display: block;
+  padding: 0.6em 1.2em;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.72em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(230, 224, 212, 0.75);
+}
+.prose-notebook :where(.code-block > pre) {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 1.1em 1.3em;
+  box-shadow: none;
+}
+
+/* Syntax-token spans emitted by the article authors */
+.prose-notebook :where(.code-kw) { color: #c084fc; }
+.prose-notebook :where(.code-fn) { color: #7dd3fc; }
+.prose-notebook :where(.code-var) { color: #fbbf24; }
+.prose-notebook :where(.code-str) { color: #a3e635; }
+.prose-notebook :where(.code-cmt) { color: rgba(230, 224, 212, 0.5); font-style: italic; }
+.prose-notebook :where(.code-num) { color: #f472b6; }
+
+/* Inline "code-flavored" span used mid-sentence */
+.prose-notebook :where(code.inline),
+.prose-notebook :where(.inline) {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.87em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: rgba(20, 20, 22, 0.06);
+  color: rgb(var(--ink));
+  font-weight: 500;
+}
+
+/* Bullet list styled to match the notebook rhythm */
+.prose-notebook :where(.bullet-list) {
+  list-style: none;
+  padding-left: 0;
+  margin: 1.3em 0;
+}
+.prose-notebook :where(.bullet-list > li) {
+  position: relative;
+  padding-left: 1.5em;
+  margin: 0.7em 0;
+  line-height: 1.65;
+}
+.prose-notebook :where(.bullet-list > li)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.75em;
+  width: 0.6em;
+  height: 1px;
+  background: rgb(var(--saffron));
+}
+
+/* Article footnote at the end */
+.prose-notebook :where(.footnote) {
+  margin-top: 3em;
+  padding-top: 1.5em;
+  border-top: 1px solid rgb(var(--rule));
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.82em;
+  line-height: 1.7;
+  color: rgb(var(--muted));
+  font-style: normal;
+}
+
+/* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.prose-notebook :where(.flow-track) {
+  margin: 2em 0;
+  padding: 1.2em;
+  border: 1px dashed rgb(var(--rule));
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.015);
+  overflow-x: auto;
+}
+.prose-notebook :where(.flow) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6em;
+  justify-content: flex-start;
+}
+.prose-notebook :where(.flow-node) {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4em 0.85em;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--rule));
+  background: rgb(var(--paper));
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.82em;
+  color: rgb(var(--ink));
+}
+.prose-notebook :where(.flow-node.green) {
+  border-color: rgb(var(--seal));
+  color: rgb(var(--seal));
+  background: rgba(39, 88, 74, 0.06);
+}
+.prose-notebook :where(.flow-node.red) {
+  border-color: rgb(var(--saffron));
+  color: rgb(var(--saffron-deep));
+  background: rgba(232, 106, 43, 0.06);
+}
+.prose-notebook :where(.flow-arrow)::after {
+  content: "→";
+  color: rgb(var(--muted));
+  font-family: var(--font-jetbrains), monospace;
+}
+.prose-notebook :where(.flow-bend) {
+  height: 0.5em;
+}
+.prose-notebook :where(.arch-title) {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.78em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+  margin-bottom: 0.5em;
+}
+
+/* Article-emitted tag pills (if any survive the stripper) — inert */
+.prose-notebook :where(.tag) {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: 1px solid rgb(var(--rule));
+  border-radius: 999px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.7em;
+  letter-spacing: 0.06em;
+  color: rgb(var(--ink-2));
+  background: rgba(255, 255, 255, 0.3);
+  margin-right: 0.3em;
+}
+.prose-notebook :where(.tag.red) {
+  color: rgb(var(--saffron-deep));
+  border-color: rgba(232, 106, 43, 0.35);
+}
+.prose-notebook :where(.tag.green) {
+  color: rgb(var(--seal));
+  border-color: rgba(39, 88, 74, 0.35);
+}

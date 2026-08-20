@@ -1,0 +1,4 @@
+Contact: mailto:rgndunes@gmail.com
+Preferred-Languages: en
+Expires: 2030-01-01T00:00:00Z
+Canonical: https://rgndunes.github.io/Portfolio-v5/.well-known/security.txt

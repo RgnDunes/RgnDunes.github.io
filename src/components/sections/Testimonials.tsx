@@ -66,11 +66,11 @@ export default function Testimonials() {
               >
                 <Image
                   src={t.image}
-                  alt={t.name}
+                  alt={`Portrait of ${t.name}`}
                   fill
                   className="object-cover"
                   sizes="(min-width: 768px) 208px, 160px"
-                  priority={i === 0}
+                  loading="lazy"
                 />
               </motion.div>
             </AnimatePresence>

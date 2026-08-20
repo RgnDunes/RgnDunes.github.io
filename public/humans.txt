@@ -1,0 +1,14 @@
+/* TEAM */
+Author: Divyansh Singh
+Contact: rgndunes [at] gmail.com
+GitHub: @RgnDunes
+LinkedIn: /in/rgndunes
+X / Twitter: @rgndunes
+Location: Bengaluru, India
+
+/* SITE */
+Last update: 2026-08-20
+Standards: HTML5, CSS3, TypeScript
+Components: Next.js 14 (App Router, static export), Tailwind CSS, Framer Motion
+Doctype: HTML5
+Deployment: GitHub Pages

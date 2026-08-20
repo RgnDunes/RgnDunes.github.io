@@ -124,7 +124,8 @@ export default function Contact() {
                   <a
                     href={s.href}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="me noopener noreferrer"
+                    aria-label={`${s.label} — ${s.handle}`}
                     className="group flex items-center gap-4 py-4 transition-colors hover:text-saffron"
                   >
                     <span className="flex h-10 w-10 items-center justify-center rounded-full border border-rule bg-paper transition-all group-hover:border-ink group-hover:bg-ink group-hover:text-paper">

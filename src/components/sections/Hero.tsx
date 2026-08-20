@@ -63,7 +63,13 @@ export default function Hero() {
         {/* Colossal typographic name - kinetic reveal */}
         <div className="mt-10 md:mt-16">
           <div className="eyebrow mb-6">Introducing</div>
+          <h1 className="sr-only">
+            Divyansh Singh — Senior Frontend Engineer at Rippling. Formerly
+            Razorpay. Building web infrastructure, developer tooling, and CI/CD
+            systems. Also known as rgndunes.
+          </h1>
           <motion.div
+            aria-hidden
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
@@ -141,6 +147,7 @@ export default function Hero() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -18, opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+                    lang={verses[vIdx].lang === "iast" ? "sa-Latn" : verses[vIdx].lang}
                     className={`font-display text-[26px] leading-[1.18] text-ink md:text-[28px] ${
                       verses[vIdx].lang === "en" ? "italic" : ""
                     }`}

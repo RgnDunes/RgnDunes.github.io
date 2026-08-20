@@ -6,7 +6,7 @@ const nextConfig = {
     unoptimized: true, // Required for static export
   },
   // This setting ensures paths are correctly resolved for GitHub Pages
-  assetPrefix: process.env.NODE_ENV === "production" ? "/Portfolio-v5/" : "",
+  assetPrefix: process.env.NODE_ENV === "production" ? "/Portfolio-v5" : "",
 };
 
 module.exports = nextConfig;
