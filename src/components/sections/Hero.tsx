@@ -147,6 +147,7 @@ export default function Hero() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -18, opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+                    lang={verses[vIdx].lang === "iast" ? "sa-Latn" : verses[vIdx].lang}
                     className={`font-display text-[26px] leading-[1.18] text-ink md:text-[28px] ${
                       verses[vIdx].lang === "en" ? "italic" : ""
                     }`}

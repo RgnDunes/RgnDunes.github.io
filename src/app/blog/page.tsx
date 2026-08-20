@@ -60,13 +60,23 @@ function blogJsonLd(posts: typeof blogPosts) {
       description,
       inLanguage: SITE.language,
       publisher: { "@id": `${SITE_URL}#person` },
-      blogPost: posts.slice(0, 20).map((p) => ({
+      blogPost: posts.map((p) => ({
         "@type": "BlogPosting",
-        "@id": `${SITE_URL}/blog/${p.slug}`,
+        "@id": `${SITE_URL}/blog/${p.slug}#article`,
         headline: p.title,
+        description: p.description,
         url: `${SITE_URL}/blog/${p.slug}`,
         datePublished: p.publishedAt,
+        dateModified: p.publishedAt,
+        image: {
+          "@type": "ImageObject",
+          url: SITE.ogDefault,
+          width: 1200,
+          height: 630,
+        },
         author: { "@id": `${SITE_URL}#person` },
+        publisher: { "@id": `${SITE_URL}#publisher` },
+        keywords: p.tags.join(", "),
       })),
     },
     {

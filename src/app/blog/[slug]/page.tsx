@@ -99,8 +99,12 @@ function readArticleHtml(contentPath: string | undefined): string {
   const abs = path.join(process.cwd(), "public", cleaned);
   try {
     return fs.readFileSync(abs, "utf8");
-  } catch {
-    return "";
+  } catch (e) {
+    // Fail the build loudly rather than silently shipping empty article
+    // shells — an empty article page is worse for SEO than a build error.
+    throw new Error(
+      `Blog article body file is missing: ${abs}. Referenced from src/data/blogPosts.ts.`
+    );
   }
 }
 
@@ -135,33 +139,60 @@ function normaliseArticleHtml(raw: string): string {
   return html.trim();
 }
 
-function articleJsonLd(post: (typeof blogPosts)[number]) {
+function readingTimeToISO(rt: string): string {
+  // "~13 min read" → "PT13M"
+  const m = rt && rt.match(/(\d+)\s*min/i);
+  return m ? `PT${m[1]}M` : "PT5M";
+}
+
+function bodyToPlain(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function articleJsonLd(
+  post: (typeof blogPosts)[number],
+  bodyHtml: string
+) {
   const url = `${SITE_URL}/blog/${post.slug}`;
   const image = post.coverImage
     ? absoluteUrl(post.coverImage)
     : SITE.ogDefault;
+  const imageObj = {
+    "@type": "ImageObject",
+    url: image,
+    width: 1200,
+    height: 630,
+  };
+  const plain = bodyToPlain(bodyHtml);
+  const wordCount = plain ? plain.split(" ").filter(Boolean).length : 0;
   return [
     {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
-      "@id": url,
+      "@id": `${url}#article`,
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
       headline: post.title,
       description: post.description,
-      image: [image],
+      image: [imageObj],
       datePublished: post.publishedAt,
       dateModified: post.publishedAt,
-      author: {
-        "@type": "Person",
-        "@id": `${SITE_URL}#person`,
-        name: post.author.name,
-        url: SITE_URL,
-      },
-      publisher: { "@id": `${SITE_URL}#person` },
+      author: { "@id": `${SITE_URL}#person` },
+      publisher: { "@id": `${SITE_URL}#publisher` },
       keywords: post.tags.join(", "),
       articleSection: post.tags[0],
       inLanguage: SITE.language,
       url,
+      wordCount,
+      timeRequired: readingTimeToISO(post.readingTime),
+      articleBody: plain.slice(0, 5000),
+      speakable: {
+        "@type": "SpeakableSpecification",
+        cssSelector: ["h1", "header p"],
+      },
     },
     {
       "@context": "https://schema.org",
@@ -234,7 +265,7 @@ export default function BlogPostPage({ params }: Props) {
 
   const raw = readArticleHtml(post.contentPath);
   const bodyHtml = normaliseArticleHtml(raw);
-  const jsonLd = articleJsonLd(post);
+  const jsonLd = articleJsonLd(post, bodyHtml);
   const publishedDate = new Date(post.publishedAt);
   const publishedLabel = publishedDate.toLocaleDateString("en-US", {
     month: "long",
@@ -315,6 +346,7 @@ export default function BlogPostPage({ params }: Props) {
             <Link
               key={tag}
               href={`/blog?tag=${encodeURIComponent(tag)}`}
+              rel="nofollow"
               className="rounded-sm bg-rule px-3 py-1 font-mono text-xs uppercase tracking-wider text-gray-600 transition-colors hover:text-ink"
             >
               {tag}

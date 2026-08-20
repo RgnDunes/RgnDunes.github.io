@@ -50,11 +50,9 @@ export const metadata: Metadata = {
     },
   },
   robots: {
-    index: true,
-    follow: true,
+    // index/follow default to true — only override googleBot for the
+    // enhanced-preview signals which are non-default.
     googleBot: {
-      index: true,
-      follow: true,
       "max-image-preview": "large",
       "max-snippet": -1,
       "max-video-preview": -1,
@@ -123,6 +121,13 @@ export const viewport: Viewport = {
 function siteJsonLd() {
   const websiteId = `${SITE_URL}#website`;
   const personId = `${SITE_URL}#person`;
+  const orgId = `${SITE_URL}#publisher`;
+  const logoImage = {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/icon.png`,
+    width: 512,
+    height: 512,
+  };
   return [
     {
       "@context": "https://schema.org",
@@ -132,7 +137,7 @@ function siteJsonLd() {
       name: SITE.siteName,
       inLanguage: SITE.language,
       description: SITE.description,
-      publisher: { "@id": personId },
+      publisher: { "@id": orgId },
       potentialAction: {
         "@type": "SearchAction",
         target: `${SITE_URL}/blog?q={search_term_string}`,
@@ -141,12 +146,27 @@ function siteJsonLd() {
     },
     {
       "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": orgId,
+      name: SITE.siteName,
+      url: SITE_URL,
+      logo: logoImage,
+      founder: { "@id": personId },
+      sameAs: SITE.author.sameAs,
+    },
+    {
+      "@context": "https://schema.org",
       "@type": "Person",
       "@id": personId,
       name: SITE.author.name,
       alternateName: SITE.author.handle,
       url: SITE_URL,
-      image: SITE.author.image,
+      image: {
+        "@type": "ImageObject",
+        url: SITE.author.image,
+        width: 1200,
+        height: 630,
+      },
       email: `mailto:${SITE.author.email}`,
       jobTitle: SITE.author.jobTitle,
       worksFor: { "@type": "Organization", name: SITE.author.worksFor },
@@ -172,6 +192,10 @@ export default function RootLayout({
       lang={SITE.language}
       className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        <link rel="preconnect" href="https://api.counterapi.dev" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://api.counterapi.dev" />
+      </head>
       <body className="bg-paper text-ink-2 antialiased">
         {children}
         <script

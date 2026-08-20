@@ -162,6 +162,25 @@ function analyze(file) {
   const externalWithoutRel = externalLinks.filter(
     (attrs) => !/\brel=["'][^"']*noopener/i.test(attrs)
   ).length;
+  const internalLinks = extractAll(
+    /<a\s+([^>]*href=["'](?:\/|#)[^"']*["'][^>]*)>/gi,
+    html
+  ).length;
+  const canonicalMatchesSelf = (() => {
+    if (!canonical) return null;
+    // Best-effort — we don't know the file's canonical URL, but a
+    // canonical URL should never be blank or fragment-only.
+    return /^https?:\/\/[^#]/.test(canonical);
+  })();
+  const hasJsonLdArticle = jsonLdTypes.some((t) =>
+    ["Article", "BlogPosting", "NewsArticle"].includes(t)
+  );
+  const hasJsonLdBreadcrumb = jsonLdTypes.includes("BreadcrumbList");
+  const hasJsonLdPerson = jsonLdTypes.includes("Person");
+  const hasJsonLdWebSite = jsonLdTypes.includes("WebSite");
+  const opacityHidden = (html.match(/opacity:0[^0-9]/g) || []).length;
+  const preloadCount = (html.match(/rel=["']preload["']/g) || []).length;
+  const dnsPrefetch = (html.match(/rel=["']dns-prefetch["']/g) || []).length;
 
   // Rough visible word count.
   const visible = html
@@ -182,6 +201,7 @@ function analyze(file) {
     description,
     descLen: description ? description.length : 0,
     canonical,
+    canonicalMatchesSelf,
     robots,
     ogTitle,
     ogDesc,
@@ -199,6 +219,10 @@ function analyze(file) {
     manifest,
     jsonLdCount,
     jsonLdTypes,
+    hasJsonLdArticle,
+    hasJsonLdBreadcrumb,
+    hasJsonLdPerson,
+    hasJsonLdWebSite,
     h1Count,
     h2Count,
     h3Count,
@@ -206,6 +230,10 @@ function analyze(file) {
     imgAltMissing,
     externalLinks: externalLinks.length,
     externalWithoutRel,
+    internalLinks,
+    opacityHidden,
+    preloadCount,
+    dnsPrefetch,
     wordCount,
   };
 }
@@ -239,6 +267,20 @@ const CRITERIA = [
       const is404 = /404|not-found/.test(p.file);
       if (is404) return !p.robots || /noindex/i.test(p.robots);
       return !p.robots || !/noindex/i.test(p.robots);
+    } },
+  // Round 4 additions — stricter real-world SEO checks
+  { key: "articleSchema", desc: "article pages carry BlogPosting/Article schema", weight: 3, pass: (p) => p.hasJsonLdArticle, skipFor: (p) => !p.file.startsWith("blog/") || p.file === "blog.html" || p.file === "blog/index.html" },
+  { key: "breadcrumbSchema", desc: "article pages carry BreadcrumbList schema", weight: 2, pass: (p) => p.hasJsonLdBreadcrumb, skipFor: (p) => !p.file.startsWith("blog/") || p.file === "blog.html" || p.file === "blog/index.html" },
+  { key: "internalLinks", desc: "at least 5 internal links (site interconnection)", weight: 2, pass: (p) => p.internalLinks >= 5 },
+  { key: "ogTypeArticle", desc: "article pages emit og:type=article", weight: 1, pass: (p) => p.ogType === "article", skipFor: (p) => !p.file.startsWith("blog/") || p.file === "blog.html" || p.file === "blog/index.html" },
+  { key: "jsonLdValid", desc: "JSON-LD parses cleanly (schema.org)", weight: 2, pass: (p) => p.jsonLdCount === 0 || (p.jsonLdCount > 0 && p.jsonLdTypes.length > 0) },
+  { key: "titleUnique", desc: "title differs from site default (not the home fallback)", weight: 1, pass: (p) => {
+      if (p.file === "index.html") return true;
+      return p.title && !/^Divyansh Singh — Software Engineer at Rippling$/.test(p.title);
+    } },
+  { key: "descUnique", desc: "description differs from site default", weight: 1, pass: (p) => {
+      if (p.file === "index.html") return true;
+      return p.description && !/Working notebook of Divyansh Singh — Senior Frontend Engineer at Rippling\./.test(p.description);
     } },
 ];
 

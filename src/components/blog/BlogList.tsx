@@ -206,6 +206,41 @@ export default function BlogList({ posts }: Props) {
           </button>
         </div>
       )}
+
+      {/*
+        Static crawl-discovery footer — every post link + title exposed in
+        the initial HTML so search engines and social crawlers (which may
+        not paginate through client state) can discover every URL. Also
+        surfaces internal-linking authority to older posts.
+      */}
+      <nav
+        aria-label="All essays"
+        className="mt-20 border-t border-rule pt-10"
+      >
+        <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+          Full archive
+        </h2>
+        <ul className="grid gap-x-8 gap-y-2 md:grid-cols-2">
+          {posts.map((p) => (
+            <li key={p.slug} className="text-sm">
+              <Link
+                href={`/blog/${p.slug}`}
+                className="link-quiet text-ink-2 hover:text-ink"
+              >
+                {p.title}
+              </Link>
+              <span className="ml-2 font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">
+                <time dateTime={p.publishedAt}>
+                  {new Date(p.publishedAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </time>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </>
   );
 }

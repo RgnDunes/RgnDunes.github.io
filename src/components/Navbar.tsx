@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaBars, FaTimes, FaGamepad } from "react-icons/fa";
+import { withBasePath } from "@/lib/site";
+
+const RESUME_URL = withBasePath("/resume.pdf");
 
 const nav = [
   { name: "Work", href: "#work" },
@@ -84,7 +87,7 @@ export default function Navbar({ onGameModeToggle, onCommandOpen }: NavbarProps)
             )}
 
             <a
-              href="/resume.pdf"
+              href={RESUME_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden rounded-full border border-ink px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-ink transition-all hover:bg-ink hover:text-paper md:inline-block"
@@ -144,7 +147,7 @@ export default function Navbar({ onGameModeToggle, onCommandOpen }: NavbarProps)
                 ))}
                 <div className="flex gap-3 pt-4">
                   <a
-                    href="/resume.pdf"
+                    href={RESUME_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 rounded-full border border-ink py-2 text-center font-mono text-[11px] uppercase tracking-[0.18em]"
