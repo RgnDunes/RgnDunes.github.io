@@ -15,6 +15,30 @@ export async function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
 
+// SEO-optimal title length is <= 60 chars (Google truncates around there
+// on desktop, ~50 on mobile). Descriptions render best at 140-160 chars.
+function seoTitle(raw: string, brand = "Divyansh Singh", maxLen = 65): string {
+  const bare = raw.replace(/[.!?]$/g, "").trim();
+  if (bare.length + 3 + brand.length <= maxLen) return `${bare} · ${brand}`;
+  // Try to cut on the first hard punctuation.
+  const cutIdx = bare.search(/[.:?!—-]\s/);
+  const shortened =
+    cutIdx > 15 && cutIdx < maxLen - brand.length - 5
+      ? bare.slice(0, cutIdx)
+      : bare;
+  const budget = maxLen - brand.length - 3;
+  if (shortened.length <= budget) return `${shortened} · ${brand}`;
+  return `${shortened.slice(0, budget - 1).trimEnd()}… · ${brand}`;
+}
+
+function seoDescription(raw: string, maxLen = 160): string {
+  const one = raw.replace(/\s+/g, " ").trim();
+  if (one.length <= maxLen) return one;
+  const slice = one.slice(0, maxLen - 1);
+  const lastSpace = slice.lastIndexOf(" ");
+  return `${slice.slice(0, lastSpace > 100 ? lastSpace : slice.length).trimEnd()}…`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = blogPosts.find((p) => p.slug === params.slug);
   if (!post) {
@@ -28,10 +52,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogImage = post.coverImage
     ? absoluteUrl(post.coverImage)
     : SITE.ogDefault;
+  const title = seoTitle(post.title);
+  const description = seoDescription(post.description);
 
   return {
-    title: post.title,
-    description: post.description,
+    title: { absolute: title },
+    description,
     keywords: post.tags,
     authors: [{ name: post.author.name, url: SITE_URL }],
     alternates: { canonical: url },
@@ -41,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: SITE.siteName,
       locale: SITE.locale,
       title: post.title,
-      description: post.description,
+      description,
       publishedTime: post.publishedAt,
       modifiedTime: post.publishedAt,
       authors: [SITE_URL],
@@ -60,7 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       site: SITE.twitter.site,
       creator: SITE.twitter.creator,
       title: post.title,
-      description: post.description,
+      description,
       images: [ogImage],
     },
   };
@@ -98,6 +124,14 @@ function normaliseArticleHtml(raw: string): string {
   // the article body sometimes repeats it in its own <h1>. Demote any
   // <h1>s inside the body to <h2> so there is exactly one <h1> per page.
   html = html.replace(/<h1(\s[^>]*)?>/gi, "<h2$1>").replace(/<\/h1>/gi, "</h2>");
+  // Any external <a href="http…"> without rel gets rel=noopener + target=_blank
+  // so click targets are safe and Google isn't fed link-equity leaks.
+  html = html.replace(/<a\s+([^>]*href=["']https?:[^"']+["'][^>]*)>/gi, (m, attrs) => {
+    let out = attrs;
+    if (!/\brel=/i.test(out)) out = `${out} rel="noopener noreferrer"`;
+    if (!/\btarget=/i.test(out)) out = `${out} target="_blank"`;
+    return `<a ${out}>`;
+  });
   return html.trim();
 }
 
@@ -156,6 +190,44 @@ function articleJsonLd(post: (typeof blogPosts)[number]) {
   ];
 }
 
+function findRelated(
+  post: (typeof blogPosts)[number],
+  all: typeof blogPosts,
+  limit = 3
+) {
+  const tagSet = new Set(post.tags);
+  return all
+    .filter((p) => p.slug !== post.slug)
+    .map((p) => ({
+      post: p,
+      overlap: p.tags.filter((t) => tagSet.has(t)).length,
+    }))
+    .filter((r) => r.overlap > 0)
+    .sort(
+      (a, b) =>
+        b.overlap - a.overlap ||
+        new Date(b.post.publishedAt).getTime() -
+          new Date(a.post.publishedAt).getTime()
+    )
+    .slice(0, limit)
+    .map((r) => r.post);
+}
+
+function findPrevNext(
+  post: (typeof blogPosts)[number],
+  all: typeof blogPosts
+) {
+  const sorted = [...all].sort(
+    (a, b) =>
+      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  );
+  const idx = sorted.findIndex((p) => p.slug === post.slug);
+  return {
+    newer: idx > 0 ? sorted[idx - 1] : null,
+    older: idx < sorted.length - 1 ? sorted[idx + 1] : null,
+  };
+}
+
 export default function BlogPostPage({ params }: Props) {
   const post = blogPosts.find((p) => p.slug === params.slug);
   if (!post) notFound();
@@ -169,6 +241,8 @@ export default function BlogPostPage({ params }: Props) {
     day: "numeric",
     year: "numeric",
   });
+  const related = findRelated(post, blogPosts, 3);
+  const { newer, older } = findPrevNext(post, blogPosts);
 
   return (
     <div className="min-h-screen bg-white">
@@ -247,6 +321,73 @@ export default function BlogPostPage({ params }: Props) {
             </Link>
           ))}
         </div>
+
+        {related.length > 0 && (
+          <section
+            aria-labelledby="related-heading"
+            className="mt-16 border-t border-gray-200 pt-10"
+          >
+            <h2
+              id="related-heading"
+              className="mb-6 font-mono text-xs uppercase tracking-[0.18em] text-gray-600"
+            >
+              Related essays
+            </h2>
+            <ul className="grid gap-6 md:grid-cols-3">
+              {related.map((r) => (
+                <li key={r.slug}>
+                  <Link href={`/blog/${r.slug}`} className="group block">
+                    <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.15em] text-gray-500">
+                      {r.tags.slice(0, 2).join(" · ")}
+                    </div>
+                    <h3 className="font-display text-lg leading-snug text-ink transition-colors group-hover:text-orange-500">
+                      {r.title}
+                    </h3>
+                    <p className="mt-2 line-clamp-3 text-sm text-gray-700">
+                      {r.description}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <nav
+          aria-label="Post navigation"
+          className="mt-12 grid gap-6 border-t border-gray-200 pt-10 md:grid-cols-2"
+        >
+          {older ? (
+            <Link
+              rel="prev"
+              href={`/blog/${older.slug}`}
+              className="group block"
+            >
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-gray-500">
+                ← Older essay
+              </span>
+              <span className="mt-2 block font-display text-base leading-snug text-ink transition-colors group-hover:text-orange-500">
+                {older.title}
+              </span>
+            </Link>
+          ) : (
+            <span />
+          )}
+          {newer ? (
+            <Link
+              rel="next"
+              href={`/blog/${newer.slug}`}
+              className="group block md:text-right"
+            >
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-gray-500">
+                Newer essay →
+              </span>
+              <span className="mt-2 block font-display text-base leading-snug text-ink transition-colors group-hover:text-orange-500">
+                {newer.title}
+              </span>
+            </Link>
+          ) : null}
+        </nav>
 
         <div className="mt-12 border-t border-gray-200 pt-8 text-center">
           <Link

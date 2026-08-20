@@ -154,7 +154,7 @@ function analyze(file) {
   const h2Count = (html.match(/<h2[\s>]/gi) || []).length;
   const h3Count = (html.match(/<h3[\s>]/gi) || []).length;
   const imgTags = extractAll(/<img\s+([^>]+)>/gi, html);
-  const imgAltMissing = imgTags.filter((attrs) => !/\salt=/i.test(attrs)).length;
+  const imgAltMissing = imgTags.filter((attrs) => !/(?:^|\s)alt=/i.test(attrs)).length;
   const externalLinks = extractAll(
     /<a\s+([^>]*href=["']https?:[^"']+["'][^>]*)>/gi,
     html
@@ -231,18 +231,22 @@ const CRITERIA = [
   { key: "jsonLdTyped", desc: "JSON-LD has typed schemas", weight: 3, pass: (p) => p.jsonLdTypes.length > 0 },
   { key: "h1", desc: "exactly one <h1>", weight: 4, pass: (p) => p.h1Count === 1 },
   { key: "h2", desc: "at least one <h2>", weight: 2, pass: (p) => p.h2Count >= 1 },
-  { key: "content", desc: "visible content >= 300 words", weight: 4, pass: (p) => p.wordCount >= 300 },
+  { key: "content", desc: "visible content >= 300 words", weight: 4, pass: (p) => p.wordCount >= 300, skipFor: (p) => /404|not-found/.test(p.file) },
   { key: "contentDeep", desc: "visible content >= 1000 words (long form)", weight: 2, pass: (p) => p.wordCount >= 1000 },
   { key: "imgAlt", desc: "all <img> have alt", weight: 2, pass: (p) => p.imgAltMissing === 0 },
   { key: "extRel", desc: "external links have rel=noopener", weight: 1, pass: (p) => p.externalWithoutRel === 0 },
-  { key: "robots", desc: "meta robots correctness (present or indexable)", weight: 1, pass: (p) => !p.robots || !/noindex/i.test(p.robots) },
+  { key: "robots", desc: "meta robots present and coherent (indexable by default, noindex only on 404)", weight: 1, pass: (p) => {
+      const is404 = /404|not-found/.test(p.file);
+      if (is404) return !p.robots || /noindex/i.test(p.robots);
+      return !p.robots || !/noindex/i.test(p.robots);
+    } },
 ];
 
 function scoreOne(p) {
   const isArticle = p.file.startsWith("blog/") && p.file !== "blog.html" && p.file !== "blog/index.html";
   const contribs = CRITERIA.map((c) => {
-    // 'contentDeep' only applies to articles, not landing / blog index / 404.
     if (c.key === "contentDeep" && !isArticle) return { ...c, applied: false, ok: null };
+    if (c.skipFor && c.skipFor(p)) return { ...c, applied: false, ok: null };
     return { ...c, applied: true, ok: c.pass(p) };
   });
   const totalWeight = contribs.filter((c) => c.applied).reduce((s, c) => s + c.weight, 0);

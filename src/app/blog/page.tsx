@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import BlogPageClient from "./page-client";
 import { SITE, SITE_URL } from "@/lib/site";
 
-const title =
-  "Engineering Diaries — Essays on Frontend, CI/CD, React & Web Infrastructure";
+// SEO-optimal title <=60 chars.
+const title = "Engineering Diaries — Essays on Frontend & CI/CD";
 const description =
   "Long-form essays by Divyansh Singh on frontend engineering, React internals, Node.js, CI/CD pipelines, developer tooling, and building at scale.";
 
