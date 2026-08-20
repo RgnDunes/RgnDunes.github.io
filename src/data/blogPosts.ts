@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "ci-stop-running-every-test",
+    title: "Your CI Runs Every Test On Every PR. That Is Not A Feature. That Is Waste.",
+    description: "Most teams run the full test suite on every PR and call it thorough. It is not thorough - it is expensive, slow, and quietly teaches everyone to distrust the results. Change-based test selection is a decade old. Frontend teams are still running 40 minutes of tests to validate a one-line change.",
+    contentPath: "/blog/ci-stop-running-every-test_article.html",
+    publishedAt: "2026-08-20",
+    tags: ["CI", "Test Selection", "Frontend Infrastructure"],
+    readingTime: "~13 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "node-libuv-thread-pool-of-four",
     title: "Your Node.js Server Is Blocked By A Thread Pool Of 4. Nobody Told You.",
     description: "Every 'JavaScript is single-threaded' explanation forgets that Node.js is not single-threaded. It runs on libuv, which spins up a fixed thread pool of four workers by default. crypto, fs, dns.lookup, zlib - they all queue on those four.",
