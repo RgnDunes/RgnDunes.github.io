@@ -15,7 +15,7 @@ export default function LatestBlog() {
     .slice(0, 3);
 
   return (
-    <div ref={ref} className="page-shell pt-28 md:pt-36">
+    <div ref={ref} className="page-shell py-28 md:py-36">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -31,13 +31,13 @@ export default function LatestBlog() {
           </div>
         </div>
         <p className="max-w-md font-mono text-[11.5px] uppercase tracking-[0.18em] text-muted md:justify-self-center md:text-center">
-          Latest from the notebook
+          The three latest essays
         </p>
         <Link
           href="/blog"
           className="link-quiet font-mono text-[11.5px] uppercase tracking-[0.2em] md:justify-self-end"
         >
-          The full notebook <FaArrowRight className="h-3 w-3" />
+          View all essays <FaArrowRight className="h-3 w-3" />
         </Link>
       </motion.div>
 
