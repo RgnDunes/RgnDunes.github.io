@@ -37,6 +37,7 @@ interface AchievementGroup {
 interface Experience {
   company: string;
   position: string;
+  roleDuration?: string;
   duration: string;
   description: string;
   achievements?: string[];
@@ -111,7 +112,8 @@ export const experiences: Experience[] = [
   },
   {
     company: "Razorpay",
-    position: "Senior Frontend Engineer",
+    position: "Senior Frontend Engineer, Internationalization",
+    roleDuration: "Nov 2024 - Jun 2025",
     duration: "May 2021 - Jun 2025",
     description:
       "International expansion, i18n infrastructure, and payment authentication across Malaysia, Singapore, and India.",

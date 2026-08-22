@@ -1574,39 +1574,100 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   width: 1px;
   height: 1px;
 }
-.obs-work-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  border: 1px solid var(--obs-line);
-  background: var(--obs-line);
+.obs-career-map {
+  width: min(1280px, 100%);
+  margin-inline: auto;
 }
-.obs-role-card {
+.obs-career-map-head,
+.obs-career-lanes {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.72fr);
+  gap: clamp(3rem, 6vw, 7rem);
+}
+.obs-career-map-head {
+  margin-bottom: 2.75rem;
+  padding: 0 0 0.9rem 5.5rem;
+  border-bottom: 1px solid var(--obs-line);
+  color: var(--obs-dim);
+  font:
+    500 0.56rem/1.4 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.obs-primary-timeline,
+.obs-concurrent-timeline {
   position: relative;
   min-width: 0;
-  padding: 1.7rem;
-  background: linear-gradient(
-    145deg,
-    rgba(13, 17, 23, 0.96),
-    rgba(5, 7, 10, 0.88)
-  );
-  backdrop-filter: blur(14px);
 }
-.obs-role-current {
-  grid-column: 1 / -1;
-  border-top: 2px solid var(--obs-green);
+.obs-primary-timeline::before {
+  content: "";
+  position: absolute;
+  top: 1.7rem;
+  bottom: 1.8rem;
+  left: 27px;
+  width: 1px;
   background: linear-gradient(
-    120deg,
-    rgba(12, 29, 25, 0.97),
-    rgba(7, 10, 14, 0.92) 64%
+    var(--obs-green),
+    var(--obs-sapphire) 42%,
+    rgba(111, 143, 255, 0.18)
   );
 }
-.obs-role-featured {
-  padding: 2rem;
+.obs-primary-timeline::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 26px;
+  width: 3px;
+  height: 46px;
+  border-radius: 999px;
+  background: linear-gradient(transparent, var(--obs-green), transparent);
+  filter: drop-shadow(0 0 7px rgba(111, 224, 170, 0.72));
+  animation: obs-career-tracer 6s linear infinite;
+  pointer-events: none;
+}
+.obs-timeline-entry {
+  position: relative;
+  min-width: 0;
+  padding: 0 0 clamp(3.4rem, 6vw, 6rem) 5.5rem;
+}
+.obs-timeline-entry:last-child {
+  padding-bottom: 0;
+}
+.obs-timeline-entry::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -2.5rem -3rem 1rem 2rem;
+  background: radial-gradient(
+    ellipse at 22% 16%,
+    rgba(5, 7, 10, 0.72),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+.obs-timeline-arrow {
+  position: absolute;
+  z-index: 4;
+  top: -2.9rem;
+  left: 20px;
+  color: var(--obs-sapphire);
+  font:
+    400 1rem/1 var(--font-jetbrains),
+    monospace;
+  text-shadow: 0 0 10px rgba(111, 143, 255, 0.65);
+}
+.obs-timeline-entry:first-child .obs-timeline-arrow {
+  display: none;
 }
 .obs-role-head {
+  position: relative;
+  min-height: 56px;
+}
+.obs-timeline-entry > .obs-role-head {
   display: grid;
-  grid-template-columns: 56px 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
 }
@@ -1618,6 +1679,17 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: #fff;
+}
+.obs-timeline-entry > .obs-role-head .obs-company-logo {
+  position: absolute;
+  top: 0;
+  left: -5.5rem;
+  box-shadow: 0 0 0 7px var(--obs-night);
+}
+.obs-timeline-current > .obs-role-head .obs-company-logo {
+  box-shadow:
+    0 0 0 7px var(--obs-night),
+    0 0 24px rgba(111, 224, 170, 0.38);
 }
 .obs-company-logo img {
   width: 44px;
@@ -1635,16 +1707,11 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.obs-role-order::before {
-  content: "";
-  width: 1.4rem;
-  height: 1px;
-  background: rgba(242, 238, 231, 0.22);
-}
-.obs-role-current .obs-role-order {
+.obs-timeline-current .obs-role-order {
   color: var(--obs-green);
 }
-.obs-role-current .obs-role-order::before {
+.obs-timeline-current .obs-role-order::before {
+  content: "";
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 50%;
@@ -1654,12 +1721,14 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 .obs-role-head .obs-kicker {
   margin-bottom: 0.35rem;
 }
-.obs-role-card h3 {
+.obs-timeline-entry h3,
+.obs-concurrent-timeline h3 {
   margin: 0;
-  font-size: clamp(1.8rem, 3vw, 3rem);
+  font-size: clamp(2rem, 3.2vw, 3.35rem);
   letter-spacing: -0.04em;
 }
-.obs-role-card > strong {
+.obs-timeline-entry > strong,
+.obs-concurrent-timeline article > strong {
   display: block;
   margin-top: 1.25rem;
   color: var(--obs-green);
@@ -1669,50 +1738,17 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-.obs-role-card > p:not(.obs-kicker) {
+.obs-timeline-entry > p:not(.obs-kicker),
+.obs-concurrent-timeline article > p:not(.obs-kicker) {
   margin: 0.8rem 0 1.2rem;
   color: rgba(242, 238, 231, 0.67);
   font-size: 0.88rem;
   line-height: 1.65;
 }
-.obs-previous-roles {
-  margin: 1rem 0;
-  border-top: 1px solid var(--obs-line);
-}
-.obs-previous-roles div {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.7rem 0;
-  border-bottom: 1px solid var(--obs-line);
-  color: rgba(242, 238, 231, 0.74);
-  font-size: 0.76rem;
-}
-.obs-previous-roles small {
-  flex: none;
-  color: var(--obs-dim);
-  font:
-    500 0.55rem/1.5 var(--font-jetbrains),
-    monospace;
-  text-transform: uppercase;
-}
 .obs-role-highlights {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.68rem 1.5rem;
   margin: 1.2rem 0;
-}
-.obs-role-current .obs-role-highlights {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-}
-.obs-role-current .obs-role-highlights li {
-  padding: 1rem 1rem 1rem 2rem;
-  border: 1px solid var(--obs-line);
-  background: rgba(5, 7, 10, 0.38);
-}
-.obs-role-current .obs-role-highlights li::before {
-  left: 0.8rem;
-  top: 1rem;
 }
 .obs-role-highlights li {
   position: relative;
@@ -1730,15 +1766,13 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 .obs-workstreams {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  margin: 1.25rem 0;
-  border: 1px solid var(--obs-line);
-  background: var(--obs-line);
+  gap: 1.5rem 2.5rem;
+  margin: 1.5rem 0;
 }
 .obs-workstreams section {
   min-width: 0;
-  padding: 1.15rem 1.25rem;
-  background: rgba(5, 7, 10, 0.78);
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--obs-line);
 }
 .obs-workstreams h4 {
   margin: 0 0 0.75rem;
@@ -1771,20 +1805,159 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+.obs-promotion-path {
+  position: relative;
+  display: grid;
+  gap: 0;
+  margin: 1.8rem 0 1.2rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(232, 106, 43, 0.34);
+}
+.obs-promotion-path section {
+  position: relative;
+  padding: 0 0 2.4rem 1.25rem;
+}
+.obs-promotion-path section:last-child {
+  padding-bottom: 0;
+}
+.obs-promotion-path section::before {
+  content: "";
+  position: absolute;
+  top: 0.25rem;
+  left: -1.67rem;
+  width: 0.34rem;
+  height: 0.34rem;
+  border-radius: 50%;
+  background: var(--obs-saffron);
+  box-shadow: 0 0 11px rgba(232, 106, 43, 0.54);
+}
+.obs-promotion-path header {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.48fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 1.25rem;
+}
+.obs-promotion-path small,
+.obs-promotion-status {
+  color: var(--obs-dim);
+  font:
+    500 0.55rem/1.45 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.obs-promotion-path h4 {
+  margin: 0;
+  color: var(--obs-ink);
+  font:
+    500 clamp(1.15rem, 2vw, 1.65rem) / 1.2 var(--font-fraunces),
+    serif;
+}
+.obs-promotion-path section > p {
+  max-width: 68ch;
+  margin: 0.65rem 0 0;
+  color: rgba(242, 238, 231, 0.62);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+.obs-promotion-path .obs-role-highlights {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.obs-promotion-arrow {
+  position: absolute;
+  top: -1.65rem;
+  left: -1.98rem;
+  color: var(--obs-saffron);
+  font:
+    400 0.78rem/1 var(--font-jetbrains),
+    monospace;
+}
+.obs-promotion-path section:first-child .obs-promotion-arrow {
+  display: none;
+}
+.obs-promotion-status {
+  display: inline-block;
+  margin-top: 0.25rem;
+  color: var(--obs-saffron);
+}
+.obs-concurrent-timeline {
+  align-self: start;
+  padding-left: 2rem;
+  border-left: 1px dashed rgba(111, 143, 255, 0.3);
+}
+.obs-concurrent-timeline > header {
+  position: relative;
+  margin-bottom: 2.4rem;
+}
+.obs-branch-arrow {
+  position: absolute;
+  top: -0.9rem;
+  left: -3.35rem;
+  color: var(--obs-sapphire);
+  font-size: 1.35rem;
+  text-shadow: 0 0 12px rgba(111, 143, 255, 0.55);
+}
+.obs-concurrent-timeline article {
+  position: relative;
+  padding: 0 0 3.5rem 3.75rem;
+}
+.obs-concurrent-timeline article:last-child {
+  padding-bottom: 0;
+}
+.obs-concurrent-timeline .obs-role-head {
+  display: block;
+}
+.obs-concurrent-timeline .obs-company-logo {
+  position: absolute;
+  top: 0;
+  left: -3.75rem;
+  width: 44px;
+  height: 44px;
+  box-shadow: 0 0 0 6px var(--obs-night);
+}
+.obs-concurrent-timeline .obs-company-logo img {
+  width: 34px;
+  height: 34px;
+}
+.obs-concurrent-timeline h3 {
+  font-size: clamp(1.45rem, 2.1vw, 2rem);
+}
+.obs-concurrent-timeline article > p:not(.obs-kicker) {
+  font-size: 0.78rem;
+}
 .obs-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
 }
 .obs-tags span {
-  padding: 0.38rem 0.55rem;
-  border: 1px solid var(--obs-line);
+  padding: 0;
+  border: 0;
   color: var(--obs-dim);
   font:
     500 0.57rem/1 var(--font-jetbrains),
     monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+.obs-tags span:not(:last-child)::after {
+  content: "·";
+  margin-left: 0.45rem;
+  color: rgba(242, 238, 231, 0.22);
+}
+@keyframes obs-career-tracer {
+  from {
+    top: calc(100% - 46px);
+    opacity: 0;
+  }
+  12%,
+  82% {
+    opacity: 1;
+  }
+  to {
+    top: 0;
+    opacity: 0;
+  }
 }
 
 .obs-dense-chapter {
@@ -2694,7 +2867,6 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   .obs-work-intro {
     padding-bottom: 2.5rem;
   }
-  .obs-work-grid,
   .obs-skill-grid,
   .obs-project-grid {
     grid-template-columns: 1fr;
@@ -2702,11 +2874,42 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   .obs-skill-grid > section:last-child {
     grid-column: auto;
   }
-  .obs-role-card {
-    padding: 1.5rem;
+  .obs-career-map-head,
+  .obs-career-lanes {
+    grid-template-columns: 1fr;
   }
-  .obs-role-head {
-    grid-template-columns: 48px 1fr;
+  .obs-career-map-head {
+    margin-bottom: 2.25rem;
+    padding-left: 4.25rem;
+  }
+  .obs-career-map-head span:last-child {
+    display: none;
+  }
+  .obs-career-lanes {
+    gap: 4rem;
+  }
+  .obs-primary-timeline::before {
+    left: 23px;
+  }
+  .obs-primary-timeline::after {
+    left: 22px;
+  }
+  .obs-timeline-entry {
+    padding-right: 0;
+    padding-bottom: 4rem;
+    padding-left: 4.25rem;
+  }
+  .obs-timeline-entry::before {
+    inset: -2rem -1rem 1rem 1.5rem;
+  }
+  .obs-timeline-arrow {
+    left: 16px;
+  }
+  .obs-timeline-entry > .obs-role-head .obs-company-logo {
+    left: -4.25rem;
+    width: 48px;
+    height: 48px;
+    box-shadow: 0 0 0 5px var(--obs-night);
   }
   .obs-company-logo {
     width: 48px;
@@ -2717,30 +2920,52 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     height: 38px;
   }
   .obs-role-order {
-    grid-column: 2;
     justify-self: start;
     margin-top: 0.2rem;
   }
-  .obs-role-card h3 {
-    font-size: 2rem;
+  .obs-timeline-entry h3 {
+    font-size: clamp(2rem, 10vw, 2.75rem);
   }
   .obs-workstreams {
     grid-template-columns: 1fr;
   }
   .obs-workstreams section {
-    padding: 1rem;
+    padding: 0.9rem 0 0;
   }
   .obs-workstreams li {
     font-size: 0.73rem;
   }
-  .obs-previous-roles div {
-    display: grid;
+  .obs-promotion-path {
+    margin-left: -0.25rem;
+    padding-left: 1rem;
   }
-  .obs-role-highlights li:not(:first-child) {
-    display: none;
+  .obs-promotion-path section {
+    padding-left: 0.85rem;
   }
-  .obs-role-current .obs-role-highlights {
+  .obs-promotion-path section::before {
+    left: -1.17rem;
+  }
+  .obs-promotion-path header,
+  .obs-promotion-path .obs-role-highlights {
     grid-template-columns: 1fr;
+  }
+  .obs-promotion-path header {
+    gap: 0.35rem;
+  }
+  .obs-promotion-path .obs-role-highlights {
+    gap: 0.7rem;
+  }
+  .obs-promotion-arrow {
+    left: -1.48rem;
+  }
+  .obs-concurrent-timeline {
+    margin-left: 1.5rem;
+  }
+  .obs-concurrent-timeline > header {
+    margin-bottom: 2rem;
+  }
+  .obs-concurrent-timeline article {
+    padding-bottom: 3rem;
   }
   .obs-section-content > h2 {
     font-size: clamp(2.5rem, 12vw, 3.7rem);
