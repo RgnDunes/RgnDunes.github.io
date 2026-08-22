@@ -16,15 +16,30 @@ const INITIAL_PROFILE: DeviceProfile = {
   webglAvailable: false,
 };
 
+let cachedWebGLSupport: boolean | undefined;
+
 function supportsWebGL() {
+  if (cachedWebGLSupport !== undefined) return cachedWebGLSupport;
+
   try {
     const canvas = document.createElement("canvas");
-    return Boolean(
-      window.WebGLRenderingContext &&
-        (canvas.getContext("webgl2") || canvas.getContext("webgl"))
-    );
+    if (!window.WebGLRenderingContext) {
+      cachedWebGLSupport = false;
+      return cachedWebGLSupport;
+    }
+
+    const context = canvas.getContext("webgl2") || canvas.getContext("webgl");
+    if (!context) {
+      cachedWebGLSupport = false;
+      return cachedWebGLSupport;
+    }
+
+    context.getExtension("WEBGL_lose_context")?.loseContext();
+    cachedWebGLSupport = true;
+    return cachedWebGLSupport;
   } catch {
-    return false;
+    cachedWebGLSupport = false;
+    return cachedWebGLSupport;
   }
 }
 
@@ -32,9 +47,7 @@ export function useDeviceProfile() {
   const [profile, setProfile] = useState<DeviceProfile>(INITIAL_PROFILE);
 
   useEffect(() => {
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    );
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const coarsePointer = window.matchMedia("(pointer: coarse)");
     const smallScreen = window.matchMedia("(max-width: 767px)");
     const webglAvailable = supportsWebGL();
