@@ -1665,7 +1665,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 
 .obs-personal {
   min-height: auto;
-  padding-block: 10vh;
+  padding-block: 6vh;
 }
 .obs-personal-layout {
   position: relative;
@@ -1722,11 +1722,11 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 }
 .obs-personal-copy {
   align-self: center;
-  padding: clamp(2rem, 5vw, 4.5rem);
+  padding: clamp(2rem, 3.5vw, 3.25rem);
 }
 .obs-personal-copy h2 {
-  max-width: 10ch;
-  font-size: clamp(2.8rem, 4.7vw, 5.6rem);
+  max-width: 14ch;
+  font-size: clamp(2.8rem, 4.1vw, 4.8rem);
 }
 .obs-personal-copy .obs-lede {
   margin-top: 1.5rem;
@@ -1736,8 +1736,8 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   display: grid;
   grid-template-columns: 0.75fr 1.5fr 0.75fr;
   align-items: center;
-  min-height: 150px;
-  margin-top: 2rem;
+  min-height: 120px;
+  margin-top: 1.5rem;
   border: 1px solid var(--obs-line);
   background:
     linear-gradient(90deg, rgba(111, 224, 170, 0.04), transparent 42%),
@@ -1796,7 +1796,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: 126px;
+  height: 108px;
   filter: drop-shadow(0 0 12px rgba(111, 224, 170, 0.24));
 }
 .obs-timeline-mark path,
@@ -1847,24 +1847,117 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   border: 1px solid rgba(111, 224, 170, 0.32);
   border-radius: 50%;
 }
-.obs-youtube-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
+.obs-channel {
   margin-top: 1.25rem;
-  color: #f6cf72;
+  border-top: 1px solid var(--obs-line);
+  padding-top: 1rem;
+}
+.obs-channel-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.obs-channel-head p {
+  margin: 0.18rem 0 0;
+  color: var(--obs-dim);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+.obs-channel-head .obs-channel-label {
+  margin: 0;
+  color: #f2eee7;
   font:
-    500 0.6rem/1 var(--font-jetbrains),
+    600 0.58rem/1 var(--font-jetbrains),
     monospace;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.obs-youtube-link span {
-  color: var(--obs-dim);
+.obs-channel-head > a {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.38rem;
+  color: #f6cf72;
+  font:
+    500 0.56rem/1 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-.obs-youtube-link svg {
-  width: 0.65rem;
-  height: 0.65rem;
+.obs-channel-head > a svg {
+  width: 0.58rem;
+  height: 0.58rem;
+}
+.obs-channel-videos {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr 1fr;
+  gap: 0.65rem;
+}
+.obs-channel-videos > a {
+  min-width: 0;
+  color: #f2eee7;
+}
+.obs-video-frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(242, 238, 231, 0.12);
+  background: #111820;
+}
+.obs-video-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(5, 7, 10, 0.46), transparent 55%);
+  transition: background 240ms ease;
+}
+.obs-video-frame img {
+  object-fit: cover;
+  filter: saturate(0.72) contrast(1.05);
+  transition:
+    filter 240ms ease,
+    transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.obs-channel-videos > a:hover .obs-video-frame img,
+.obs-channel-videos > a:focus-visible .obs-video-frame img {
+  filter: saturate(1) contrast(1);
+  transform: scale(1.035);
+}
+.obs-channel-videos > a:hover .obs-video-frame::after,
+.obs-channel-videos > a:focus-visible .obs-video-frame::after {
+  background: linear-gradient(to top, rgba(5, 7, 10, 0.26), transparent 55%);
+}
+.obs-video-play {
+  position: absolute;
+  z-index: 2;
+  left: 0.55rem;
+  bottom: 0.5rem;
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  place-items: center;
+  border: 1px solid rgba(246, 207, 114, 0.6);
+  border-radius: 50%;
+  color: #f6cf72;
+  background: rgba(5, 7, 10, 0.76);
+  backdrop-filter: blur(5px);
+}
+.obs-video-play svg {
+  width: 0.48rem;
+  height: 0.48rem;
+  margin-left: 0.08rem;
+}
+.obs-video-title {
+  display: -webkit-box;
+  margin-top: 0.48rem;
+  overflow: hidden;
+  font-size: 0.62rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 @keyframes obs-core-turn {
   to {
@@ -2291,7 +2384,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     min-height: auto;
   }
   .obs-ride-photo {
-    min-height: min(102vw, 460px);
+    min-height: min(78vw, 340px);
   }
   .obs-ride-photo::after {
     background: linear-gradient(to top, rgba(5, 7, 10, 0.86), transparent 48%);
@@ -2300,11 +2393,12 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     padding: 2rem 1.25rem;
   }
   .obs-personal-copy h2 {
-    font-size: clamp(2.6rem, 12vw, 4rem);
+    max-width: none;
+    font-size: clamp(2.4rem, 10.4vw, 3.2rem);
   }
   .obs-visual-clues {
     grid-template-columns: 0.8fr 1.4fr 0.8fr;
-    min-height: 126px;
+    min-height: 112px;
   }
   .obs-energy-core,
   .obs-pulsar-mark {
@@ -2318,6 +2412,31 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   }
   .obs-timeline-mark {
     height: 108px;
+  }
+  .obs-channel-head {
+    align-items: start;
+  }
+  .obs-channel-head > div > p:not(.obs-channel-label) {
+    display: none;
+  }
+  .obs-channel-videos {
+    display: flex;
+    gap: 0.65rem;
+    margin-right: -1.25rem;
+    padding-right: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+  .obs-channel-videos::-webkit-scrollbar {
+    display: none;
+  }
+  .obs-channel-videos > a {
+    flex: 0 0 58%;
+    scroll-snap-align: start;
+  }
+  .obs-channel-videos > .obs-video-featured {
+    flex-basis: 78%;
   }
   .obs-contact-copy {
     position: relative;

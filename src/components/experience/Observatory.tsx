@@ -1,13 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { FaArrowRight, FaExternalLinkAlt } from "react-icons/fa";
+import { FaArrowRight, FaExternalLinkAlt, FaPlay } from "react-icons/fa";
 import { experiences } from "@/data/experience";
 import { skillCategories } from "@/data/skills";
 import { projects } from "@/data/projects";
 import { products } from "@/data/products";
 import { blogPosts } from "@/data/blogPosts";
 import { testimonials } from "@/data/testimonials";
+import { youtubeVideos } from "@/data/youtubeVideos";
 import TransitionLink from "@/components/transitions/TransitionLink";
 
 const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
@@ -352,15 +353,51 @@ export default function Observatory() {
               </div>
             </div>
 
-            <a
-              className="obs-youtube-link"
-              href="https://www.youtube.com/@rgndunes"
-              target="_blank"
-              rel="me noopener noreferrer"
-            >
-              Watch on YouTube <span>@rgndunes</span>
-              <FaExternalLinkAlt aria-hidden />
-            </a>
+            <div className="obs-channel">
+              <div className="obs-channel-head">
+                <div>
+                  <p className="obs-channel-label">From the channel</p>
+                  <p>Ride films and field notes from the road.</p>
+                </div>
+                <a
+                  href="https://www.youtube.com/@rgndunes"
+                  target="_blank"
+                  rel="me noopener noreferrer"
+                >
+                  @rgndunes <FaExternalLinkAlt aria-hidden />
+                </a>
+              </div>
+
+              <div className="obs-channel-videos">
+                {youtubeVideos.map((video, index) => (
+                  <a
+                    key={video.id}
+                    className={index === 0 ? "obs-video-featured" : undefined}
+                    href={`https://www.youtube.com/watch?v=${video.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Watch ${video.title} on YouTube`}
+                  >
+                    <span className="obs-video-frame">
+                      <Image
+                        src={video.thumbnail}
+                        alt=""
+                        fill
+                        sizes={
+                          index === 0
+                            ? "(max-width: 767px) 78vw, 24vw"
+                            : "(max-width: 767px) 62vw, 12vw"
+                        }
+                      />
+                      <span className="obs-video-play" aria-hidden>
+                        <FaPlay />
+                      </span>
+                    </span>
+                    <span className="obs-video-title">{video.title}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
