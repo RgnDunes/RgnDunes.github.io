@@ -20,6 +20,10 @@ const RippleShell = dynamic(() => import("@/components/ripple/RippleShell"), {
   ),
 });
 
+const SceneCanvas = dynamic(() => import("@/three/SceneCanvas"), {
+  ssr: false,
+});
+
 /**
  * Small client boundary that owns the interactive chrome around the
  * server-rendered homepage sections. Keeping this thin means the
@@ -48,6 +52,7 @@ export default function HomeShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ScrollProvider>
+      {!gameMode && <SceneCanvas />}
       <ScrollProgress />
       <Cursor />
       {!gameMode && (
