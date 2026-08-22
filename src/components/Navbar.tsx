@@ -8,10 +8,10 @@ import { withBasePath } from "@/lib/site";
 
 const RESUME_URL = withBasePath("/Divyansh_Singh_Resume.pdf");
 const nav = [
-  { name: "Trajectory", href: "#work" },
-  { name: "Systems", href: "#skills" },
-  { name: "Deployments", href: "#notebook" },
-  { name: "Archive", href: "#archive" },
+  { name: "Work", href: "#work" },
+  { name: "Skills", href: "#skills" },
+  { name: "Projects", href: "#notebook" },
+  { name: "Writing", href: "#archive" },
   { name: "Contact", href: "#contact" },
 ];
 

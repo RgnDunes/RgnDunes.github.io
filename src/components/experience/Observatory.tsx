@@ -83,8 +83,8 @@ export default function Observatory() {
 
     if (panel?.kind === "skills") {
       return {
-        eyebrow: "System inventory",
-        title: "Instruments of the trade",
+        eyebrow: "Skills and technologies",
+        title: "What I work with",
         content: (
           <div className="obs-skill-directory">
             {skillCategories.map((category) => (
@@ -107,8 +107,8 @@ export default function Observatory() {
 
     if (panel?.kind === "projects") {
       return {
-        eyebrow: "Selected deployments",
-        title: "Open-source and independent work",
+        eyebrow: "Selected projects",
+        title: "Open-source tools and independent work",
         content: (
           <div className="obs-project-directory">
             {projects.map((project) => (
@@ -141,8 +141,8 @@ export default function Observatory() {
     }
 
     return {
-      eyebrow: "Field notes · editions · witnesses",
-      title: "The archive",
+      eyebrow: "Books · articles · recommendations",
+      title: "Writing and recommendations",
       content: (
         <>
           <section className="obs-archive-group">
@@ -193,12 +193,10 @@ export default function Observatory() {
 
       <section id="top" data-scene-beat="top" className="obs-chapter obs-hero">
         <div className="obs-overlay obs-overlay-left">
-          <p className="obs-kicker">
-            Folio {ROMAN[0]} · Bengaluru / 12.9716° N
-          </p>
+          <p className="obs-kicker">Folio {ROMAN[0]} · Software Engineer II</p>
           <h1>
-            I build the systems
-            <span>behind the screen.</span>
+            I make frontend development
+            <span>faster and more reliable.</span>
           </h1>
           <p className="obs-lede">
             Divyansh Singh builds frontend infrastructure, developer tooling,
@@ -206,7 +204,7 @@ export default function Observatory() {
           </p>
           <div className="obs-actions">
             <a href="#about" className="obs-primary">
-              Enter the observatory <FaArrowRight aria-hidden />
+              See my work <FaArrowRight aria-hidden />
             </a>
             <a href="#contact" className="obs-text-link">
               Start a conversation
@@ -224,10 +222,8 @@ export default function Observatory() {
 
       <section id="about" data-scene-beat="about" className="obs-chapter">
         <div className="obs-overlay obs-overlay-right">
-          <p className="obs-kicker">
-            Folio {ROMAN[1]} · The operating principle
-          </p>
-          <h2>Make complex systems feel uneventful.</h2>
+          <p className="obs-kicker">Folio {ROMAN[1]} · What I do</p>
+          <h2>I improve developer speed and production reliability.</h2>
           <p className="obs-lede">
             I work on the plumbing other engineers depend on: faster local
             development, reliable tests, safer releases, observability, and
@@ -252,8 +248,8 @@ export default function Observatory() {
 
       <section id="work" className="obs-work">
         <header className="obs-work-intro">
-          <p className="obs-kicker">Folio {ROMAN[2]} · Signal history</p>
-          <h2>Seven stops through the systems I helped shape.</h2>
+          <p className="obs-kicker">Folio {ROMAN[2]} · Work experience</p>
+          <h2>Where I’ve worked and what I delivered.</h2>
         </header>
         {experiences.map((experience, index) => (
           <article
@@ -280,7 +276,7 @@ export default function Observatory() {
                 className="obs-text-link"
                 onClick={() => setPanel({ kind: "work", index })}
               >
-                Read the record <FaArrowRight aria-hidden />
+                View achievements <FaArrowRight aria-hidden />
               </button>
             </div>
           </article>
@@ -289,8 +285,8 @@ export default function Observatory() {
 
       <section id="skills" data-scene-beat="skills" className="obs-chapter">
         <div className="obs-overlay obs-overlay-left">
-          <p className="obs-kicker">Folio {ROMAN[3]} · System inventory</p>
-          <h2>Tools arranged by the problems they solve.</h2>
+          <p className="obs-kicker">Folio {ROMAN[3]} · Skills</p>
+          <h2>Technologies I use across frontend and infrastructure.</h2>
           <div className="obs-orbit-labels">
             {skillCategories.map((category, index) => (
               <span key={category.name}>
@@ -303,15 +299,15 @@ export default function Observatory() {
             className="obs-primary"
             onClick={() => setPanel({ kind: "skills" })}
           >
-            Inspect all instruments <FaArrowRight aria-hidden />
+            View all skills <FaArrowRight aria-hidden />
           </button>
         </div>
       </section>
 
       <section id="notebook" data-scene-beat="notebook" className="obs-chapter">
         <div className="obs-overlay obs-overlay-right">
-          <p className="obs-kicker">Folio {ROMAN[4]} · Selected deployments</p>
-          <h2>Small products built around recurring friction.</h2>
+          <p className="obs-kicker">Folio {ROMAN[4]} · Projects</p>
+          <h2>Open-source tools and products I’ve built.</h2>
           <div className="obs-project-list">
             {projects.map((project, index) => (
               <div key={project.title}>
@@ -325,7 +321,7 @@ export default function Observatory() {
             className="obs-primary"
             onClick={() => setPanel({ kind: "projects" })}
           >
-            Open project telemetry <FaArrowRight aria-hidden />
+            View project details <FaArrowRight aria-hidden />
           </button>
         </div>
       </section>
@@ -335,9 +331,9 @@ export default function Observatory() {
         <span id="writing" className="obs-anchor obs-anchor-mid" />
         <span id="testimonials" className="obs-anchor obs-anchor-end" />
         <div className="obs-overlay obs-overlay-left">
-          <p className="obs-kicker">Folio {ROMAN[5]} · The quiet archive</p>
-          <h2>What I’ve written, taught, and left in print.</h2>
-          <p className="obs-feature-label">Latest dispatch</p>
+          <p className="obs-kicker">Folio {ROMAN[5]} · Writing and books</p>
+          <h2>Books, articles, and feedback from people I’ve worked with.</h2>
+          <p className="obs-feature-label">Latest article</p>
           <Link
             className="obs-feature-link"
             href={`/blog/${latestPosts[0].slug}`}
@@ -352,14 +348,14 @@ export default function Observatory() {
               <b>{blogPosts.length}</b> essays
             </span>
             <span>
-              <b>{testimonials.length}</b> witnesses
+              <b>{testimonials.length}</b> recommendations
             </span>
           </div>
           <button
             className="obs-primary"
             onClick={() => setPanel({ kind: "archive" })}
           >
-            Enter the archive <FaArrowRight aria-hidden />
+            View writing and books <FaArrowRight aria-hidden />
           </button>
         </div>
       </section>
@@ -370,8 +366,8 @@ export default function Observatory() {
         className="obs-chapter obs-contact"
       >
         <div className="obs-contact-copy">
-          <p className="obs-kicker">Folio {ROMAN[6]} · End of transmission</p>
-          <h2>Have a difficult system problem?</h2>
+          <p className="obs-kicker">Folio {ROMAN[6]} · Contact</p>
+          <h2>Let’s talk about frontend infrastructure.</h2>
           <a className="obs-email" href="mailto:rgndunes@gmail.com">
             rgndunes@gmail.com
           </a>

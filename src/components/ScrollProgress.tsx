@@ -4,12 +4,12 @@ import { motion, useScroll, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
 
 const CHAPTERS = [
-  { id: "top", label: "Identity", folio: "i" },
-  { id: "about", label: "Principle", folio: "ii" },
-  { id: "work", label: "Trajectory", folio: "iii" },
-  { id: "skills", label: "Systems", folio: "iv" },
-  { id: "notebook", label: "Deployments", folio: "v" },
-  { id: "archive", label: "Archive", folio: "vi" },
+  { id: "top", label: "Home", folio: "i" },
+  { id: "about", label: "About", folio: "ii" },
+  { id: "work", label: "Work", folio: "iii" },
+  { id: "skills", label: "Skills", folio: "iv" },
+  { id: "notebook", label: "Projects", folio: "v" },
+  { id: "archive", label: "Writing", folio: "vi" },
   { id: "contact", label: "Contact", folio: "vii" },
 ];
 
