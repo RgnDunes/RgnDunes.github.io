@@ -273,7 +273,26 @@ export default function Observatory() {
               <blockquote key={testimonial.name}>
                 <p>“{testimonial.testimonial}”</p>
                 <footer>
-                  {testimonial.name} · {testimonial.role}, {testimonial.company}
+                  <a
+                    className="obs-voice-author"
+                    href={testimonial.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span className="obs-voice-portrait">
+                      <Image
+                        src={testimonial.image}
+                        alt={`Portrait of ${testimonial.name}`}
+                        sizes="44px"
+                      />
+                    </span>
+                    <span>
+                      <strong>{testimonial.name}</strong>
+                      <small>
+                        {testimonial.role} · {testimonial.company}
+                      </small>
+                    </span>
+                  </a>
                 </footer>
               </blockquote>
             ))}
