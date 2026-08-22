@@ -454,8 +454,8 @@ const SPECS: FormationSpec[] = [
     camera: [0.6, 0.35, 7.4],
     color: "#6FE0AA",
     drift: 0.16,
-    opacity: 0.88,
-    size: 1.24,
+    opacity: 0.32,
+    size: 0.96,
     target: [0.8, 0.2, 0],
   },
   {
@@ -464,8 +464,8 @@ const SPECS: FormationSpec[] = [
     camera: [0, 0.4, 7.2],
     color: "#A7E86D",
     drift: 0.12,
-    opacity: 0.92,
-    size: 1.36,
+    opacity: 0.58,
+    size: 1.12,
     target: [0, 0.5, 0],
   },
 ];

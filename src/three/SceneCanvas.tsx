@@ -24,6 +24,7 @@ export default function SceneCanvas() {
         className="pointer-events-none fixed inset-0 z-0 bg-[#05070a]"
       >
         <Canvas
+          className="observatory-canvas"
           camera={{ far: 40, fov: 48, near: 0.1, position: [0, 0.15, 8.8] }}
           dpr={[1, 1.5]}
           frameloop={profile.reducedMotion ? "demand" : "always"}

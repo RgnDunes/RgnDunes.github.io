@@ -214,7 +214,7 @@ export default function InfrastructureWorld() {
       cosmic.current.rotation.z = scroll.reducedMotion ? 0.28 : time * 0.07;
       cosmic.current.rotation.y = scroll.reducedMotion ? -0.18 : time * 0.035;
       cosmicMaterials.current.forEach((material, index) => {
-        material.opacity = opacity * (index === 0 ? 0.9 : 0.34);
+        material.opacity = opacity * (index === 0 ? 0.46 : 0.16);
       });
     }
 
@@ -225,10 +225,10 @@ export default function InfrastructureWorld() {
         ? -0.08
         : Math.sin(time * 0.16) * 0.08;
       if (treeLineMaterial.current) {
-        treeLineMaterial.current.opacity = opacity * 0.72;
+        treeLineMaterial.current.opacity = opacity * 0.34;
       }
       treeGlowMaterials.current.forEach((material, index) => {
-        material.opacity = opacity * (index === 0 ? 0.92 : 0.3);
+        material.opacity = opacity * (index === 0 ? 0.46 : 0.14);
       });
     }
   });

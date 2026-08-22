@@ -1,6 +1,29 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 export default function PersonalVisualStory() {
+  const storyRef = useRef<HTMLDivElement>(null);
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    const story = storyRef.current;
+    if (!story) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsActive(entry.isIntersecting),
+      { rootMargin: "-16% 0px", threshold: 0.2 },
+    );
+    observer.observe(story);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="obs-personal-story" aria-hidden="true">
+    <div
+      ref={storyRef}
+      className={`obs-personal-story${isActive ? " is-active" : ""}`}
+      aria-hidden="true"
+    >
       <svg
         viewBox="0 0 760 560"
         fill="none"
@@ -55,32 +78,38 @@ export default function PersonalVisualStory() {
           <path pathLength="1" d="M533 215L560 199H610L638 215" />
           <path pathLength="1" d="M540 234L565 248H605L632 234" />
           <path pathLength="1" d="M548 274L572 284H600L625 274" />
+          <path className="obs-story-visor" d="M542 229L568 234" />
+          <path className="obs-story-visor" d="M628 229L602 234" />
           <path
             className="obs-story-silhouette obs-armored-body"
             pathLength="1"
-            d="M504 352L430 320L365 300L323 294"
+            d="M628 345C649 319 656 284 647 244"
           />
           <path
             className="obs-story-silhouette obs-armored-body"
             pathLength="1"
-            d="M493 379L420 350L355 330L320 310"
+            d="M647 371C675 332 676 287 661 247"
           />
-          <path className="obs-story-core" d="M571 364L608 364L590 397Z" />
+          <g className="obs-story-reactor">
+            <circle cx="590" cy="380" r="23" />
+            <circle cx="590" cy="380" r="11" />
+            <path d="M590 357V403M567 380H613M574 364L606 396M606 364L574 396" />
+          </g>
 
           <g className="obs-story-palm">
-            <circle cx="308" cy="300" r="27" />
-            <circle cx="308" cy="300" r="10" />
-            <path d="M291 281L275 254" />
-            <path d="M300 275L294 244" />
-            <path d="M309 273L310 239" />
-            <path d="M318 276L329 246" />
-            <path d="M326 282L346 259" />
+            <circle cx="656" cy="229" r="27" />
+            <circle cx="656" cy="229" r="10" />
+            <path d="M638 209L629 178" />
+            <path d="M648 203L645 169" />
+            <path d="M658 202L662 166" />
+            <path d="M667 205L679 173" />
+            <path d="M676 211L696 184" />
           </g>
           <path
             className="obs-story-beam-cone"
-            d="M297 286L0 247V353L297 314Z"
+            d="M668 216L760 164V294L668 242Z"
           />
-          <path className="obs-story-beam" d="M297 300H0" />
+          <path className="obs-story-beam" d="M668 229H760" />
         </g>
 
         <g className="obs-story-group obs-story-timekeeper">
@@ -142,15 +171,17 @@ export default function PersonalVisualStory() {
           <circle className="obs-cosmic-pulse" cx="498" cy="266" r="28" />
 
           <g className="obs-story-tree">
-            <path pathLength="1" d="M176 498V334" />
-            <path pathLength="1" d="M176 411C146 378 116 348 69 340" />
-            <path pathLength="1" d="M176 393C205 357 226 317 229 269" />
-            <path pathLength="1" d="M176 367C144 327 139 280 153 237" />
-            <path pathLength="1" d="M176 350C202 328 208 297 207 265" />
-            <circle cx="69" cy="340" r="4" />
-            <circle cx="153" cy="237" r="4" />
-            <circle cx="207" cy="265" r="4" />
-            <circle cx="229" cy="269" r="4" />
+            <path pathLength="1" d="M648 520C644 461 646 407 650 347" />
+            <path pathLength="1" d="M649 438C609 409 580 378 567 337" />
+            <path pathLength="1" d="M648 421C687 390 711 355 716 310" />
+            <path pathLength="1" d="M649 390C612 359 598 322 603 281" />
+            <path pathLength="1" d="M650 372C680 342 685 305 675 267" />
+            <path pathLength="1" d="M603 281C581 255 570 228 572 199" />
+            <path pathLength="1" d="M675 267C704 242 718 214 716 184" />
+            <circle cx="567" cy="337" r="4" />
+            <circle cx="716" cy="310" r="4" />
+            <circle cx="572" cy="199" r="4" />
+            <circle cx="716" cy="184" r="4" />
           </g>
         </g>
       </svg>
