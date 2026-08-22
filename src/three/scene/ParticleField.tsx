@@ -226,7 +226,7 @@ export default function ParticleField({ count }: { count: number }) {
   return (
     <points ref={pointsRef} geometry={geometry} frustumCulled={false}>
       <shaderMaterial
-        blending={THREE.NormalBlending}
+        blending={THREE.AdditiveBlending}
         depthWrite={false}
         fragmentShader={fragmentShader}
         transparent

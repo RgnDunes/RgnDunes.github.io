@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getSceneScrollState } from "../scroll/store";
@@ -14,6 +14,55 @@ const CAREER_POINTS = [
   [3.7, -0.45, -0.2],
   [5.5, -1.05, 0],
 ] as const;
+
+function createTimelineTreeGeometry() {
+  const segments: number[] = [];
+  const addSegment = (start: number[], end: number[]) => {
+    segments.push(...start, ...end);
+  };
+
+  let previous = [0, -3.6, 0];
+  for (let index = 1; index <= 7; index += 1) {
+    const next = [Math.sin(index * 1.3) * 0.08, -3.6 + index * 0.72, 0];
+    addSegment(previous, next);
+    previous = next;
+  }
+
+  for (const side of [-1, 1]) {
+    for (let level = 0; level < 6; level += 1) {
+      const origin = [0, -0.55 + level * 0.52, 0];
+      const bend = [
+        side * (0.9 + level * 0.2),
+        origin[1] + 0.62,
+        side * Math.sin(level * 1.4) * 0.22,
+      ];
+      const tip = [
+        side * (2.15 + level * 0.42),
+        origin[1] + 1.35 + level * 0.16,
+        side * Math.cos(level * 1.1) * 0.48,
+      ];
+      addSegment(origin, bend);
+      addSegment(bend, tip);
+      addSegment(tip, [
+        tip[0] + side * (0.58 + level * 0.04),
+        tip[1] + 0.58,
+        tip[2] + 0.35,
+      ]);
+      addSegment(tip, [
+        tip[0] + side * (0.5 + level * 0.05),
+        tip[1] + 0.18,
+        tip[2] - 0.48,
+      ]);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(segments, 3),
+  );
+  return geometry;
+}
 
 function windowOpacity(
   position: number,
@@ -33,8 +82,12 @@ export default function InfrastructureWorld() {
   const skills = useRef<THREE.Group>(null);
   const projects = useRef<THREE.Group>(null);
   const archive = useRef<THREE.Group>(null);
-  const signal = useRef<THREE.Group>(null);
+  const cosmic = useRef<THREE.Group>(null);
+  const timelineTree = useRef<THREE.Group>(null);
   const careerMaterials = useRef<THREE.MeshBasicMaterial[]>([]);
+  const cosmicMaterials = useRef<THREE.MeshBasicMaterial[]>([]);
+  const treeLineMaterial = useRef<THREE.LineBasicMaterial>(null);
+  const treeGlowMaterials = useRef<THREE.MeshBasicMaterial[]>([]);
 
   const careerLine = useMemo(() => {
     const positions = new Float32Array((CAREER_POINTS.length - 1) * 6);
@@ -46,6 +99,16 @@ export default function InfrastructureWorld() {
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     return geometry;
   }, []);
+
+  const timelineTreeGeometry = useMemo(createTimelineTreeGeometry, []);
+
+  useEffect(
+    () => () => {
+      careerLine.dispose();
+      timelineTreeGeometry.dispose();
+    },
+    [careerLine, timelineTreeGeometry],
+  );
 
   useFrame(({ clock }, delta) => {
     const scroll = getSceneScrollState();
@@ -125,16 +188,27 @@ export default function InfrastructureWorld() {
       });
     }
 
-    if (signal.current) {
-      const opacity = THREE.MathUtils.smoothstep(position, 13.2, 14);
-      signal.current.visible = opacity > 0.01;
-      const scale =
-        0.85 + Math.sin(time * 0.8) * (scroll.reducedMotion ? 0 : 0.05);
-      signal.current.scale.setScalar(scale);
-      signal.current.children.forEach((child, index) => {
-        const material = (child as THREE.Mesh)
-          .material as THREE.MeshBasicMaterial;
-        material.opacity = opacity * (index === 0 ? 0.95 : 0.16);
+    if (cosmic.current) {
+      const opacity = windowOpacity(position, 13.25, 14.45, 0.45);
+      cosmic.current.visible = opacity > 0.01;
+      cosmic.current.rotation.z = scroll.reducedMotion ? 0.28 : time * 0.07;
+      cosmic.current.rotation.y = scroll.reducedMotion ? -0.18 : time * 0.035;
+      cosmicMaterials.current.forEach((material, index) => {
+        material.opacity = opacity * (index === 0 ? 0.9 : 0.34);
+      });
+    }
+
+    if (timelineTree.current) {
+      const opacity = THREE.MathUtils.smoothstep(position, 14.1, 15);
+      timelineTree.current.visible = opacity > 0.01;
+      timelineTree.current.rotation.y = scroll.reducedMotion
+        ? -0.08
+        : Math.sin(time * 0.16) * 0.08;
+      if (treeLineMaterial.current) {
+        treeLineMaterial.current.opacity = opacity * 0.72;
+      }
+      treeGlowMaterials.current.forEach((material, index) => {
+        material.opacity = opacity * (index === 0 ? 0.92 : 0.3);
       });
     }
   });
@@ -223,14 +297,74 @@ export default function InfrastructureWorld() {
         ))}
       </group>
 
-      <group ref={signal}>
+      <group ref={cosmic} position={[0.8, 0.2, 0]} rotation={[0.15, -0.18, 0]}>
         <mesh>
-          <sphereGeometry args={[0.18, 20, 20]} />
-          <meshBasicMaterial color="#F6A15F" transparent />
+          <sphereGeometry args={[0.24, 24, 24]} />
+          <meshBasicMaterial
+            ref={(material) => {
+              if (material) cosmicMaterials.current[0] = material;
+            }}
+            color="#F6CF72"
+            transparent
+          />
         </mesh>
-        <mesh>
-          <sphereGeometry args={[1.25, 24, 24]} />
-          <meshBasicMaterial color="#E86A2B" transparent wireframe />
+        {[1.25, 1.9, 2.7].map((radius, index) => (
+          <mesh
+            key={radius}
+            rotation={[Math.PI / 2 + index * 0.16, index * 0.42, 0]}
+          >
+            <torusGeometry args={[radius, 0.018 + index * 0.006, 5, 128]} />
+            <meshBasicMaterial
+              ref={(material) => {
+                if (material) cosmicMaterials.current[index + 1] = material;
+              }}
+              color={index === 1 ? "#F6CF72" : "#6FE0AA"}
+              transparent
+            />
+          </mesh>
+        ))}
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.035, 0.18, 7.5, 8, 1, true]} />
+          <meshBasicMaterial
+            ref={(material) => {
+              if (material) cosmicMaterials.current[4] = material;
+            }}
+            color="#6FE0AA"
+            side={THREE.DoubleSide}
+            transparent
+            wireframe
+          />
+        </mesh>
+      </group>
+
+      <group ref={timelineTree} position={[0, -0.1, 0]}>
+        <lineSegments geometry={timelineTreeGeometry}>
+          <lineBasicMaterial
+            ref={treeLineMaterial}
+            color="#7DE2A5"
+            transparent
+          />
+        </lineSegments>
+        <mesh position={[0, -3.58, 0]}>
+          <sphereGeometry args={[0.14, 20, 20]} />
+          <meshBasicMaterial
+            ref={(material) => {
+              if (material) treeGlowMaterials.current[0] = material;
+            }}
+            color="#F6CF72"
+            transparent
+          />
+        </mesh>
+        <mesh position={[0, 0.8, 0]}>
+          <sphereGeometry args={[1.1, 24, 24]} />
+          <meshBasicMaterial
+            ref={(material) => {
+              if (material) treeGlowMaterials.current[1] = material;
+            }}
+            color="#7DE2A5"
+            transparent
+            wireframe
+          />
         </mesh>
       </group>
     </group>

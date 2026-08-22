@@ -13,6 +13,7 @@ export const SCENE_BEATS = [
   "articles",
   "books",
   "testimonials",
+  "personal",
   "contact",
 ] as const;
 

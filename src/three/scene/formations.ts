@@ -147,15 +147,62 @@ function pagePlanes(count: number, seed: number) {
   return positions;
 }
 
-function finalLight(count: number) {
+function cosmicPulse(count: number) {
   const positions = new Float32Array(count * 3);
   for (let index = 0; index < count; index += 1) {
-    const radius = Math.pow(random(index, 17.2), 3.4) * 3.1;
-    const theta = random(index, 17.6) * Math.PI * 2;
-    const phi = Math.acos(1 - 2 * random(index, 17.9));
-    positions[index * 3] = radius * Math.sin(phi) * Math.cos(theta);
-    positions[index * 3 + 1] = radius * Math.cos(phi);
-    positions[index * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+    const strand = index % 5;
+    if (strand === 0) {
+      const jet = (random(index, 17.1) - 0.5) * 8;
+      positions[index * 3] = (random(index, 17.3) - 0.5) * 0.22;
+      positions[index * 3 + 1] = jet;
+      positions[index * 3 + 2] = (random(index, 17.5) - 0.5) * 0.22;
+      continue;
+    }
+
+    const radius = 0.8 + Math.pow(random(index, 17.7), 1.6) * 4;
+    const theta = random(index, 17.9) * Math.PI * 2;
+    const tilt = strand % 2 === 0 ? 0.24 : -0.18;
+    positions[index * 3] = Math.cos(theta) * radius;
+    positions[index * 3 + 1] = Math.sin(theta) * radius * tilt;
+    positions[index * 3 + 2] = Math.sin(theta) * radius * 0.72;
+  }
+  return positions;
+}
+
+function timelineTree(count: number) {
+  const positions = new Float32Array(count * 3);
+  for (let index = 0; index < count; index += 1) {
+    const path = random(index, 18.1);
+    if (path < 0.28) {
+      const progress = random(index, 18.3);
+      positions[index * 3] =
+        Math.sin(progress * Math.PI * 3) * 0.16 +
+        (random(index, 18.5) - 0.5) * 0.2;
+      positions[index * 3 + 1] = -3.4 + progress * 5.2;
+      positions[index * 3 + 2] = (random(index, 18.7) - 0.5) * 0.26;
+      continue;
+    }
+
+    const branch = Math.floor(random(index, 18.9) * 11);
+    const side = branch % 2 === 0 ? -1 : 1;
+    const level = Math.floor(branch / 2);
+    const progress = random(index, 19.1);
+    const originY = -0.2 + level * 0.38;
+    const reach = 1.4 + level * 0.48 + random(index, 19.3) * 0.8;
+    const curl = Math.sin(progress * Math.PI) * (0.25 + level * 0.08);
+    positions[index * 3] =
+      side * progress * reach +
+      side * curl +
+      (random(index, 19.5) - 0.5) * 0.18;
+    positions[index * 3 + 1] =
+      originY +
+      progress * (1.35 + level * 0.17) +
+      (random(index, 19.7) - 0.5) * 0.16;
+    positions[index * 3 + 2] =
+      Math.sin(progress * Math.PI * (1.5 + level * 0.12)) *
+        side *
+        (0.25 + level * 0.1) +
+      (random(index, 19.9) - 0.5) * 0.14;
   }
   return positions;
 }
@@ -167,8 +214,8 @@ const SPECS: FormationSpec[] = [
     camera: [0, 0.15, 8.8],
     color: "#F2EEE7",
     drift: 0.8,
-    opacity: 0.72,
-    size: 1.18,
+    opacity: 0.86,
+    size: 1.3,
   },
   {
     id: "about",
@@ -176,8 +223,8 @@ const SPECS: FormationSpec[] = [
     camera: [0.4, 0.35, 6.6],
     color: "#E86A2B",
     drift: 1,
-    opacity: 0.58,
-    size: 1.06,
+    opacity: 0.72,
+    size: 1.14,
   },
   {
     id: "work-rippling",
@@ -293,18 +340,29 @@ const SPECS: FormationSpec[] = [
     camera: [0.7, -0.2, 7.8],
     color: "#4FB493",
     drift: 0.2,
-    opacity: 0.48,
-    size: 0.98,
+    opacity: 0.58,
+    size: 1.04,
     target: [0.5, 0, 0],
   },
   {
+    id: "personal",
+    build: cosmicPulse,
+    camera: [0.6, 0.35, 7.4],
+    color: "#6FE0AA",
+    drift: 0.3,
+    opacity: 0.78,
+    size: 1.18,
+    target: [0.8, 0.2, 0],
+  },
+  {
     id: "contact",
-    build: finalLight,
-    camera: [0, 0.1, 6.6],
-    color: "#E86A2B",
-    drift: 0.15,
-    opacity: 0.82,
-    size: 1.28,
+    build: timelineTree,
+    camera: [0, 0.4, 7.2],
+    color: "#A7E86D",
+    drift: 0.12,
+    opacity: 0.92,
+    size: 1.36,
+    target: [0, 0.5, 0],
   },
 ];
 
