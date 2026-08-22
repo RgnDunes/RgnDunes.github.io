@@ -14,6 +14,7 @@ const nav = [
   { name: "Articles", href: "#articles" },
   { name: "Books", href: "#books" },
   { name: "Testimonials", href: "#testimonials" },
+  { name: "Beyond work", href: "#personal" },
   { name: "Contact", href: "#contact" },
 ];
 

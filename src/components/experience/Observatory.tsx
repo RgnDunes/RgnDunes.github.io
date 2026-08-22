@@ -10,7 +10,7 @@ import { blogPosts } from "@/data/blogPosts";
 import { testimonials } from "@/data/testimonials";
 import TransitionLink from "@/components/transitions/TransitionLink";
 
-const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"];
+const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
 const WORK_BEATS = [
   "work-rippling",
   "work-razorpay",
@@ -282,12 +282,70 @@ export default function Observatory() {
       </section>
 
       <section
+        id="personal"
+        data-scene-beat="personal"
+        className="obs-chapter obs-personal"
+      >
+        <div className="obs-personal-layout">
+          <figure className="obs-ride-photo">
+            <Image
+              src="/assets/divyansh-motorcycle-ride.jpeg"
+              alt="Divyansh's motorcycle packed for a long ride"
+              fill
+              sizes="(max-width: 767px) 100vw, 44vw"
+            />
+            <figcaption>
+              My motorcycle · Ready for the next long ride
+            </figcaption>
+          </figure>
+
+          <div className="obs-personal-copy">
+            <p className="obs-kicker">Folio {ROMAN[8]} · Outside engineering</p>
+            <h2>What keeps me curious away from work.</h2>
+            <p className="obs-lede">
+              Motorcycle rides, cosmic mysteries, Marvel stories, and making
+              videos are a big part of who I am outside engineering.
+            </p>
+
+            <dl className="obs-interests">
+              <div>
+                <dt>On the road</dt>
+                <dd>Long motorcycle rides and the places between stops.</dd>
+              </div>
+              <div>
+                <dt>In the cosmos</dt>
+                <dd>
+                  Quasars, black holes, pulsars, and unanswered questions.
+                </dd>
+              </div>
+              <div>
+                <dt>On screen</dt>
+                <dd>Marvel Studios—especially Loki and Iron Man.</dd>
+              </div>
+              <div>
+                <dt>On YouTube</dt>
+                <dd>
+                  <a
+                    href="https://www.youtube.com/@rgndunes"
+                    target="_blank"
+                    rel="me noopener noreferrer"
+                  >
+                    Visit @rgndunes <FaExternalLinkAlt aria-hidden />
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section
         id="contact"
         data-scene-beat="contact"
         className="obs-chapter obs-contact"
       >
         <div className="obs-contact-copy">
-          <p className="obs-kicker">Folio {ROMAN[8]} · Contact</p>
+          <p className="obs-kicker">Folio {ROMAN[9]} · Contact</p>
           <h2>Let’s talk about frontend infrastructure.</h2>
           <a className="obs-email" href="mailto:rgndunes@gmail.com">
             rgndunes@gmail.com

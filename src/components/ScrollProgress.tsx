@@ -12,7 +12,8 @@ const CHAPTERS = [
   { id: "articles", label: "Articles", folio: "vi" },
   { id: "books", label: "Books", folio: "vii" },
   { id: "testimonials", label: "Testimonials", folio: "viii" },
-  { id: "contact", label: "Contact", folio: "ix" },
+  { id: "personal", label: "Beyond work", folio: "ix" },
+  { id: "contact", label: "Contact", folio: "x" },
 ];
 
 export default function ScrollProgress() {
