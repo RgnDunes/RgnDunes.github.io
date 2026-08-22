@@ -187,7 +187,9 @@ export default function ScrollProvider({
           behavior: profile.reducedMotion ? "auto" : "smooth",
         });
       }
-      window.history.replaceState(null, "", hash);
+      if (window.location.hash !== hash) {
+        window.location.replace(hash);
+      }
     };
 
     const scrollToCurrentHash = (immediate = false) => {
