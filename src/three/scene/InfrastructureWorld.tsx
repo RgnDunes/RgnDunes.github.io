@@ -115,7 +115,7 @@ export default function InfrastructureWorld() {
     }
 
     if (archive.current) {
-      const opacity = windowOpacity(position, 10.55, 11.65);
+      const opacity = windowOpacity(position, 10.55, 13.65);
       archive.current.visible = opacity > 0.01;
       archive.current.children.forEach((child, index) => {
         const mesh = child as THREE.Mesh;
@@ -126,7 +126,7 @@ export default function InfrastructureWorld() {
     }
 
     if (signal.current) {
-      const opacity = THREE.MathUtils.smoothstep(position, 11.2, 12);
+      const opacity = THREE.MathUtils.smoothstep(position, 13.2, 14);
       signal.current.visible = opacity > 0.01;
       const scale =
         0.85 + Math.sin(time * 0.8) * (scroll.reducedMotion ? 0 : 0.05);

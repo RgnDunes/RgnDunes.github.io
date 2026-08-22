@@ -10,7 +10,9 @@ export const SCENE_BEATS = [
   "work-taghive",
   "skills",
   "notebook",
-  "archive",
+  "articles",
+  "books",
+  "testimonials",
   "contact",
 ] as const;
 

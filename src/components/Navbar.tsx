@@ -11,7 +11,9 @@ const nav = [
   { name: "Work", href: "#work" },
   { name: "Skills", href: "#skills" },
   { name: "Projects", href: "#notebook" },
-  { name: "Writing", href: "#archive" },
+  { name: "Articles", href: "#articles" },
+  { name: "Books", href: "#books" },
+  { name: "Testimonials", href: "#testimonials" },
   { name: "Contact", href: "#contact" },
 ];
 

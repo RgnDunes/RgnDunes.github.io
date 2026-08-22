@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { FaArrowRight, FaExternalLinkAlt } from "react-icons/fa";
 import { experiences } from "@/data/experience";
@@ -10,15 +9,15 @@ import { products } from "@/data/products";
 import { blogPosts } from "@/data/blogPosts";
 import { testimonials } from "@/data/testimonials";
 import DetailDrawer from "./DetailDrawer";
+import TransitionLink from "@/components/transitions/TransitionLink";
 
 type Panel =
   | { kind: "work"; index: number }
   | { kind: "skills" }
   | { kind: "projects" }
-  | { kind: "archive" }
   | null;
 
-const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii"];
+const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"];
 const WORK_BEATS = [
   "work-rippling",
   "work-razorpay",
@@ -140,51 +139,7 @@ export default function Observatory() {
       };
     }
 
-    return {
-      eyebrow: "Books · articles · recommendations",
-      title: "Writing and recommendations",
-      content: (
-        <>
-          <section className="obs-archive-group">
-            <h3>Books</h3>
-            {products.map((product) => (
-              <a
-                key={product.title}
-                href={product.link}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span>{product.title}</span>
-                <small>{product.stats}</small>
-              </a>
-            ))}
-          </section>
-          <section className="obs-archive-group">
-            <h3>Latest writing</h3>
-            {latestPosts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`}>
-                <span>{post.title}</span>
-                <small>{post.readingTime}</small>
-              </Link>
-            ))}
-            <Link className="obs-inline-cta" href="/blog">
-              Read all essays <FaArrowRight aria-hidden />
-            </Link>
-          </section>
-          <section className="obs-archive-group">
-            <h3>Kind words</h3>
-            {testimonials.map((testimonial) => (
-              <blockquote key={testimonial.name}>
-                <p>“{testimonial.testimonial}”</p>
-                <footer>
-                  {testimonial.name} · {testimonial.company}
-                </footer>
-              </blockquote>
-            ))}
-          </section>
-        </>
-      ),
-    };
+    return null;
   }, [activeExperience, panel]);
 
   return (
@@ -326,37 +281,64 @@ export default function Observatory() {
         </div>
       </section>
 
-      <section id="archive" data-scene-beat="archive" className="obs-chapter">
-        <span id="products" className="obs-anchor" />
-        <span id="writing" className="obs-anchor obs-anchor-mid" />
-        <span id="testimonials" className="obs-anchor obs-anchor-end" />
+      <section id="articles" data-scene-beat="articles" className="obs-chapter">
         <div className="obs-overlay obs-overlay-left">
-          <p className="obs-kicker">Folio {ROMAN[5]} · Writing and books</p>
-          <h2>Books, articles, and feedback from people I’ve worked with.</h2>
-          <p className="obs-feature-label">Latest article</p>
-          <Link
-            className="obs-feature-link"
-            href={`/blog/${latestPosts[0].slug}`}
-          >
-            {latestPosts[0].title} <FaArrowRight aria-hidden />
-          </Link>
-          <div className="obs-archive-stats">
-            <span>
-              <b>{products.length}</b> books
-            </span>
-            <span>
-              <b>{blogPosts.length}</b> essays
-            </span>
-            <span>
-              <b>{testimonials.length}</b> recommendations
-            </span>
+          <p className="obs-kicker">Folio {ROMAN[5]} · Articles</p>
+          <h2>Notes on frontend systems, CI/CD, and developer tooling.</h2>
+          <div className="obs-article-list">
+            {latestPosts.slice(0, 3).map((post, index) => (
+              <TransitionLink key={post.slug} href={`/blog/${post.slug}`}>
+                <span>0{index + 1}</span>
+                <strong>{post.title}</strong>
+                <small>{post.readingTime}</small>
+              </TransitionLink>
+            ))}
           </div>
-          <button
-            className="obs-primary"
-            onClick={() => setPanel({ kind: "archive" })}
-          >
-            View writing and books <FaArrowRight aria-hidden />
-          </button>
+          <TransitionLink className="obs-primary" href="/blog">
+            Browse all articles <FaArrowRight aria-hidden />
+          </TransitionLink>
+        </div>
+      </section>
+
+      <section id="books" data-scene-beat="books" className="obs-chapter">
+        <div className="obs-overlay obs-overlay-right">
+          <p className="obs-kicker">Folio {ROMAN[6]} · Books</p>
+          <h2>Practical guides for frontend engineers.</h2>
+          <div className="obs-book-shelf">
+            {products.map((product, index) => (
+              <a
+                key={product.title}
+                href={product.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>0{index + 1}</span>
+                <strong>{product.title}</strong>
+                <small>{product.stats} ↗</small>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="testimonials"
+        data-scene-beat="testimonials"
+        className="obs-chapter"
+      >
+        <div className="obs-overlay obs-overlay-left">
+          <p className="obs-kicker">Folio {ROMAN[7]} · Testimonials</p>
+          <h2>Feedback from engineers and leaders I’ve worked with.</h2>
+          <div className="obs-voices">
+            {testimonials.slice(0, 2).map((testimonial) => (
+              <blockquote key={testimonial.name}>
+                <p>“{testimonial.testimonial}”</p>
+                <footer>
+                  {testimonial.name} · {testimonial.role}, {testimonial.company}
+                </footer>
+              </blockquote>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -366,7 +348,7 @@ export default function Observatory() {
         className="obs-chapter obs-contact"
       >
         <div className="obs-contact-copy">
-          <p className="obs-kicker">Folio {ROMAN[6]} · Contact</p>
+          <p className="obs-kicker">Folio {ROMAN[8]} · Contact</p>
           <h2>Let’s talk about frontend infrastructure.</h2>
           <a className="obs-email" href="mailto:rgndunes@gmail.com">
             rgndunes@gmail.com
@@ -404,14 +386,16 @@ export default function Observatory() {
         </div>
       </section>
 
-      <DetailDrawer
-        eyebrow={drawer.eyebrow}
-        onClose={closePanel}
-        open={panel !== null}
-        title={drawer.title}
-      >
-        {drawer.content}
-      </DetailDrawer>
+      {drawer && (
+        <DetailDrawer
+          eyebrow={drawer.eyebrow}
+          onClose={closePanel}
+          open={panel !== null}
+          title={drawer.title}
+        >
+          {drawer.content}
+        </DetailDrawer>
+      )}
     </main>
   );
 }

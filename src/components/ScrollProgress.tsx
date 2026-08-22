@@ -9,8 +9,10 @@ const CHAPTERS = [
   { id: "work", label: "Work", folio: "iii" },
   { id: "skills", label: "Skills", folio: "iv" },
   { id: "notebook", label: "Projects", folio: "v" },
-  { id: "archive", label: "Writing", folio: "vi" },
-  { id: "contact", label: "Contact", folio: "vii" },
+  { id: "articles", label: "Articles", folio: "vi" },
+  { id: "books", label: "Books", folio: "vii" },
+  { id: "testimonials", label: "Testimonials", folio: "viii" },
+  { id: "contact", label: "Contact", folio: "ix" },
 ];
 
 export default function ScrollProgress() {

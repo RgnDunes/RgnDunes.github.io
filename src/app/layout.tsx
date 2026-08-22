@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { SITE, SITE_URL, absoluteUrl, withBasePath } from "@/lib/site";
+import RouteTransitionProvider from "@/components/transitions/RouteTransitionProvider";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -196,7 +197,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://api.counterapi.dev" />
       </head>
       <body className="bg-paper text-ink-2 antialiased">
-        {children}
+        <RouteTransitionProvider>{children}</RouteTransitionProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
