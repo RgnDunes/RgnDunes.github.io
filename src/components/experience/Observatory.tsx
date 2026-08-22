@@ -322,38 +322,45 @@ export default function Observatory() {
             <p className="obs-kicker">Folio {ROMAN[8]} · Outside engineering</p>
             <h2>What keeps me curious away from work.</h2>
             <p className="obs-lede">
-              Motorcycle rides, cosmic mysteries, Marvel stories, and making
-              videos are a big part of who I am outside engineering.
+              Long rides, cosmic questions, cinematic worlds, and making videos
+              keep me curious outside engineering.
             </p>
 
-            <dl className="obs-interests">
-              <div>
-                <dt>On the road</dt>
-                <dd>Long motorcycle rides and the places between stops.</dd>
+            <div className="obs-visual-clues" aria-hidden="true">
+              <div className="obs-energy-core">
+                <span />
+                <span />
               </div>
-              <div>
-                <dt>In the cosmos</dt>
-                <dd>
-                  Quasars, black holes, pulsars, and unanswered questions.
-                </dd>
+              <svg
+                className="obs-timeline-mark"
+                viewBox="0 0 180 120"
+                fill="none"
+              >
+                <path d="M90 116V53" />
+                <path d="M90 89C67 80 54 64 48 43C37 51 26 53 10 50" />
+                <path d="M90 75C114 66 127 47 130 24C143 34 156 36 173 30" />
+                <path d="M90 61C76 49 71 34 73 9" />
+                <path d="M90 53C104 43 111 29 111 8" />
+                <circle cx="10" cy="50" r="3" />
+                <circle cx="73" cy="9" r="3" />
+                <circle cx="111" cy="8" r="3" />
+                <circle cx="173" cy="30" r="3" />
+              </svg>
+              <div className="obs-pulsar-mark">
+                <span />
+                <span />
               </div>
-              <div>
-                <dt>On screen</dt>
-                <dd>Marvel Studios—especially Loki and Iron Man.</dd>
-              </div>
-              <div>
-                <dt>On YouTube</dt>
-                <dd>
-                  <a
-                    href="https://www.youtube.com/@rgndunes"
-                    target="_blank"
-                    rel="me noopener noreferrer"
-                  >
-                    Visit @rgndunes <FaExternalLinkAlt aria-hidden />
-                  </a>
-                </dd>
-              </div>
-            </dl>
+            </div>
+
+            <a
+              className="obs-youtube-link"
+              href="https://www.youtube.com/@rgndunes"
+              target="_blank"
+              rel="me noopener noreferrer"
+            >
+              Watch on YouTube <span>@rgndunes</span>
+              <FaExternalLinkAlt aria-hidden />
+            </a>
           </div>
         </div>
       </section>
