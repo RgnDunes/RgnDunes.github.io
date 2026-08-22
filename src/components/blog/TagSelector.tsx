@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaSearch, FaTimes } from "react-icons/fa";
 
 interface Props {
@@ -10,9 +10,60 @@ interface Props {
   onSelectTag: (tag: string | null) => void;
 }
 
-export default function TagSelector({ allTags, selectedTag, onSelectTag }: Props) {
+export default function TagSelector({
+  allTags,
+  selectedTag,
+  onSelectTag,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  const closeDialog = useCallback(() => {
+    setOpen(false);
+    setQ("");
+    window.requestAnimationFrame(() => triggerRef.current?.focus());
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDialog();
+        return;
+      }
+
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [closeDialog, open]);
 
   const filtered = useMemo(() => {
     if (!q) return allTags;
@@ -60,6 +111,7 @@ export default function TagSelector({ allTags, selectedTag, onSelectTag }: Props
         ))}
         {hasMore && (
           <button
+            ref={triggerRef}
             onClick={() => setOpen(true)}
             className="flex items-center gap-2 rounded-full border border-dashed border-rule bg-paper px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] text-ink-2 transition-all hover:border-saffron hover:text-saffron"
           >
@@ -77,12 +129,14 @@ export default function TagSelector({ allTags, selectedTag, onSelectTag }: Props
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-            onClick={() => setOpen(false)}
+            onClick={closeDialog}
           >
             <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
             <motion.div
+              ref={dialogRef}
               role="dialog"
-              aria-label="All tags"
+              aria-modal="true"
+              aria-labelledby="tag-index-title"
               initial={{ y: -12, opacity: 0, scale: 0.97 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: -8, opacity: 0, scale: 0.97 }}
@@ -93,10 +147,15 @@ export default function TagSelector({ allTags, selectedTag, onSelectTag }: Props
               <div className="flex items-baseline justify-between">
                 <div>
                   <span className="eyebrow">Tag Index</span>
-                  <h3 className="font-display text-2xl text-ink">Browse all tags</h3>
+                  <h3
+                    id="tag-index-title"
+                    className="font-display text-2xl text-ink"
+                  >
+                    Browse all tags
+                  </h3>
                 </div>
                 <button
-                  onClick={() => setOpen(false)}
+                  onClick={closeDialog}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-rule text-ink-2 transition-all hover:border-ink hover:text-ink"
                   aria-label="Close"
                 >
@@ -128,8 +187,7 @@ export default function TagSelector({ allTags, selectedTag, onSelectTag }: Props
                         active={selectedTag === tag}
                         onClick={() => {
                           onSelectTag(tag);
-                          setOpen(false);
-                          setQ("");
+                          closeDialog();
                         }}
                       >
                         {tag}

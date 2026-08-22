@@ -35,7 +35,7 @@ export default function HomeShell({ children }: { children: React.ReactNode }) {
   return (
     <ScrollProvider>
       {!gameMode && <SceneCanvas />}
-      <ScrollProgress />
+      {!gameMode && <ScrollProgress />}
       {!gameMode && (
         <>
           <Navbar onGameModeToggle={enterGameMode} />

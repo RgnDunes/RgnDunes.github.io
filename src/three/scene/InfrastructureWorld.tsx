@@ -149,7 +149,7 @@ export default function InfrastructureWorld() {
       (line.material as THREE.LineBasicMaterial).opacity = opacity * 0.38;
       const active = Math.round(THREE.MathUtils.clamp(position - 2, 0, 6));
       careerMaterials.current.forEach((material, index) => {
-        material.opacity = opacity * (index === active ? 1 : 0.22);
+        material.opacity = opacity * (index === active ? 0.58 : 0.18);
         material.color.set(index === active ? "#E86A2B" : "#6F8FFF");
       });
     }

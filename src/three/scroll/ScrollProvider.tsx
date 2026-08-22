@@ -182,19 +182,48 @@ export default function ScrollProvider({
       if (lenis) {
         lenis.scrollTo(destination, { duration: 1.05, offset: -64 });
       } else {
-        destination.scrollIntoView({ block: "start" });
+        window.scrollTo({
+          top: window.scrollY + destination.getBoundingClientRect().top - 64,
+          behavior: profile.reducedMotion ? "auto" : "smooth",
+        });
       }
       window.history.replaceState(null, "", hash);
     };
 
+    const scrollToCurrentHash = (immediate = false) => {
+      const { hash } = window.location;
+      if (!hash || hash === "#") return;
+
+      const destination = document.getElementById(hash.slice(1));
+      if (!destination) return;
+
+      if (lenis) {
+        lenis.scrollTo(destination, {
+          duration: immediate ? 0 : 1.05,
+          immediate,
+          offset: -64,
+        });
+      } else {
+        window.scrollTo({
+          top: window.scrollY + destination.getBoundingClientRect().top - 64,
+          behavior: immediate || profile.reducedMotion ? "auto" : "smooth",
+        });
+      }
+    };
+
+    const handleHashChange = () => scrollToCurrentHash();
+
     document.addEventListener("click", handleAnchorClick);
-    const refreshFrame = window.requestAnimationFrame(() =>
-      ScrollTrigger.refresh(),
-    );
+    window.addEventListener("hashchange", handleHashChange);
+    const refreshFrame = window.requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+      scrollToCurrentHash(true);
+    });
 
     return () => {
       window.cancelAnimationFrame(refreshFrame);
       document.removeEventListener("click", handleAnchorClick);
+      window.removeEventListener("hashchange", handleHashChange);
       pageTrigger.kill();
       effectTriggers.forEach((trigger) => trigger.kill());
       effectTweens.forEach((tween) => tween.kill());
