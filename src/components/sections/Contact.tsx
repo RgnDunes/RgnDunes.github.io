@@ -45,7 +45,7 @@ export default function Contact() {
         className="grid gap-6 border-b border-rule pb-8 md:grid-cols-[auto_1fr] md:items-end md:gap-10"
       >
         <div className="flex items-baseline gap-4">
-          <span className="folio text-6xl md:text-7xl">ix.</span>
+          <span className="folio text-6xl md:text-7xl">viii.</span>
           <div>
             <h2 className="font-display text-display-3 text-ink">
               Say hello<span className="text-saffron">.</span>

@@ -15,8 +15,8 @@ const SECTIONS: { id: string; title: string; folio: string }[] = [
   { id: "skills", title: "The Toolkit", folio: "IV" },
   { id: "notebook", title: "The Notebook", folio: "V" },
   { id: "products", title: "The Shelf", folio: "VI" },
-  { id: "publications", title: "The Archive", folio: "VII" },
-  { id: "writing", title: "Dispatches", folio: "VIII" },
+  { id: "writing", title: "Writing", folio: "VII" },
+  { id: "testimonials", title: "Kind Words", folio: "VIII" },
   { id: "contact", title: "Colophon", folio: "IX" },
 ];
 

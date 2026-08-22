@@ -4,7 +4,6 @@ import Experience from "@/components/sections/Experience";
 import Skills from "@/components/sections/Skills";
 import Projects from "@/components/sections/Projects";
 import DigitalProducts from "@/components/sections/DigitalProducts";
-import Articles from "@/components/sections/Articles";
 import LatestBlog from "@/components/sections/LatestBlog";
 import Testimonials from "@/components/sections/Testimonials";
 import Contact from "@/components/sections/Contact";
@@ -66,8 +65,9 @@ export default function Home() {
           <Projects />
           <DigitalProducts />
           <SectionOrnament index={2} />
-          <Articles />
-          <LatestBlog />
+          <section id="writing">
+            <LatestBlog />
+          </section>
           <SectionOrnament index={0} />
           <Testimonials />
           <Contact />
