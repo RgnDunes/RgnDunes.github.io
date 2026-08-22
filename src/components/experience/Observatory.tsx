@@ -306,8 +306,8 @@ export default function Observatory() {
       >
         <div className="obs-books-layout">
           <header className="obs-books-heading">
-            <p className="obs-kicker">Folio {ROMAN[6]} · Books</p>
-            <h2>Practical guides for frontend engineers.</h2>
+            <p className="obs-kicker">Folio {ROMAN[6]} · Authored books</p>
+            <h2>Books I wrote for frontend engineers.</h2>
           </header>
           <div className="obs-book-grid">
             {products.map((product) => (
@@ -330,7 +330,7 @@ export default function Observatory() {
                 </span>
                 <span className="obs-book-copy">
                   <small>
-                    {product.type} · {product.stats}
+                    {product.type} · By Divyansh Singh · {product.stats}
                   </small>
                   <strong>{product.title}</strong>
                   <span className="obs-book-topics">
