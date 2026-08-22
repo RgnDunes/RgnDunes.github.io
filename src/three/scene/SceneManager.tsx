@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import ParticleField from "./ParticleField";
+import InfrastructureWorld from "./InfrastructureWorld";
 
 export default function SceneManager({
   count,
@@ -17,8 +18,8 @@ export default function SceneManager({
 
   useEffect(() => {
     scene.background = null;
-    scene.fog = new THREE.Fog("#F6F0E7", 9, 27);
-    gl.setClearColor(0x000000, 0);
+    scene.fog = new THREE.Fog("#05070A", 7, 26);
+    gl.setClearColor(0x05070a, 1);
     return () => {
       scene.fog = null;
     };
@@ -30,5 +31,10 @@ export default function SceneManager({
     onReady();
   });
 
-  return <ParticleField count={count} />;
+  return (
+    <>
+      <ParticleField count={count} />
+      <InfrastructureWorld />
+    </>
+  );
 }

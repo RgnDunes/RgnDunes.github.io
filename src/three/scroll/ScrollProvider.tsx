@@ -7,7 +7,7 @@ import Lenis from "lenis";
 import { useDeviceProfile } from "@/hooks/useDeviceProfile";
 import {
   resetSceneScrollState,
-  SCENE_SECTIONS,
+  SCENE_BEATS,
   triggerScenePulse,
   updateSceneScrollState,
 } from "./store";
@@ -63,8 +63,7 @@ export default function ScrollProvider({
     const previousScrollBehavior = html.style.scrollBehavior;
     html.style.scrollBehavior = "auto";
 
-    const useSmoothScroll =
-      !profile.coarsePointer && !profile.reducedMotion;
+    const useSmoothScroll = !profile.coarsePointer && !profile.reducedMotion;
     const lenis = useSmoothScroll
       ? new Lenis({
           anchors: false,
@@ -83,13 +82,15 @@ export default function ScrollProvider({
 
     let sectionStops: number[] = [];
     const measureSections = () => {
-      sectionStops = SCENE_SECTIONS.map((id) => {
-        const element = document.getElementById(id);
+      sectionStops = SCENE_BEATS.map((id) => {
+        const element = document.querySelector<HTMLElement>(
+          `[data-scene-beat="${id}"]`,
+        );
         if (!element) return 0;
         const rect = element.getBoundingClientRect();
         return Math.max(
           0,
-          window.scrollY + rect.top + rect.height / 2 - window.innerHeight / 2
+          window.scrollY + rect.top + rect.height / 2 - window.innerHeight / 2,
         );
       });
     };
@@ -98,10 +99,7 @@ export default function ScrollProvider({
     const pageTrigger = ScrollTrigger.create({
       start: 0,
       end: () =>
-        Math.max(
-          1,
-          document.documentElement.scrollHeight - window.innerHeight
-        ),
+        Math.max(1, document.documentElement.scrollHeight - window.innerHeight),
       invalidateOnRefresh: true,
       onRefresh: measureSections,
       onUpdate: (self) => {
@@ -110,8 +108,8 @@ export default function ScrollProvider({
           : interpolateSectionPosition(self.scroll(), sectionStops);
         updateSceneScrollState({
           activeIndex: Math.min(
-            SCENE_SECTIONS.length - 1,
-            Math.max(0, Math.round(position))
+            SCENE_BEATS.length - 1,
+            Math.max(0, Math.round(position)),
           ),
           position,
           progress: self.progress,
@@ -123,20 +121,20 @@ export default function ScrollProvider({
     const effectTriggers: ScrollTrigger[] = [];
     const effectTweens: gsap.core.Tween[] = [];
     if (!profile.reducedMotion) {
-      document.querySelectorAll("#notebook article").forEach((card) => {
+      document.querySelectorAll("[data-scene-pulse]").forEach((card) => {
         effectTriggers.push(
           ScrollTrigger.create({
             trigger: card,
             start: "top 84%",
             onEnter: triggerScenePulse,
-          })
+          }),
         );
       });
 
       const marquee = document.querySelector<HTMLElement>("[data-scene-stats]");
       if (marquee) {
         const counters = Array.from(
-          marquee.querySelectorAll<HTMLElement>("[data-counter]")
+          marquee.querySelectorAll<HTMLElement>("[data-counter]"),
         );
         effectTriggers.push(
           ScrollTrigger.create({
@@ -160,44 +158,20 @@ export default function ScrollProvider({
                     onUpdate: () => {
                       counter.textContent = `${Math.round(value.current)}${suffix}`;
                     },
-                  })
+                  }),
                 );
               });
             },
-          })
-        );
-      }
-    }
-
-    if (
-      !profile.coarsePointer &&
-      !profile.reducedMotion &&
-      window.innerWidth >= 1024 &&
-      window.innerHeight >= 700
-    ) {
-      const work = document.getElementById("work");
-      const workHeader = work?.querySelector<HTMLElement>(
-        "[data-scene-pin-header]"
-      );
-      if (work && workHeader) {
-        effectTriggers.push(
-          ScrollTrigger.create({
-            anticipatePin: 1,
-            end: "bottom bottom-=140",
-            endTrigger: work,
-            pin: workHeader,
-            pinSpacing: false,
-            start: "top top+=80",
-          })
+          }),
         );
       }
     }
 
     const handleAnchorClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
-      const anchor = target?.closest("a[href^='#']") as
-        | HTMLAnchorElement
-        | null;
+      const anchor = target?.closest(
+        "a[href^='#']",
+      ) as HTMLAnchorElement | null;
       const hash = anchor?.getAttribute("href");
       if (!hash || hash === "#") return;
 
@@ -215,7 +189,7 @@ export default function ScrollProvider({
 
     document.addEventListener("click", handleAnchorClick);
     const refreshFrame = window.requestAnimationFrame(() =>
-      ScrollTrigger.refresh()
+      ScrollTrigger.refresh(),
     );
 
     return () => {

@@ -1,16 +1,20 @@
-export const SCENE_SECTIONS = [
+export const SCENE_BEATS = [
   "top",
   "about",
-  "work",
+  "work-rippling",
+  "work-razorpay",
+  "work-acciojob",
+  "work-airtribe",
+  "work-geeksforgeeks",
+  "work-correlations",
+  "work-taghive",
   "skills",
   "notebook",
-  "products",
-  "writing",
-  "testimonials",
+  "archive",
   "contact",
 ] as const;
 
-export type SceneSectionId = (typeof SCENE_SECTIONS)[number];
+export type SceneSectionId = (typeof SCENE_BEATS)[number];
 
 export interface SceneScrollState {
   activeIndex: number;
