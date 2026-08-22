@@ -74,6 +74,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-08-06",
     tags: ["Browser Internals", "V8", "DevTools"],
     readingTime: "~15 min read",
+    featured: true,
     author: {
       name: "Divyansh Singh",
     },
@@ -254,6 +255,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-05-08",
     tags: ["Frontend Infrastructure", "Browser Internals", "CORS"],
     readingTime: "~15 min read",
+    featured: true,
     author: {
       name: "Divyansh Singh",
     },
@@ -350,6 +352,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-03-28",
     tags: ["AI", "Testing", "Games"],
     readingTime: "18 min read",
+    featured: true,
     author: { name: "Divyansh Singh" },
   },
   {

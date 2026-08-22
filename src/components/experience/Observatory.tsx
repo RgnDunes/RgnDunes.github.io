@@ -24,12 +24,15 @@ const WORK_BEATS = [
   "work-taghive",
 ];
 
-const latestPosts = [...blogPosts]
-  .sort(
-    (a, b) =>
-      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-  )
-  .slice(0, 4);
+const FEATURED_ARTICLE_ORDER = [
+  "cdn-cache-cors-poisoning",
+  "devtools-breakpoints-v8-inspector-protocol",
+  "ai-boardgame-testing",
+] as const;
+const featuredPosts = FEATURED_ARTICLE_ORDER.flatMap((slug) => {
+  const post = blogPosts.find((candidate) => candidate.slug === slug);
+  return post ? [post] : [];
+});
 
 export default function Observatory() {
   return (
@@ -273,12 +276,12 @@ export default function Observatory() {
             <p className="obs-kicker">Folio {ROMAN[5]} · Articles</p>
             <h2>Published articles.</h2>
             <p>
-              Practical explanations of frontend systems, CI/CD, and developer
-              tooling.
+              Production investigations, browser internals, and engineering
+              experiments.
             </p>
           </header>
           <div className="obs-article-list">
-            {latestPosts.slice(0, 3).map((post, index) => (
+            {featuredPosts.map((post, index) => (
               <TransitionLink key={post.slug} href={`/blog/${post.slug}`}>
                 <span className="obs-article-number">0{index + 1}</span>
                 <span className="obs-article-copy">
