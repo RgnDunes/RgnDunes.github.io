@@ -28,6 +28,190 @@ function random(index: number, seed: number) {
   return value - Math.floor(value);
 }
 
+type LineSegment = readonly [number, number, number, number];
+
+export const REPULSOR_PALM_SEGMENTS: readonly LineSegment[] = [
+  [-0.7, -0.15, -0.2, -0.55],
+  [-0.2, -0.55, 0.55, -0.6],
+  [0.55, -0.6, 1.05, -0.2],
+  [1.05, -0.2, 1.15, 0.55],
+  [1.15, 0.55, 0.82, 1.8],
+  [0.82, 1.8, 0.55, 1.78],
+  [0.55, 1.78, 0.52, 0.55],
+  [0.52, 0.55, 0.26, 2.15],
+  [0.26, 2.15, -0.05, 2.12],
+  [-0.05, 2.12, -0.1, 0.55],
+  [-0.1, 0.55, -0.4, 1.95],
+  [-0.4, 1.95, -0.68, 1.86],
+  [-0.68, 1.86, -0.62, 0.42],
+  [-0.62, 0.42, -1.02, 1.48],
+  [-1.02, 1.48, -1.27, 1.32],
+  [-1.27, 1.32, -0.92, -0.18],
+  [-0.92, -0.18, -0.7, -0.15],
+];
+
+function lineDrawing(
+  count: number,
+  segments: readonly LineSegment[],
+  seed: number,
+  depth = 0.18,
+) {
+  const positions = new Float32Array(count * 3);
+  for (let index = 0; index < count; index += 1) {
+    const segmentIndex = Math.min(
+      segments.length - 1,
+      Math.floor(random(index, seed) * segments.length),
+    );
+    const [startX, startY, endX, endY] = segments[segmentIndex];
+    const progress = random(index, seed + 0.7);
+    const jitter = (random(index, seed + 1.3) - 0.5) * 0.018;
+    positions[index * 3] =
+      THREE.MathUtils.lerp(startX, endX, progress) + jitter;
+    positions[index * 3 + 1] =
+      THREE.MathUtils.lerp(startY, endY, progress) + jitter;
+    positions[index * 3 + 2] = (random(index, seed + 1.9) - 0.5) * depth;
+  }
+  return positions;
+}
+
+function arcReactor(count: number) {
+  const positions = new Float32Array(count * 3);
+  const centerX = 3.3;
+  for (let index = 0; index < count; index += 1) {
+    const family = index % 10;
+    const progress = random(index, 20.1);
+    const angle = progress * Math.PI * 2;
+    let x = 0;
+    let y = 0;
+
+    if (family < 6) {
+      const ring = family % 3;
+      const radius = 0.72 + ring * 0.7;
+      x = Math.cos(angle) * radius;
+      y = Math.sin(angle) * radius;
+    } else if (family < 8) {
+      const spoke = Math.floor(random(index, 20.7) * 12);
+      const spokeAngle = (spoke / 12) * Math.PI * 2;
+      const radius = 0.45 + progress * 1.65;
+      x = Math.cos(spokeAngle) * radius;
+      y = Math.sin(spokeAngle) * radius;
+    } else {
+      const side = Math.floor(random(index, 21.1) * 3);
+      const points = [
+        [0, 0.78],
+        [-0.7, -0.54],
+        [0.7, -0.54],
+      ];
+      const start = points[side];
+      const end = points[(side + 1) % points.length];
+      x = THREE.MathUtils.lerp(start[0], end[0], progress);
+      y = THREE.MathUtils.lerp(start[1], end[1], progress);
+    }
+
+    positions[index * 3] = centerX + x;
+    positions[index * 3 + 1] = y;
+    positions[index * 3 + 2] =
+      Math.sin(angle * 2) * 0.12 + (random(index, 21.7) - 0.5) * 0.08;
+  }
+  return positions;
+}
+
+function multiverseRoutes(count: number) {
+  const positions = new Float32Array(count * 3);
+  const branches = 9;
+  for (let index = 0; index < count; index += 1) {
+    const branch = Math.floor(random(index, 22.1) * branches);
+    const progress = random(index, 22.7);
+    const x = -6.4 + progress * 12.8;
+    const split = Math.sin(progress * Math.PI);
+    const branchOffset = (branch - (branches - 1) / 2) * 0.31;
+    const rejoin = Math.pow(split, 0.72);
+    positions[index * 3] = x;
+    positions[index * 3 + 1] =
+      branchOffset * rejoin + Math.sin(progress * Math.PI * 3 + branch) * 0.08;
+    positions[index * 3 + 2] =
+      Math.cos(progress * Math.PI * 2 + branch * 0.7) *
+      rejoin *
+      (0.14 + branch * 0.025);
+  }
+  return positions;
+}
+
+function repulsorPalm(count: number) {
+  const positions = lineDrawing(count, REPULSOR_PALM_SEGMENTS, 23.1, 0.22);
+  for (let index = 0; index < count; index += 1) {
+    positions[index * 3] += 2.2;
+
+    if (index % 4 === 0) {
+      const progress = random(index, 23.5);
+      positions[index * 3] = -6.4 + progress * 7.9;
+      positions[index * 3 + 1] =
+        (index % 8 === 0 ? -0.14 : 0.14) + (random(index, 23.6) - 0.5) * 0.035;
+      positions[index * 3 + 2] = 0.02;
+    }
+
+    if (index % 14 === 0) {
+      const angle = random(index, 23.7) * Math.PI * 2;
+      const radius = 0.22 + (index % 28 === 0 ? 0.24 : 0);
+      positions[index * 3] = 2.2 + Math.cos(angle) * radius;
+      positions[index * 3 + 1] = Math.sin(angle) * radius;
+      positions[index * 3 + 2] = 0.08;
+    }
+  }
+  return positions;
+}
+
+function webLattice(count: number) {
+  const positions = new Float32Array(count * 3);
+  const centerX = 1.2;
+  const centerY = 0.2;
+  for (let index = 0; index < count; index += 1) {
+    const family = index % 3;
+    const progress = random(index, 24.1);
+    const spoke = Math.floor(random(index, 24.7) * 13);
+    const angle = (spoke / 13) * Math.PI * 2 + 0.18;
+    let radius: number;
+    if (family === 0) {
+      radius = progress * 4.3;
+    } else {
+      const ring = 1 + Math.floor(random(index, 25.3) * 7);
+      radius = ring * 0.58 + Math.sin(angle * 3) * ring * 0.035;
+    }
+    positions[index * 3] = centerX + Math.cos(angle) * radius * 1.25;
+    positions[index * 3 + 1] = centerY + Math.sin(angle) * radius * 0.72;
+    positions[index * 3 + 2] =
+      Math.sin(angle * 2 + radius) * 0.2 + (random(index, 25.9) - 0.5) * 0.08;
+  }
+  return positions;
+}
+
+function timekeeperCrown(count: number) {
+  const segments: LineSegment[] = [
+    [-1.45, -2.2, -1.75, -0.5],
+    [-1.75, -0.5, -1.55, 0.65],
+    [-1.55, 0.65, -2.5, 1.55],
+    [-2.5, 1.55, -3.15, 3.25],
+    [-3.15, 3.25, -3.05, 1.4],
+    [-3.05, 1.4, -1.8, 0.05],
+    [-1.8, 0.05, -1.2, 1.4],
+    [-1.2, 1.4, 0, 1.72],
+    [0, 1.72, 1.2, 1.4],
+    [1.2, 1.4, 1.8, 0.05],
+    [1.8, 0.05, 3.05, 1.4],
+    [3.05, 1.4, 3.15, 3.25],
+    [3.15, 3.25, 2.5, 1.55],
+    [2.5, 1.55, 1.55, 0.65],
+    [1.55, 0.65, 1.75, -0.5],
+    [1.75, -0.5, 1.45, -2.2],
+    [1.45, -2.2, 0.65, -2.7],
+    [0.65, -2.7, -0.65, -2.7],
+    [-0.65, -2.7, -1.45, -2.2],
+    [-0.82, -0.55, -0.25, -0.42],
+    [0.82, -0.55, 0.25, -0.42],
+  ];
+  return lineDrawing(count, segments, 26.1, 0.28);
+}
+
 function inkMotes(count: number) {
   const positions = new Float32Array(count * 3);
   for (let index = 0; index < count; index += 1) {
@@ -56,52 +240,6 @@ function pipelineRibbons(count: number) {
   return positions;
 }
 
-function workRoute(count: number) {
-  const positions = new Float32Array(count * 3);
-  const nodeCount = 6;
-  for (let index = 0; index < count; index += 1) {
-    const node = Math.min(
-      nodeCount - 1,
-      Math.floor(random(index, 6.1) * nodeCount),
-    );
-    const nodeProgress = node / (nodeCount - 1);
-    const nodeX = (nodeProgress - 0.5) * 13;
-    const nodeY = Math.sin(nodeProgress * Math.PI * 1.7) * 1.5 - 0.4;
-    const nodeZ = Math.cos(nodeProgress * Math.PI) * 1.3;
-
-    if (index % 3 === 0) {
-      const routeProgress = random(index, 7.3) * (nodeCount - 1);
-      const routeNode = Math.floor(routeProgress);
-      const mix = routeProgress - routeNode;
-      const nextProgress =
-        Math.min(nodeCount - 1, routeNode + 1) / (nodeCount - 1);
-      const startProgress = routeNode / (nodeCount - 1);
-      positions[index * 3] =
-        (startProgress + (nextProgress - startProgress) * mix - 0.5) * 13;
-      positions[index * 3 + 1] =
-        Math.sin(
-          (startProgress + (nextProgress - startProgress) * mix) *
-            Math.PI *
-            1.7,
-        ) *
-          1.5 -
-        0.4 +
-        (random(index, 7.8) - 0.5) * 0.18;
-      positions[index * 3 + 2] =
-        Math.cos(
-          (startProgress + (nextProgress - startProgress) * mix) * Math.PI,
-        ) * 1.3;
-    } else {
-      const radius = Math.pow(random(index, 8.4), 1.8) * 0.95;
-      const angle = random(index, 8.9) * Math.PI * 2;
-      positions[index * 3] = nodeX + Math.cos(angle) * radius;
-      positions[index * 3 + 1] = nodeY + (random(index, 9.4) - 0.5) * radius;
-      positions[index * 3 + 2] = nodeZ + Math.sin(angle) * radius;
-    }
-  }
-  return positions;
-}
-
 function skillLattice(count: number) {
   const positions = new Float32Array(count * 3);
   for (let index = 0; index < count; index += 1) {
@@ -119,19 +257,6 @@ function skillLattice(count: number) {
   return positions;
 }
 
-function deployField(count: number) {
-  const positions = new Float32Array(count * 3);
-  for (let index = 0; index < count; index += 1) {
-    const x = (random(index, 11.4) - 0.5) * 15;
-    const z = (random(index, 11.8) - 0.5) * 11;
-    positions[index * 3] = x;
-    positions[index * 3 + 1] =
-      Math.sin(x * 0.7) * 0.18 + (random(index, 12.2) - 0.5) * 0.25 - 1;
-    positions[index * 3 + 2] = z;
-  }
-  return positions;
-}
-
 function pagePlanes(count: number, seed: number) {
   const positions = new Float32Array(count * 3);
   const planes = 4;
@@ -143,28 +268,6 @@ function pagePlanes(count: number, seed: number) {
     positions[index * 3 + 1] = y + (plane % 2 === 0 ? 0.8 : -0.8);
     positions[index * 3 + 2] =
       (random(index, seed + 0.8) - 0.5) * 0.18 + (plane - 1.5) * 1.4;
-  }
-  return positions;
-}
-
-function cosmicPulse(count: number) {
-  const positions = new Float32Array(count * 3);
-  for (let index = 0; index < count; index += 1) {
-    const strand = index % 5;
-    if (strand === 0) {
-      const jet = (random(index, 17.1) - 0.5) * 8;
-      positions[index * 3] = (random(index, 17.3) - 0.5) * 0.22;
-      positions[index * 3 + 1] = jet;
-      positions[index * 3 + 2] = (random(index, 17.5) - 0.5) * 0.22;
-      continue;
-    }
-
-    const radius = 0.8 + Math.pow(random(index, 17.7), 1.6) * 4;
-    const theta = random(index, 17.9) * Math.PI * 2;
-    const tilt = strand % 2 === 0 ? 0.24 : -0.18;
-    positions[index * 3] = Math.cos(theta) * radius;
-    positions[index * 3 + 1] = Math.sin(theta) * radius * tilt;
-    positions[index * 3 + 2] = Math.sin(theta) * radius * 0.72;
   }
   return positions;
 }
@@ -210,12 +313,13 @@ function timelineTree(count: number) {
 const SPECS: FormationSpec[] = [
   {
     id: "top",
-    build: inkMotes,
+    build: arcReactor,
     camera: [0, 0.15, 8.8],
-    color: "#F2EEE7",
-    drift: 0.8,
-    opacity: 0.86,
-    size: 1.3,
+    color: "#F6CF72",
+    drift: 0.38,
+    opacity: 0.94,
+    size: 1.38,
+    target: [0.35, 0, 0],
   },
   {
     id: "about",
@@ -228,7 +332,7 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "work-rippling",
-    build: workRoute,
+    build: multiverseRoutes,
     camera: [-5.8, 1.4, 5.4],
     color: "#E86A2B",
     drift: 0.55,
@@ -238,7 +342,7 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "work-razorpay",
-    build: workRoute,
+    build: multiverseRoutes,
     camera: [-3.8, -0.1, 4.7],
     color: "#6F8FFF",
     drift: 0.5,
@@ -248,7 +352,7 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "work-acciojob",
-    build: workRoute,
+    build: multiverseRoutes,
     camera: [-1.8, 1.1, 4.4],
     color: "#4FB493",
     drift: 0.48,
@@ -258,7 +362,7 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "work-airtribe",
-    build: workRoute,
+    build: multiverseRoutes,
     camera: [0.2, 1.7, 4.6],
     color: "#E86A2B",
     drift: 0.46,
@@ -268,7 +372,7 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "work-geeksforgeeks",
-    build: workRoute,
+    build: multiverseRoutes,
     camera: [2.3, 1.3, 4.5],
     color: "#4FB493",
     drift: 0.42,
@@ -278,7 +382,7 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "work-correlations",
-    build: workRoute,
+    build: multiverseRoutes,
     camera: [4.2, 0.5, 4.7],
     color: "#6F8FFF",
     drift: 0.4,
@@ -288,7 +392,7 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "work-taghive",
-    build: workRoute,
+    build: multiverseRoutes,
     camera: [6.0, -0.1, 5.2],
     color: "#E86A2B",
     drift: 0.38,
@@ -307,22 +411,22 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "notebook",
-    build: deployField,
+    build: repulsorPalm,
     camera: [0, 2.7, 7.6],
-    color: "#6F8FFF",
-    drift: 0.45,
-    opacity: 0.58,
-    size: 1.02,
-    target: [0, -1, 0],
+    color: "#F6CF72",
+    drift: 0.24,
+    opacity: 0.7,
+    size: 0.86,
+    target: [-0.4, 0.35, 0],
   },
   {
     id: "articles",
-    build: (count) => pagePlanes(count, 13.1),
+    build: webLattice,
     camera: [0.5, 0.25, 8.4],
-    color: "#F2EEE7",
-    drift: 0.35,
-    opacity: 0.44,
-    size: 0.94,
+    color: "#6F8FFF",
+    drift: 0.2,
+    opacity: 0.58,
+    size: 1.02,
   },
   {
     id: "books",
@@ -346,12 +450,12 @@ const SPECS: FormationSpec[] = [
   },
   {
     id: "personal",
-    build: cosmicPulse,
+    build: timekeeperCrown,
     camera: [0.6, 0.35, 7.4],
     color: "#6FE0AA",
-    drift: 0.3,
-    opacity: 0.78,
-    size: 1.18,
+    drift: 0.16,
+    opacity: 0.88,
+    size: 1.24,
     target: [0.8, 0.2, 0],
   },
   {

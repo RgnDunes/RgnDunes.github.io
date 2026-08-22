@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getSceneScrollState } from "../scroll/store";
+import { REPULSOR_PALM_SEGMENTS } from "./formations";
 
 const CAREER_POINTS = [
   [-5.5, 0.1, 0],
@@ -64,6 +65,22 @@ function createTimelineTreeGeometry() {
   return geometry;
 }
 
+function createRepulsorGeometry() {
+  const segments: number[] = [];
+  REPULSOR_PALM_SEGMENTS.forEach(([startX, startY, endX, endY]) => {
+    segments.push(startX + 2.2, startY, 0, endX + 2.2, endY, 0);
+  });
+  segments.push(-6.4, -0.14, 0, 1.5, -0.14, 0);
+  segments.push(-6.4, 0.14, 0, 1.5, 0.14, 0);
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(segments, 3),
+  );
+  return geometry;
+}
+
 function windowOpacity(
   position: number,
   start: number,
@@ -101,13 +118,15 @@ export default function InfrastructureWorld() {
   }, []);
 
   const timelineTreeGeometry = useMemo(createTimelineTreeGeometry, []);
+  const repulsorGeometry = useMemo(createRepulsorGeometry, []);
 
   useEffect(
     () => () => {
       careerLine.dispose();
       timelineTreeGeometry.dispose();
+      repulsorGeometry.dispose();
     },
-    [careerLine, timelineTreeGeometry],
+    [careerLine, repulsorGeometry, timelineTreeGeometry],
   );
 
   useFrame(({ clock }, delta) => {
@@ -168,12 +187,13 @@ export default function InfrastructureWorld() {
     if (projects.current) {
       const opacity = windowOpacity(position, 9.55, 10.6);
       projects.current.visible = opacity > 0.01;
-      projects.current.rotation.y = scroll.reducedMotion ? 0 : time * 0.04;
+      projects.current.rotation.y = scroll.reducedMotion
+        ? 0
+        : Math.sin(time * 0.25) * 0.035;
       projects.current.children.forEach((child, index) => {
-        const mesh = child as THREE.Mesh;
-        (mesh.material as THREE.MeshBasicMaterial).opacity = opacity * 0.5;
-        if (!scroll.reducedMotion)
-          mesh.rotation.x += frameDelta * (0.04 + index * 0.01);
+        const material = (child as THREE.Mesh | THREE.LineSegments)
+          .material as THREE.Material;
+        material.opacity = opacity * (index === 0 ? 0.58 : 0.82);
       });
     }
 
@@ -259,20 +279,17 @@ export default function InfrastructureWorld() {
       </group>
 
       <group ref={projects}>
-        {[-3.6, -1.2, 1.2, 3.6].map((x, index) => (
-          <mesh
-            key={x}
-            position={[x, Math.sin(index) * 0.8, index % 2 ? -0.8 : 0.4]}
-            rotation={[0.4, index * 0.5, 0.2]}
-          >
-            <boxGeometry args={[1.1, 1.1, 1.1]} />
-            <meshBasicMaterial
-              color={index === 0 ? "#E86A2B" : "#6F8FFF"}
-              transparent
-              wireframe
-            />
-          </mesh>
-        ))}
+        <lineSegments geometry={repulsorGeometry}>
+          <lineBasicMaterial color="#F6CF72" transparent />
+        </lineSegments>
+        <mesh position={[2.2, 0, 0.02]}>
+          <ringGeometry args={[0.18, 0.34, 36]} />
+          <meshBasicMaterial
+            color="#F6CF72"
+            side={THREE.DoubleSide}
+            transparent
+          />
+        </mesh>
       </group>
 
       <group ref={archive}>
