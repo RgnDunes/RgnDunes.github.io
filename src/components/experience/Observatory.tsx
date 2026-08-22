@@ -11,6 +11,7 @@ import { testimonials } from "@/data/testimonials";
 import { youtubeVideos } from "@/data/youtubeVideos";
 import ProfileImage from "@/assets/images/profile.jpg";
 import TransitionLink from "@/components/transitions/TransitionLink";
+import CareerTransitMap from "./CareerTransitMap";
 import PersonalVisualStory from "./PersonalVisualStory";
 
 const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
@@ -158,122 +159,102 @@ export default function Observatory() {
           <p className="obs-kicker">Folio {ROMAN[2]} · Work experience</p>
           <h2>Where I’ve worked and what I delivered.</h2>
         </header>
-        <div className="obs-career-map">
-          <div className="obs-career-map-head" aria-hidden="true">
-            <span>Primary engineering</span>
-            <span>Concurrent teaching &amp; writing</span>
-          </div>
-          <div className="obs-career-lanes">
-            <div className="obs-primary-timeline">
-              {primaryExperiences.map((experience, index) => (
-                <article
-                  key={experience.company}
-                  className={`obs-timeline-entry ${index === 0 ? "obs-timeline-current" : ""}`}
-                  data-scene-pulse
-                >
-                  <span className="obs-timeline-arrow" aria-hidden="true">
-                    ↑
-                  </span>
-                  <header className="obs-role-head">
-                    <div className="obs-company-logo">
-                      <Image
-                        src={experience.logo}
-                        alt={`${experience.company} logo`}
-                        sizes="56px"
-                        loading="eager"
-                      />
-                    </div>
-                    <div>
-                      <p className="obs-kicker">{experience.duration}</p>
-                      <h3>{experience.company}</h3>
-                    </div>
-                    {index === 0 && <span className="obs-role-order">Now</span>}
-                  </header>
+        <CareerTransitMap />
 
-                  {experience.previousRoles ? (
-                    <div className="obs-promotion-path">
-                      {[
-                        {
-                          position: experience.position,
-                          duration:
-                            experience.roleDuration ?? experience.duration,
-                          description: experience.description,
-                          achievements: experience.achievements ?? [],
-                        },
-                        ...experience.previousRoles,
-                      ].map((role, roleIndex) => (
-                        <section key={role.position}>
-                          <span
-                            className="obs-promotion-arrow"
-                            aria-hidden="true"
-                          >
-                            ↑
-                          </span>
-                          <header>
-                            <small>{role.duration}</small>
-                            <h4>{role.position}</h4>
-                          </header>
-                          <p>{role.description}</p>
-                          <ul className="obs-role-highlights">
-                            {role.achievements.map((achievement) => (
-                              <li key={achievement}>{achievement}</li>
+        <div className="obs-career-details">
+          <header className="obs-career-details-head">
+            <p className="obs-kicker">Engineering route · Role details</p>
+            <span>Current role first, then backwards in time</span>
+          </header>
+
+          {primaryExperiences.map((experience, index) => (
+            <article
+              key={experience.company}
+              className={`obs-career-detail ${index === 0 ? "obs-career-current" : ""}`}
+              data-scene-pulse
+            >
+              <header className="obs-role-head">
+                <div className="obs-company-logo">
+                  <Image
+                    src={experience.logo}
+                    alt={`${experience.company} logo`}
+                    sizes="56px"
+                    loading="eager"
+                  />
+                </div>
+                <div>
+                  <p className="obs-kicker">{experience.duration}</p>
+                  <h3>{experience.company}</h3>
+                </div>
+                {index === 0 && <span className="obs-role-order">Current</span>}
+              </header>
+
+              {experience.previousRoles ? (
+                <div className="obs-promotion-path">
+                  {[
+                    {
+                      position: experience.position,
+                      duration: experience.roleDuration ?? experience.duration,
+                      description: experience.description,
+                      achievements: experience.achievements ?? [],
+                    },
+                    ...experience.previousRoles,
+                  ].map((role) => (
+                    <section key={role.position}>
+                      <header>
+                        <small>{role.duration}</small>
+                        <h4>{role.position}</h4>
+                      </header>
+                      <p>{role.description}</p>
+                      <ul className="obs-role-highlights">
+                        {role.achievements.map((achievement) => (
+                          <li key={achievement}>{achievement}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <strong>{experience.position}</strong>
+                  <p>{experience.description}</p>
+                  {experience.achievementGroups && experience.achievements ? (
+                    <div className="obs-workstreams">
+                      {experience.achievementGroups.map((group) => (
+                        <section key={group.title}>
+                          <h4>{group.title}</h4>
+                          <ul>
+                            {group.items.map((item) => (
+                              <li key={item}>{item}</li>
                             ))}
                           </ul>
-                          {roleIndex === 0 && (
-                            <span className="obs-promotion-status">
-                              Final role at Razorpay
-                            </span>
-                          )}
                         </section>
                       ))}
                     </div>
-                  ) : (
-                    <>
-                      <strong>{experience.position}</strong>
-                      <p>{experience.description}</p>
-                      {experience.achievementGroups &&
-                      experience.achievements ? (
-                        <div className="obs-workstreams">
-                          {experience.achievementGroups.map((group) => (
-                            <section key={group.title}>
-                              <h4>{group.title}</h4>
-                              <ul>
-                                {group.items.map((item) => (
-                                  <li key={item}>{item}</li>
-                                ))}
-                              </ul>
-                            </section>
-                          ))}
-                        </div>
-                      ) : experience.achievements ? (
-                        <ul className="obs-role-highlights">
-                          {experience.achievements.map((achievement) => (
-                            <li key={achievement}>{achievement}</li>
-                          ))}
-                        </ul>
-                      ) : null}
-                    </>
-                  )}
+                  ) : experience.achievements ? (
+                    <ul className="obs-role-highlights">
+                      {experience.achievements.map((achievement) => (
+                        <li key={achievement}>{achievement}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </>
+              )}
 
-                  <div className="obs-tags">
-                    {experience.technologies?.map((technology) => (
-                      <span key={technology}>{technology}</span>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
+              <div className="obs-tags">
+                {experience.technologies?.map((technology) => (
+                  <span key={technology}>{technology}</span>
+                ))}
+              </div>
+            </article>
+          ))}
 
-            <aside
-              className="obs-concurrent-timeline"
-              aria-label="Concurrent roles"
-            >
-              <header>
-                <span className="obs-branch-arrow" aria-hidden="true">
-                  ↖
-                </span>
-                <p className="obs-kicker">Alongside my primary roles</p>
-              </header>
+          <aside className="obs-parallel-details" aria-label="Concurrent roles">
+            <header>
+              <p className="obs-kicker">Parallel work</p>
+              <h3>Teaching and writing held alongside engineering roles.</h3>
+            </header>
+            <div>
               {concurrentExperiences.map((experience) => (
                 <article key={experience.company} data-scene-pulse>
                   <header className="obs-role-head">
@@ -287,7 +268,7 @@ export default function Observatory() {
                     </div>
                     <div>
                       <p className="obs-kicker">{experience.duration}</p>
-                      <h3>{experience.company}</h3>
+                      <h4>{experience.company}</h4>
                     </div>
                   </header>
                   <strong>{experience.position}</strong>
@@ -299,8 +280,8 @@ export default function Observatory() {
                   </div>
                 </article>
               ))}
-            </aside>
-          </div>
+            </div>
+          </aside>
         </div>
       </section>
 

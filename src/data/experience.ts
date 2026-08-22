@@ -24,6 +24,8 @@ interface MediaItem {
 interface PreviousRole {
   position: string;
   duration: string;
+  startDate: string;
+  endDate: string;
   description: string;
   achievements: string[];
   media?: MediaItem[];
@@ -38,7 +40,12 @@ interface Experience {
   company: string;
   position: string;
   roleDuration?: string;
+  roleStartDate?: string;
+  roleEndDate?: string;
   duration: string;
+  startDate: string;
+  endDate?: string;
+  track: "primary" | "concurrent";
   description: string;
   achievements?: string[];
   achievementGroups?: AchievementGroup[];
@@ -53,6 +60,8 @@ export const experiences: Experience[] = [
     company: "Rippling",
     position: "Software Engineer II, Web Infrastructure",
     duration: "Jun 2025 - Present",
+    startDate: "2025-06",
+    track: "primary",
     description:
       "Frontend infrastructure, developer tooling, CI/CD systems, test reliability, and incident response.",
     achievements: [
@@ -114,7 +123,12 @@ export const experiences: Experience[] = [
     company: "Razorpay",
     position: "Senior Frontend Engineer, Internationalization",
     roleDuration: "Nov 2024 - Jun 2025",
+    roleStartDate: "2024-11",
+    roleEndDate: "2025-06",
     duration: "May 2021 - Jun 2025",
+    startDate: "2021-05",
+    endDate: "2025-06",
+    track: "primary",
     description:
       "International expansion, i18n infrastructure, and payment authentication across Malaysia, Singapore, and India.",
     achievements: [
@@ -142,6 +156,8 @@ export const experiences: Experience[] = [
       {
         position: "Software Development Engineer I",
         duration: "Aug 2022 - Oct 2024",
+        startDate: "2022-08",
+        endDate: "2024-10",
         description:
           "Payment authentication, tokenization, and frontend infrastructure.",
         achievements: [
@@ -155,6 +171,8 @@ export const experiences: Experience[] = [
       {
         position: "Frontend Engineer Intern",
         duration: "May 2021 - Jul 2022",
+        startDate: "2021-05",
+        endDate: "2022-07",
         description: "Payment disputes and fraud detection UI for RazorpayX.",
         achievements: [
           "Halved payment-dispute resolution time from 20 to 10 minutes.",
@@ -168,6 +186,9 @@ export const experiences: Experience[] = [
     company: "AccioJob",
     position: "React & Redux Instructor",
     duration: "Jan 2023 - May 2025",
+    startDate: "2023-01",
+    endDate: "2025-05",
+    track: "concurrent",
     description:
       "Freelance instructor teaching frontend development from HTML/CSS/JS through advanced React, state management, and modern frontend patterns.",
     achievements: undefined,
@@ -178,6 +199,9 @@ export const experiences: Experience[] = [
     company: "Airtribe",
     position: "Full Stack Mentor",
     duration: "Apr 2024 - Oct 2024",
+    startDate: "2024-04",
+    endDate: "2024-10",
+    track: "concurrent",
     description:
       "Mentored 100+ students preparing for frontend and backend roles. Invited as Jury Member for a Tech-AI Hackathon held in Bangalore.",
     achievements: undefined,
@@ -188,6 +212,9 @@ export const experiences: Experience[] = [
     company: "GeeksforGeeks",
     position: "Technical Content Writer Intern",
     duration: "Oct 2020 - Aug 2021",
+    startDate: "2020-10",
+    endDate: "2021-08",
+    track: "concurrent",
     description:
       "Published 11+ technical articles and enhanced 2 existing ones covering Linked Lists, Python, Git, ReactJS, Firestore, Flask, and more.",
     achievements: undefined,
@@ -199,6 +226,9 @@ export const experiences: Experience[] = [
     company: "Correlations.ai",
     position: "SWE Intern",
     duration: "Dec 2020 - Feb 2021",
+    startDate: "2020-12",
+    endDate: "2021-02",
+    track: "primary",
     description:
       "Worked on Login Infrastructure and Mail Templating Services using ReactJS, Flask, and MongoDB.",
     achievements: undefined,
@@ -210,6 +240,9 @@ export const experiences: Experience[] = [
     company: "TagHive Inc.",
     position: "Android Developer Intern",
     duration: "Aug 2020 - Oct 2020",
+    startDate: "2020-08",
+    endDate: "2020-10",
+    track: "primary",
     description:
       "Contributed to the Android development of Class Saathi, an ed-tech app by TagHive (South Korea).",
     achievements: undefined,
