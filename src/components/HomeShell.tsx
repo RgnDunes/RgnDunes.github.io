@@ -7,6 +7,7 @@ import ScrollProgress from "@/components/ScrollProgress";
 import CommandPalette from "@/components/CommandPalette";
 import Cursor from "@/components/Cursor";
 import EasterEgg from "@/components/EasterEgg";
+import ScrollProvider from "@/three/scroll/ScrollProvider";
 
 const RippleShell = dynamic(() => import("@/components/ripple/RippleShell"), {
   ssr: false,
@@ -46,7 +47,7 @@ export default function HomeShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <>
+    <ScrollProvider>
       <ScrollProgress />
       <Cursor />
       {!gameMode && (
@@ -62,6 +63,6 @@ export default function HomeShell({ children }: { children: React.ReactNode }) {
         </>
       )}
       {gameMode && <RippleShell onExit={exitGameMode} />}
-    </>
+    </ScrollProvider>
   );
 }
