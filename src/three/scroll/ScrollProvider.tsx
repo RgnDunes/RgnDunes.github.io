@@ -188,7 +188,7 @@ export default function ScrollProvider({
         });
       }
       if (window.location.hash !== hash) {
-        window.location.replace(hash);
+        window.history.replaceState(null, "", hash);
       }
     };
 
