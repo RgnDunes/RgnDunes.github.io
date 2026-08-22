@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaBars, FaTimes, FaGamepad } from "react-icons/fa";
 import { withBasePath } from "@/lib/site";
 
-const RESUME_URL = withBasePath("/resume.pdf");
+const RESUME_URL = withBasePath("/Divyansh_Singh_Resume.pdf");
 
 const nav = [
   { name: "Work", href: "#work" },

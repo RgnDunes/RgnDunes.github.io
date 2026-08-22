@@ -55,7 +55,7 @@ export default function CommandPalette({ open, onClose, onGameModeToggle }: Prop
       { id: "writing", label: "Writing · Blog", group: "Navigation", icon: FaBook, hint: "/blog", action: () => { onClose(); router.push("/blog"); } },
       { id: "contact", label: "Contact", group: "Navigation", icon: FaEnvelope, action: () => goHash("#contact") },
 
-      { id: "resume", label: "Download résumé", group: "Actions", icon: FaArrowRight, hint: "PDF", action: () => { onClose(); window.open(`${process.env.NODE_ENV === "production" ? "/Portfolio-v5" : ""}/resume.pdf`, "_blank"); } },
+      { id: "resume", label: "Download résumé", group: "Actions", icon: FaArrowRight, hint: "PDF", action: () => { onClose(); window.open(`${process.env.NODE_ENV === "production" ? "/Portfolio-v5" : ""}/Divyansh_Singh_Resume.pdf`, "_blank"); } },
       { id: "email", label: "Copy email address", group: "Actions", icon: FaEnvelope, hint: "rgndunes@gmail.com", action: async () => { try { await navigator.clipboard.writeText("rgndunes@gmail.com"); } catch {} onClose(); } },
       ...(onGameModeToggle
         ? [{ id: "play", label: "Play · Debug the fire", group: "Actions", icon: FaGamepad, hint: "β", action: () => { onClose(); onGameModeToggle(); } } as Cmd]

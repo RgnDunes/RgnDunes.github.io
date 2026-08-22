@@ -64,7 +64,7 @@ export const products: Product[] = [
         • Packed with practical breakdowns, diagrams, and insights you won’t find in tutorials`,
     image: hldBookImg,
     link: "https://rgndunes.gumroad.com/l/frontend-system-design-decoded",
-    stats: "10+ copies sold",
+    stats: "70+ copies sold",
     techStack: ["System Design", "Frontend", "HLD"],
   },
 ];

@@ -44,17 +44,21 @@ interface Experience {
 export const experiences: Experience[] = [
   {
     company: "Rippling",
-    position: "Software Engineer II - L6",
+    position: "Software Engineer II, Web Infrastructure",
     duration: "Jun 2025 - Present",
     description:
-      "Web Infrastructure team - CI/CD pipelines, developer tooling, and observability.",
+      "Frontend infrastructure, developer tooling, CI/CD systems, test reliability, and incident response.",
     achievements: [
-      "Migrated package auth from hardcoded tokens to AWS CodeArtifact (dual-registry) and later AWS Secrets Manager, with auto-recovery and phased rollout - zero developer downtime.",
-      "Built a Flakiness Detection System - runs E2E suite N times against green commits, computes statistical flakiness scores, and generates HTML dashboards with Datadog integration.",
-      "Upgraded E2E observability from module-level failure counts to test-level structured logs in Datadog with error context, video URLs, and retry data.",
-      "Redesigned route attribution from string matching to object-based query parameter comparison - order-independent, extra-param tolerant, fully backward compatible.",
-      "Automated weekly on-call analytics via a stateless ETL pipeline (Buildkite + Slack API) - TTFR by timezone, query distribution, and shadow support tracking.",
-      "Designed an automated E2E test unskip workflow with hybrid triggers (PR file changes + scheduled CI sweep) - tests re-enabled only after N consecutive passes.",
+      "Reworked eager route imports after a Vite 8 benchmark identified them as the larger local-development bottleneck, cutting one product's import graph from 11,516 modules to 54 and finished-loading time from 90 seconds to 10.54 seconds; applied the analysis across six product areas.",
+      "Converted safe integration-test suites from serial to parallel execution across ten product and platform domains, reducing successful-build P90 from 81 to 52 minutes, backend pull-request P90 from 76 to 40 minutes, and frontend pull-request P90 from 88 to 58 minutes.",
+      "Replaced permanent package credentials with 12-hour IAM-backed tokens across three repositories and verified five CI scenarios; moved the flow to AWS Secrets Manager after CodeArtifact reached a quota limit.",
+      "Created a flaky-test detection pipeline that runs the full suite 20 times against a known-green commit, calculates scores at test and module level, and publishes results to Datadog, an S3-hosted dashboard, and Slack.",
+      "Split deployment-blockage telemetry into four six-hour windows after finding that Datadog rejects timestamps older than 18 hours, allowing missed runs to recover data without gaps or duplicates.",
+      "Moved an internal developer CLI into the primary frontend monorepo, raised function coverage to approximately 100%, and removed its root-directory assumption so independently deployed applications can resolve shared configuration and binaries.",
+      "Centralized service-ownership metadata from backend, frontend, and mobile repositories, updated Python, JavaScript, and Terraform consumers, and added CI checks for mass deletion, missing owners, and reintroduced fields.",
+      "Replaced weekly manual on-call reporting with a Buildkite job backed by the Slack API, categorizing 50+ support queries and reporting response time, timezone, ownership, and query trends to save 1-2 hours per week.",
+      "Designed owner-first P1 incident automation after analyzing about 90 on-call engagements across 11 weeks; replaying the reference week showed 6 of 9 incidents would not have paged Web Infrastructure first.",
+      "Added a browser beacon and backend endpoint to capture bundle failures before Datadog RUM, LogRocket, or Sentry initialize, recording the failure mode, deployment context, and affected script.",
     ],
     logo: ripplingLogo,
     technologies: ["React", "TypeScript", "AWS", "Datadog", "Buildkite", "Playwright", "Slack API"],
@@ -66,11 +70,11 @@ export const experiences: Experience[] = [
     description:
       "International expansion, i18n infrastructure, and payment authentication across Malaysia, Singapore, and India.",
     achievements: [
-      "Led the frontend charter for Razorpay's expansion into Malaysia and Singapore, enabling 530 merchant activations and 80M MYR monthly GMV by integrating region-specific payment methods.",
-      "Built and open-sourced @razorpay/i18nify-js SDK (100K+ weekly downloads), adopted by 27+ teams across Razorpay for locale-specific formatting and validation.",
-      "Designed modular i18n component architecture integrated with Blade UI, supporting RTL, region-aware tokens, and plug-and-play customization adopted by 19+ product teams.",
-      "Migrated i18n SDK from Webpack to Rollup, enabling better tree-shaking and reducing final bundle size by 30%.",
-      "Awarded Esprit De Corps (twice) for outstanding contributions to the company.",
+      "Shipped region-aware payment flows for Malaysia and Singapore, enabling 530 merchant activations and supporting MYR 80 million in monthly gross merchandise value.",
+      "Owned the architecture and roadmap for @razorpay/i18nify-js, an open-source internationalization SDK used by 27+ teams and downloaded 100,000+ times per week.",
+      "Replaced Webpack with Rollup and cut the SDK bundle by 30%; partial imports removed another 1.6 MB from consumer bundles while retaining ESM, CommonJS, and UMD distributions.",
+      "Added RTL-ready components to the company design system, reaching 19+ product teams, and mentored five frontend engineers who went on to own features independently.",
+      "Earned four Razorpay SPOT awards for ownership and engineering impact.",
     ],
     logo: razorpayLogo,
     technologies: ["React", "TypeScript", "Rollup", "Blade UI", "Playwright", "Jest"],
@@ -81,16 +85,16 @@ export const experiences: Experience[] = [
     ],
     previousRoles: [
       {
-        position: "Software Development Engineer",
+        position: "Software Development Engineer I",
         duration: "Aug 2022 - Oct 2024",
         description:
           "Payment authentication, tokenization, and frontend infrastructure.",
         achievements: [
-          "Built Mastercard Biometric Authentication from scratch; demoed at GFF 2024, improved success rate by 35% over 3DS OTP, and increased card payments by 33%.",
-          "Slashed time-to-market for new geography launches from 8-9 months to 1 month by building reusable internationalization layers.",
-          "Built HawkAI, an LLM-based static analysis tool to detect non-localized logic and region-specific hardcoding with 97.3% accuracy, now used across 7+ frontend teams.",
-          "Migrated Merchant Dashboard to micro-frontend architecture, reducing build time by 67%, unit test runtime by 67%, and E2E test runtime by 70%.",
-          "Developed India's first token lifecycle system for 4 major banks, enabling 8L+ tokenizations and reducing risk exposure by 40%.",
+          "Shipped a Mastercard biometric authentication experience demonstrated at Global Fintech Fest 2024, improving payment success by 35% over 3DS OTP and increasing card payments by 33%.",
+          "Cut the time needed to launch a new geography from 8-9 months to one month by extracting reusable internationalization and region-aware platform layers.",
+          "Created an LLM-assisted static-analysis CLI for localization gaps and region-specific hardcoding, reaching 97.3% accuracy across 1,000+ scenarios and adoption by seven frontend teams.",
+          "Split the Merchant Dashboard into micro-frontends, reducing build and unit-test time by 67% and end-to-end test time by 70%.",
+          "Delivered a token lifecycle system for four banks that enabled 800,000+ tokenizations and reduced risk by 40%.",
         ],
       },
       {
@@ -99,8 +103,8 @@ export const experiences: Experience[] = [
         description:
           "Payment disputes and fraud detection UI for RazorpayX.",
         achievements: [
-          "Cut payment dispute resolution time by 50%, reducing the average from 20 minutes to 10 minutes.",
-          "Revamped Shield UI, achieving a 33% surge in user engagement and reducing load time by 21%.",
+          "Halved payment-dispute resolution time from 20 to 10 minutes.",
+          "Revamped a risk-management interface, increasing engagement by 33% while reducing load time by 21%.",
         ],
         media: [
           { src: rzpInternCert, caption: "Internship Certificate" },

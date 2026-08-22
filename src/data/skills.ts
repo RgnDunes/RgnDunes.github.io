@@ -43,12 +43,12 @@ export const skillCategories: SkillCategory[] = [
       {
         name: "ReactJS",
         image: reactIcon,
-        experience: "4+ years",
+        experience: "5+ years",
       },
       {
         name: "TypeScript",
         image: tsIcon,
-        experience: "3+ years",
+        experience: "5+ years",
       },
       {
         name: "Redux",

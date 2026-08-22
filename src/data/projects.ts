@@ -24,12 +24,12 @@ export const projects: Project[] = [
   {
     title: "i18nify-js",
     description:
-      "It is an open-source internationalization SDK designed to simplify locale-based formatting, translations, and region-aware UI rendering across web apps. Published on npm with 100k+ weekly downloads.",
+      "Open-source JavaScript, React, and Go internationalization monorepo with automated testing, modular documentation, and 100,000+ weekly npm downloads.",
     image: i18nifyImg,
     technologies: ["JavaScript", "Rollup"],
     links: [
       {
-        label: "Book",
+        label: "npm",
         href: "https://www.npmjs.com/package/@razorpay/i18nify-js",
         icon: FaNpm,
       },
@@ -39,7 +39,7 @@ export const projects: Project[] = [
         icon: FaGithub,
       },
     ],
-    stats: "86K+ weekly downloads",
+    stats: "100K+ weekly downloads",
   },
   {
     title: "CompliQ - Accessibility Simulator",
