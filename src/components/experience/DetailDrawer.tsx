@@ -29,6 +29,30 @@ export default function DetailDrawer({
     closeButton.current?.focus();
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
+      if (
+        drawer.current &&
+        ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End"].includes(
+          event.key,
+        )
+      ) {
+        event.preventDefault();
+        const page = drawer.current.clientHeight * 0.8;
+        const top =
+          event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? drawer.current.scrollHeight
+              : drawer.current.scrollTop +
+                (event.key === "ArrowDown"
+                  ? 64
+                  : event.key === "ArrowUp"
+                    ? -64
+                    : event.key === "PageDown"
+                      ? page
+                      : -page);
+        drawer.current.scrollTo({ top, behavior: "auto" });
+        return;
+      }
       if (event.key !== "Tab" || !drawer.current) return;
       const focusable = Array.from(
         drawer.current.querySelectorAll<HTMLElement>(
@@ -73,6 +97,7 @@ export default function DetailDrawer({
             aria-labelledby="obs-drawer-title"
             aria-modal="true"
             className="obs-drawer"
+            data-lenis-prevent
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
