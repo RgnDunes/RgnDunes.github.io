@@ -336,69 +336,43 @@ export default function BlogPostPage({ params }: Props) {
   return (
     <ObservatoryInterior>
       <div className="obs-reading-shell min-h-screen text-ink-2">
-        {/* Editorial masthead — thin ink bar, matches the notebook identity */}
-        <div className="border-b border-rule bg-ink py-3 text-center font-mono text-[10.5px] uppercase tracking-[0.28em] text-paper/90">
+        <div className="obs-reading-masthead">
           Engineering Diaries · {post.tags[0]}
         </div>
 
-        <article className="obs-reading-plane mx-auto max-w-[760px] px-5 pb-24 pt-10 md:px-10 md:pt-16">
-          {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="mb-10">
-            <ol className="flex flex-wrap items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted">
+        <article className="obs-reading-plane">
+          <nav aria-label="Breadcrumb" className="obs-reading-breadcrumb">
+            <ol>
               <li>
-                <TransitionLink
-                  href="/"
-                  className="hover:text-ink transition-colors"
-                >
-                  Home
-                </TransitionLink>
+                <TransitionLink href="/">Home</TransitionLink>
               </li>
-              <li aria-hidden className="text-rule">
-                ·
-              </li>
+              <li aria-hidden>·</li>
               <li>
-                <TransitionLink
-                  href="/blog"
-                  className="hover:text-ink transition-colors"
-                >
-                  Blog
-                </TransitionLink>
-              </li>
-              <li aria-hidden className="text-rule">
-                ·
-              </li>
-              <li className="text-ink" aria-current="page">
-                {post.title.length > 60
-                  ? `${post.title.slice(0, 60)}…`
-                  : post.title}
+                <TransitionLink href="/blog">Articles</TransitionLink>
               </li>
             </ol>
           </nav>
 
-          {/* Article header — folio numeral, title, dek, byline strip */}
-          <header className="mb-12">
-            <div className="mb-6 flex items-baseline gap-4">
-              <span className="folio text-4xl md:text-5xl">§</span>
-              <div className="eyebrow">{post.tags.slice(0, 3).join(" · ")}</div>
+          <header className="obs-reading-header">
+            <div className="obs-reading-rail">
+              <span className="folio">§</span>
+              <div className="eyebrow">
+                {post.tags.slice(0, 3).map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
             </div>
-            <h1 className="font-display text-[2rem] font-medium leading-[1.08] tracking-[-0.02em] text-ink md:text-[3rem] lg:text-[3.5rem]">
-              {post.title}
-            </h1>
-            <p className="mt-6 max-w-[60ch] font-body text-lg leading-[1.55] text-ink-2 md:text-xl">
-              {post.description}
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-rule py-4 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted">
-              <span>
-                By <span className="text-ink">{post.author.name}</span>
-              </span>
-              <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
-              <time dateTime={post.publishedAt} className="text-ink-2">
-                {publishedLabel}
-              </time>
-              <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
-              <span>{post.readingTime}</span>
-              <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
-              <ViewCounter pageId={`blog-${post.slug}`} showLabel={false} />
+            <div className="obs-reading-intro">
+              <h1 className="obs-reading-title">{post.title}</h1>
+              <p className="obs-reading-dek">{post.description}</p>
+              <div className="obs-reading-byline">
+                <span>
+                  By <strong>{post.author.name}</strong>
+                </span>
+                <time dateTime={post.publishedAt}>{publishedLabel}</time>
+                <span>{post.readingTime}</span>
+                <ViewCounter pageId={`blog-${post.slug}`} showLabel={false} />
+              </div>
             </div>
           </header>
 

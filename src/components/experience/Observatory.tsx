@@ -107,7 +107,7 @@ export default function Observatory() {
           {experiences.map((experience, index) => (
             <article
               key={experience.company}
-              className={`obs-role-card ${index < 2 ? "obs-role-featured" : ""}`}
+              className={`obs-role-card ${index < 2 ? "obs-role-featured" : ""} ${index === 0 ? "obs-role-current" : ""}`}
               data-scene-pulse
             >
               <header className="obs-role-head">
@@ -123,8 +123,10 @@ export default function Observatory() {
                   <p className="obs-kicker">{experience.duration}</p>
                   <h3>{experience.company}</h3>
                 </div>
-                <span className="obs-role-index">
-                  {String(index + 1).padStart(2, "0")}
+                <span className="obs-role-order">
+                  {index === 0
+                    ? "Current role"
+                    : `Previous · ${String(index).padStart(2, "0")}`}
                 </span>
               </header>
               <strong>{experience.position}</strong>
@@ -221,40 +223,82 @@ export default function Observatory() {
         </div>
       </section>
 
-      <section id="articles" data-scene-beat="articles" className="obs-chapter">
-        <div className="obs-overlay obs-overlay-left">
-          <p className="obs-kicker">Folio {ROMAN[5]} · Articles</p>
-          <h2>Notes on frontend systems, CI/CD, and developer tooling.</h2>
+      <section
+        id="articles"
+        data-scene-beat="articles"
+        className="obs-chapter obs-articles-chapter"
+      >
+        <div className="obs-articles-layout">
+          <header className="obs-articles-heading">
+            <p className="obs-kicker">Folio {ROMAN[5]} · Articles</p>
+            <h2>Notes for frontend engineers.</h2>
+            <p>
+              Practical explanations of frontend systems, CI/CD, and developer
+              tooling.
+            </p>
+          </header>
           <div className="obs-article-list">
             {latestPosts.slice(0, 3).map((post, index) => (
               <TransitionLink key={post.slug} href={`/blog/${post.slug}`}>
-                <span>0{index + 1}</span>
-                <strong>{post.title}</strong>
-                <small>{post.readingTime}</small>
+                <span className="obs-article-number">0{index + 1}</span>
+                <span className="obs-article-copy">
+                  <small>{post.tags[0]}</small>
+                  <strong>{post.title}</strong>
+                  <small>{post.readingTime}</small>
+                </span>
+                <FaArrowRight aria-hidden />
               </TransitionLink>
             ))}
+            <TransitionLink className="obs-articles-all" href="/blog">
+              Browse all articles <FaArrowRight aria-hidden />
+            </TransitionLink>
           </div>
-          <TransitionLink className="obs-primary" href="/blog">
-            Browse all articles <FaArrowRight aria-hidden />
-          </TransitionLink>
         </div>
       </section>
 
-      <section id="books" data-scene-beat="books" className="obs-chapter">
-        <div className="obs-overlay obs-overlay-right">
-          <p className="obs-kicker">Folio {ROMAN[6]} · Books</p>
-          <h2>Practical guides for frontend engineers.</h2>
-          <div className="obs-book-shelf">
-            {products.map((product, index) => (
+      <section
+        id="books"
+        data-scene-beat="books"
+        className="obs-chapter obs-books-chapter"
+      >
+        <div className="obs-books-layout">
+          <header className="obs-books-heading">
+            <p className="obs-kicker">Folio {ROMAN[6]} · Books</p>
+            <h2>Practical guides for frontend engineers.</h2>
+          </header>
+          <div className="obs-book-grid">
+            {products.map((product) => (
               <a
                 key={product.title}
+                className="obs-book-card"
                 href={product.link}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <span>0{index + 1}</span>
-                <strong>{product.title}</strong>
-                <small>{product.stats} ↗</small>
+                <span className="obs-book-cover">
+                  {product.image && (
+                    <Image
+                      src={product.image}
+                      alt={`${product.title} book cover`}
+                      fill
+                      sizes="(max-width: 767px) 38vw, 13vw"
+                    />
+                  )}
+                </span>
+                <span className="obs-book-copy">
+                  <small>
+                    {product.type} · {product.stats}
+                  </small>
+                  <strong>{product.title}</strong>
+                  <span className="obs-book-topics">
+                    {product.techStack.slice(0, 2).map((topic) => (
+                      <span key={topic}>{topic}</span>
+                    ))}
+                  </span>
+                  <span className="obs-book-link">
+                    View book <FaExternalLinkAlt aria-hidden />
+                  </span>
+                </span>
               </a>
             ))}
           </div>
