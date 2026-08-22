@@ -1,12 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
-import CommandPalette from "@/components/CommandPalette";
-import Cursor from "@/components/Cursor";
-import EasterEgg from "@/components/EasterEgg";
 import ScrollProvider from "@/three/scroll/ScrollProvider";
 
 const RippleShell = dynamic(() => import("@/components/ripple/RippleShell"), {
@@ -32,39 +29,17 @@ const SceneCanvas = dynamic(() => import("@/three/SceneCanvas"), {
  */
 export default function HomeShell({ children }: { children: React.ReactNode }) {
   const [gameMode, setGameMode] = useState(false);
-  const [cmdOpen, setCmdOpen] = useState(false);
-
   const enterGameMode = useCallback(() => setGameMode(true), []);
   const exitGameMode = useCallback(() => setGameMode(false), []);
-  const openCmd = useCallback(() => setCmdOpen(true), []);
-  const closeCmd = useCallback(() => setCmdOpen(false), []);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setCmdOpen((v) => !v);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   return (
     <ScrollProvider>
       {!gameMode && <SceneCanvas />}
       <ScrollProgress />
-      <Cursor />
       {!gameMode && (
         <>
-          <Navbar onGameModeToggle={enterGameMode} onCommandOpen={openCmd} />
+          <Navbar onGameModeToggle={enterGameMode} />
           {children}
-          <CommandPalette
-            open={cmdOpen}
-            onClose={closeCmd}
-            onGameModeToggle={enterGameMode}
-          />
-          <EasterEgg />
         </>
       )}
       {gameMode && <RippleShell onExit={exitGameMode} />}

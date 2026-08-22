@@ -1,15 +1,5 @@
-import Hero from "@/components/sections/Hero";
-import About from "@/components/sections/About";
-import Experience from "@/components/sections/Experience";
-import Skills from "@/components/sections/Skills";
-import Projects from "@/components/sections/Projects";
-import DigitalProducts from "@/components/sections/DigitalProducts";
-import LatestBlog from "@/components/sections/LatestBlog";
-import Testimonials from "@/components/sections/Testimonials";
-import Contact from "@/components/sections/Contact";
-import Marquee from "@/components/Marquee";
-import SectionOrnament from "@/components/SectionOrnament";
 import HomeShell from "@/components/HomeShell";
+import Observatory from "@/components/experience/Observatory";
 import { SITE, SITE_URL } from "@/lib/site";
 import { blogPosts } from "@/data/blogPosts";
 
@@ -18,7 +8,7 @@ function homePageJsonLd() {
   const latest = [...blogPosts]
     .sort(
       (a, b) =>
-        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
     )
     .slice(0, 6);
   return [
@@ -54,24 +44,7 @@ export default function Home() {
   return (
     <>
       <HomeShell>
-        <main className="relative">
-          <Hero />
-          <About />
-          <Marquee />
-          <Experience />
-          <SectionOrnament index={0} />
-          <Skills />
-          <SectionOrnament index={1} />
-          <Projects />
-          <DigitalProducts />
-          <SectionOrnament index={2} />
-          <section id="writing">
-            <LatestBlog />
-          </section>
-          <SectionOrnament index={0} />
-          <Testimonials />
-          <Contact />
-        </main>
+        <Observatory />
       </HomeShell>
       <script
         type="application/ld+json"
