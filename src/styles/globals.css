@@ -1439,6 +1439,118 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     serif;
 }
 
+.obs-about {
+  display: grid;
+  align-items: center;
+}
+.obs-about-layout {
+  position: relative;
+  z-index: 12;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  align-items: center;
+  gap: clamp(3rem, 7vw, 7.5rem);
+  width: min(1180px, 100%);
+  margin-inline: auto;
+}
+.obs-about-portrait {
+  position: relative;
+  width: min(100%, 390px);
+  margin: 0;
+  border: 1px solid rgba(242, 238, 231, 0.2);
+  background: #0b1113;
+  box-shadow: 28px 28px 0 rgba(232, 106, 43, 0.08);
+}
+.obs-about-portrait::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 1rem -1rem -1rem 1rem;
+  border-right: 1px solid rgba(232, 106, 43, 0.42);
+  border-bottom: 1px solid rgba(232, 106, 43, 0.42);
+  pointer-events: none;
+}
+.obs-about-portrait::after {
+  content: "Portrait · 2026";
+  position: absolute;
+  z-index: 3;
+  top: 1rem;
+  right: -2.2rem;
+  color: rgba(242, 238, 231, 0.44);
+  font:
+    500 0.52rem/1 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+.obs-about-portrait img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 28%;
+  filter: saturate(0.72) contrast(1.04);
+}
+.obs-about-portrait figcaption {
+  position: absolute;
+  z-index: 3;
+  inset: auto 0 0;
+  display: grid;
+  gap: 0.28rem;
+  padding: 2.8rem 1.25rem 1.15rem;
+  background: linear-gradient(transparent, rgba(5, 7, 10, 0.94));
+}
+.obs-about-portrait figcaption strong {
+  color: var(--obs-ink);
+  font:
+    500 1.35rem/1.1 var(--font-fraunces),
+    serif;
+}
+.obs-about-portrait figcaption span {
+  color: rgba(242, 238, 231, 0.55);
+  font:
+    500 0.54rem/1.4 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.obs-about-copy {
+  position: relative;
+  min-width: 0;
+  text-shadow: 0 2px 28px rgba(5, 7, 10, 0.9);
+}
+.obs-about-copy::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -4rem -6rem;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(5, 7, 10, 0.82),
+    transparent 72%
+  );
+  pointer-events: none;
+}
+.obs-about-copy h2 {
+  max-width: 12ch;
+  font-size: clamp(3.2rem, 5.1vw, 5.8rem);
+}
+.obs-about-copy .obs-lede {
+  margin-top: 1.5rem;
+}
+.obs-about-note {
+  max-width: 62ch;
+  margin-top: 1rem;
+  color: rgba(242, 238, 231, 0.58);
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+.obs-about-copy .obs-metrics {
+  margin-top: 1.6rem;
+}
+
 .obs-work {
   position: relative;
   z-index: 11;
@@ -1615,6 +1727,50 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   left: 0;
   color: var(--obs-saffron);
 }
+.obs-workstreams {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 1.25rem 0;
+  border: 1px solid var(--obs-line);
+  background: var(--obs-line);
+}
+.obs-workstreams section {
+  min-width: 0;
+  padding: 1.15rem 1.25rem;
+  background: rgba(5, 7, 10, 0.78);
+}
+.obs-workstreams h4 {
+  margin: 0 0 0.75rem;
+  color: var(--obs-green);
+  font:
+    500 0.58rem/1.4 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.obs-workstreams ul {
+  display: grid;
+  gap: 0.7rem;
+}
+.obs-workstreams li {
+  position: relative;
+  padding-left: 1rem;
+  color: rgba(242, 238, 231, 0.68);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+.obs-workstreams li::before {
+  content: "↳";
+  position: absolute;
+  left: 0;
+  color: var(--obs-saffron);
+}
+@media (min-width: 1600px) {
+  .obs-workstreams {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 .obs-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1782,11 +1938,11 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   position: absolute;
   z-index: -1;
   inset: -3rem -2rem;
-  background: radial-gradient(
-    ellipse at 42% 45%,
+  background: linear-gradient(
+    90deg,
     rgba(5, 7, 10, 0.94) 0,
-    rgba(5, 7, 10, 0.82) 48%,
-    rgba(5, 7, 10, 0.18) 78%,
+    rgba(5, 7, 10, 0.78) 50%,
+    rgba(5, 7, 10, 0.16) 76%,
     transparent 100%
   );
   pointer-events: none;
@@ -1806,23 +1962,24 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   background:
     radial-gradient(
       circle at 75% 45%,
-      rgba(111, 143, 255, 0.08),
+      rgba(111, 143, 255, 0.16),
       transparent 38%
     ),
     linear-gradient(
       90deg,
-      rgba(5, 7, 10, 0.96),
-      rgba(5, 7, 10, 0.2) 54%,
-      rgba(5, 7, 10, 0.72)
+      rgba(5, 7, 10, 0.72),
+      rgba(5, 7, 10, 0.04) 54%,
+      rgba(5, 7, 10, 0.28)
     );
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 100%);
-  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 100%);
 }
 .obs-personal-story svg {
   width: 100%;
   height: 100%;
-  opacity: 0.92;
+  opacity: 1;
+  mix-blend-mode: screen;
 }
 .obs-story-stars {
   fill: rgba(242, 238, 231, 0.55);
@@ -1840,13 +1997,13 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 }
 .obs-story-armored {
   stroke: #f6cf72;
-  stroke-width: 1.55;
+  stroke-width: 2.15;
   animation: obs-story-armored 18s ease-in-out infinite;
-  filter: drop-shadow(0 0 8px rgba(232, 106, 43, 0.28));
+  filter: drop-shadow(0 0 10px rgba(232, 106, 43, 0.5));
 }
 .obs-story-silhouette {
-  fill: rgba(232, 106, 43, 0.035);
-  stroke-width: 1.85;
+  fill: rgba(232, 106, 43, 0.09);
+  stroke-width: 2.35;
 }
 .obs-story-core {
   fill: rgba(246, 207, 114, 0.65);
@@ -1875,12 +2032,12 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 }
 .obs-story-timekeeper {
   stroke: #6fe0aa;
-  stroke-width: 1.4;
+  stroke-width: 2;
   animation: obs-story-timekeeper 18s ease-in-out infinite;
-  filter: drop-shadow(0 0 9px rgba(111, 224, 170, 0.22));
+  filter: drop-shadow(0 0 11px rgba(111, 224, 170, 0.42));
 }
 .obs-story-timekeeper .obs-story-silhouette {
-  fill: rgba(79, 180, 147, 0.045);
+  fill: rgba(79, 180, 147, 0.1);
 }
 .obs-story-horn {
   stroke-width: 2;
@@ -1905,10 +2062,10 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 }
 .obs-story-cosmic {
   stroke: #6f8fff;
-  stroke-width: 1.25;
+  stroke-width: 1.8;
   animation: obs-story-cosmic 18s ease-in-out infinite;
   transform-origin: 498px 266px;
-  filter: drop-shadow(0 0 9px rgba(111, 143, 255, 0.24));
+  filter: drop-shadow(0 0 11px rgba(111, 143, 255, 0.46));
 }
 .obs-cosmic-well {
   stroke: none;
@@ -2488,8 +2645,48 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   .obs-scroll-cue {
     display: none;
   }
+  .obs-about-layout {
+    grid-template-columns: 1fr;
+    gap: 2.75rem;
+  }
+  .obs-about-portrait {
+    width: 100%;
+    max-width: none;
+    box-shadow: 14px 14px 0 rgba(232, 106, 43, 0.08);
+  }
+  .obs-about-portrait::after {
+    display: none;
+  }
+  .obs-about-portrait img {
+    aspect-ratio: 5 / 4;
+    object-position: 50% 24%;
+  }
+  .obs-about-copy::before {
+    inset: -3rem -1.5rem;
+  }
+  .obs-about-copy h2 {
+    font-size: clamp(2.65rem, 12.4vw, 3.5rem);
+  }
+  .obs-about-note {
+    font-size: 0.82rem;
+  }
   .obs-metrics {
     grid-template-columns: 1fr;
+  }
+  .obs-about .obs-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .obs-about .obs-metrics div {
+    min-width: 0;
+    padding: 0.75rem 0.6rem;
+  }
+  .obs-about .obs-metrics dt {
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+  }
+  .obs-about .obs-metrics dd {
+    font-size: clamp(0.82rem, 3.7vw, 1.05rem);
+    white-space: nowrap;
   }
   .obs-work {
     padding: 6rem 1.25rem;
@@ -2527,6 +2724,15 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   .obs-role-card h3 {
     font-size: 2rem;
   }
+  .obs-workstreams {
+    grid-template-columns: 1fr;
+  }
+  .obs-workstreams section {
+    padding: 1rem;
+  }
+  .obs-workstreams li {
+    font-size: 0.73rem;
+  }
   .obs-previous-roles div {
     display: grid;
   }
@@ -2562,7 +2768,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   .obs-personal-story {
     inset: min(78vw, 340px) -24% auto 0;
     height: 520px;
-    opacity: 0.72;
+    opacity: 0.9;
     -webkit-mask-image: linear-gradient(
       90deg,
       transparent,
@@ -2641,7 +2847,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     animation: none !important;
   }
   .obs-story-timekeeper {
-    opacity: 0.48 !important;
+    opacity: 0.72 !important;
     animation: none !important;
   }
   .obs-story-timekeeper .obs-story-ribbon,

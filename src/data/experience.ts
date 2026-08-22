@@ -29,12 +29,18 @@ interface PreviousRole {
   media?: MediaItem[];
 }
 
+interface AchievementGroup {
+  title: string;
+  items: string[];
+}
+
 interface Experience {
   company: string;
   position: string;
   duration: string;
   description: string;
   achievements?: string[];
+  achievementGroups?: AchievementGroup[];
   previousRoles?: PreviousRole[];
   logo: string | StaticImageData;
   technologies?: string[];
@@ -60,8 +66,48 @@ export const experiences: Experience[] = [
       "Designed owner-first P1 incident automation after analyzing about 90 on-call engagements across 11 weeks; replaying the reference week showed 6 of 9 incidents would not have paged Web Infrastructure first.",
       "Added a browser beacon and backend endpoint to capture bundle failures before Datadog RUM, LogRocket, or Sentry initialize, recording the failure mode, deployment context, and affected script.",
     ],
+    achievementGroups: [
+      {
+        title: "Developer speed",
+        items: [
+          "Reworked eager route imports: 11,516 → 54 modules and 90s → 10.54s finished loading; extended the analysis across six product areas.",
+          "Moved an internal developer CLI into the frontend monorepo, reached ~100% function coverage, and added independently deployed app support.",
+        ],
+      },
+      {
+        title: "CI and test reliability",
+        items: [
+          "Parallelized safe integration suites across ten domains: build P90 81 → 52m, backend PR P90 76 → 40m, and frontend PR P90 88 → 58m.",
+          "Built flaky-test detection with 20× reruns, test and module scoring, and Datadog, S3 dashboard, and Slack reporting.",
+        ],
+      },
+      {
+        title: "Platform and security",
+        items: [
+          "Replaced permanent package credentials with 12-hour IAM tokens across three repositories and moved the flow to AWS Secrets Manager.",
+          "Centralized service ownership for backend, frontend, and mobile; updated Python, JavaScript, and Terraform consumers with CI safeguards.",
+        ],
+      },
+      {
+        title: "Observability and incident response",
+        items: [
+          "Split deployment telemetry into four six-hour recovery windows so missed runs retain complete, duplicate-free data.",
+          "Automated reporting for 50+ weekly support queries, saving 1–2 hours of manual on-call work each week.",
+          "Designed owner-first P1 automation from ~90 engagements; 6 of 9 reference-week incidents would avoid paging Web Infrastructure first.",
+          "Captured bundle failures before RUM, LogRocket, or Sentry startup with a browser beacon and backend endpoint.",
+        ],
+      },
+    ],
     logo: ripplingLogo,
-    technologies: ["React", "TypeScript", "AWS", "Datadog", "Buildkite", "Playwright", "Slack API"],
+    technologies: [
+      "React",
+      "TypeScript",
+      "AWS",
+      "Datadog",
+      "Buildkite",
+      "Playwright",
+      "Slack API",
+    ],
   },
   {
     company: "Razorpay",
@@ -77,7 +123,14 @@ export const experiences: Experience[] = [
       "Earned four Razorpay SPOT awards for ownership and engineering impact.",
     ],
     logo: razorpayLogo,
-    technologies: ["React", "TypeScript", "Rollup", "Blade UI", "Playwright", "Jest"],
+    technologies: [
+      "React",
+      "TypeScript",
+      "Rollup",
+      "Blade UI",
+      "Playwright",
+      "Jest",
+    ],
     media: [
       { src: espritDeCorp1, caption: "Esprit De Corps Award" },
       { src: espritDeCorp2, caption: "Esprit De Corps Award" },
@@ -100,15 +153,12 @@ export const experiences: Experience[] = [
       {
         position: "Frontend Engineer Intern",
         duration: "May 2021 - Jul 2022",
-        description:
-          "Payment disputes and fraud detection UI for RazorpayX.",
+        description: "Payment disputes and fraud detection UI for RazorpayX.",
         achievements: [
           "Halved payment-dispute resolution time from 20 to 10 minutes.",
           "Revamped a risk-management interface, increasing engagement by 33% while reducing load time by 21%.",
         ],
-        media: [
-          { src: rzpInternCert, caption: "Internship Certificate" },
-        ],
+        media: [{ src: rzpInternCert, caption: "Internship Certificate" }],
       },
     ],
   },
@@ -141,9 +191,7 @@ export const experiences: Experience[] = [
     achievements: undefined,
     logo: gfgLogo,
     technologies: ["Python", "ReactJS", "Flask", "Git"],
-    media: [
-      { src: gfgInternCert, caption: "Internship Certificate" },
-    ],
+    media: [{ src: gfgInternCert, caption: "Internship Certificate" }],
   },
   {
     company: "Correlations.ai",
@@ -154,9 +202,7 @@ export const experiences: Experience[] = [
     achievements: undefined,
     logo: correlationsLogo,
     technologies: ["ReactJS", "Flask", "MongoDB"],
-    media: [
-      { src: correlationsInternCert, caption: "Internship Certificate" },
-    ],
+    media: [{ src: correlationsInternCert, caption: "Internship Certificate" }],
   },
   {
     company: "TagHive Inc.",
@@ -167,8 +213,6 @@ export const experiences: Experience[] = [
     achievements: undefined,
     logo: taghiveLogo,
     technologies: ["Android", "Java"],
-    media: [
-      { src: taghiveInternCert, caption: "Internship Certificate" },
-    ],
+    media: [{ src: taghiveInternCert, caption: "Internship Certificate" }],
   },
 ] as const;

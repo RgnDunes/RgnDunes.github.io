@@ -9,6 +9,7 @@ import { products } from "@/data/products";
 import { blogPosts } from "@/data/blogPosts";
 import { testimonials } from "@/data/testimonials";
 import { youtubeVideos } from "@/data/youtubeVideos";
+import ProfileImage from "@/assets/images/profile.jpg";
 import TransitionLink from "@/components/transitions/TransitionLink";
 import PersonalVisualStory from "./PersonalVisualStory";
 
@@ -64,29 +65,54 @@ export default function Observatory() {
         </div>
       </section>
 
-      <section id="about" data-scene-beat="about" className="obs-chapter">
-        <div className="obs-overlay obs-overlay-right">
-          <p className="obs-kicker">Folio {ROMAN[1]} · What I do</p>
-          <h2>I improve developer speed and production reliability.</h2>
-          <p className="obs-lede">
-            I work on the plumbing other engineers depend on: faster local
-            development, reliable tests, safer releases, observability, and
-            incident response.
-          </p>
-          <dl className="obs-metrics">
-            <div>
-              <dt>Build P90</dt>
-              <dd>81 → 52m</dd>
-            </div>
-            <div>
-              <dt>Import graph</dt>
-              <dd>11,516 → 54</dd>
-            </div>
-            <div>
-              <dt>Weekly SDK use</dt>
-              <dd>100K+</dd>
-            </div>
-          </dl>
+      <section
+        id="about"
+        data-scene-beat="about"
+        className="obs-chapter obs-about"
+      >
+        <div className="obs-about-layout">
+          <figure className="obs-about-portrait">
+            <Image
+              src={ProfileImage}
+              alt="Divyansh Singh"
+              sizes="(max-width: 767px) 100vw, 36vw"
+              priority
+            />
+            <figcaption>
+              <strong>Divyansh Singh</strong>
+              <span>Software Engineer II · Bengaluru</span>
+            </figcaption>
+          </figure>
+
+          <div className="obs-about-copy">
+            <p className="obs-kicker">Folio {ROMAN[1]} · About me</p>
+            <h2>I improve developer speed and production reliability.</h2>
+            <p className="obs-lede">
+              I build the systems other engineers rely on: frontend
+              infrastructure, developer tooling, CI/CD, test reliability,
+              observability, and incident response.
+            </p>
+            <p className="obs-about-note">
+              Today I work on Web Infrastructure at Rippling. Before that, I
+              spent four years at Razorpay shipping international payment
+              experiences and building an open-source internationalization SDK
+              now downloaded more than 100,000 times each week.
+            </p>
+            <dl className="obs-metrics">
+              <div>
+                <dt>Build P90</dt>
+                <dd>81 → 52m</dd>
+              </div>
+              <div>
+                <dt>Import graph</dt>
+                <dd>11,516 → 54</dd>
+              </div>
+              <div>
+                <dt>Weekly SDK use</dt>
+                <dd>100K+</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </section>
 
@@ -142,13 +168,26 @@ export default function Observatory() {
                   ))}
                 </div>
               )}
-              {experience.achievements && (
+              {experience.achievementGroups && experience.achievements ? (
+                <div className="obs-workstreams">
+                  {experience.achievementGroups.map((group) => (
+                    <section key={group.title}>
+                      <h4>{group.title}</h4>
+                      <ul>
+                        {group.items.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
+              ) : experience.achievements ? (
                 <ul className="obs-role-highlights">
                   {experience.achievements.slice(0, 3).map((achievement) => (
                     <li key={achievement}>{achievement}</li>
                   ))}
                 </ul>
-              )}
+              ) : null}
               <div className="obs-tags">
                 {experience.technologies?.map((technology) => (
                   <span key={technology}>{technology}</span>
@@ -232,7 +271,7 @@ export default function Observatory() {
         <div className="obs-articles-layout">
           <header className="obs-articles-heading">
             <p className="obs-kicker">Folio {ROMAN[5]} · Articles</p>
-            <h2>Notes for frontend engineers.</h2>
+            <h2>Published articles.</h2>
             <p>
               Practical explanations of frontend systems, CI/CD, and developer
               tooling.
