@@ -340,8 +340,11 @@ export default function Observatory() {
           <p className="obs-kicker">Folio {ROMAN[4]} · Projects</p>
           <h2>Open-source tools and products I’ve built.</h2>
           <div className="obs-project-grid">
-            {projects.map((project) => (
+            {projects.map((project, index) => (
               <article key={project.title}>
+                <span className="obs-project-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 <Image src={project.image} alt="" sizes="56px" />
                 <p className="obs-kicker">{project.stats}</p>
                 <h3>{project.title}</h3>
