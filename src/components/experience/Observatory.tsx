@@ -10,6 +10,7 @@ import { blogPosts } from "@/data/blogPosts";
 import { testimonials } from "@/data/testimonials";
 import { youtubeVideos } from "@/data/youtubeVideos";
 import TransitionLink from "@/components/transitions/TransitionLink";
+import PersonalVisualStory from "./PersonalVisualStory";
 
 const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
 const WORK_BEATS = [
@@ -351,6 +352,7 @@ export default function Observatory() {
         className="obs-chapter obs-personal"
       >
         <div className="obs-personal-layout">
+          <PersonalVisualStory />
           <figure className="obs-ride-photo">
             <Image
               src="/assets/divyansh-motorcycle-ride.jpeg"
@@ -370,32 +372,6 @@ export default function Observatory() {
               Long rides, cosmic questions, cinematic worlds, and making videos
               keep me curious outside engineering.
             </p>
-
-            <div className="obs-visual-clues" aria-hidden="true">
-              <div className="obs-energy-core">
-                <span />
-                <span />
-              </div>
-              <svg
-                className="obs-timeline-mark"
-                viewBox="0 0 180 120"
-                fill="none"
-              >
-                <path d="M90 116V53" />
-                <path d="M90 89C67 80 54 64 48 43C37 51 26 53 10 50" />
-                <path d="M90 75C114 66 127 47 130 24C143 34 156 36 173 30" />
-                <path d="M90 61C76 49 71 34 73 9" />
-                <path d="M90 53C104 43 111 29 111 8" />
-                <circle cx="10" cy="50" r="3" />
-                <circle cx="73" cy="9" r="3" />
-                <circle cx="111" cy="8" r="3" />
-                <circle cx="173" cy="30" r="3" />
-              </svg>
-              <div className="obs-pulsar-mark">
-                <span />
-                <span />
-              </div>
-            </div>
 
             <div className="obs-channel">
               <div className="obs-channel-head">
