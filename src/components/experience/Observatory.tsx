@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import Image from "next/image";
 import { FaArrowRight, FaExternalLinkAlt } from "react-icons/fa";
 import { experiences } from "@/data/experience";
 import { skillCategories } from "@/data/skills";
@@ -8,14 +8,7 @@ import { projects } from "@/data/projects";
 import { products } from "@/data/products";
 import { blogPosts } from "@/data/blogPosts";
 import { testimonials } from "@/data/testimonials";
-import DetailDrawer from "./DetailDrawer";
 import TransitionLink from "@/components/transitions/TransitionLink";
-
-type Panel =
-  | { kind: "work"; index: number }
-  | { kind: "skills" }
-  | { kind: "projects" }
-  | null;
 
 const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"];
 const WORK_BEATS = [
@@ -36,112 +29,6 @@ const latestPosts = [...blogPosts]
   .slice(0, 4);
 
 export default function Observatory() {
-  const [panel, setPanel] = useState<Panel>(null);
-  const closePanel = useCallback(() => setPanel(null), []);
-  const activeExperience =
-    panel?.kind === "work" ? experiences[panel.index] : null;
-
-  const drawer = useMemo(() => {
-    if (activeExperience) {
-      const achievements = [
-        ...(activeExperience.achievements ?? []),
-        ...(activeExperience.previousRoles?.flatMap(
-          (role) => role.achievements,
-        ) ?? []),
-      ];
-      return {
-        eyebrow: `${activeExperience.duration} · ${activeExperience.company}`,
-        title: activeExperience.position,
-        content: (
-          <>
-            <p className="obs-drawer-lede">{activeExperience.description}</p>
-            {activeExperience.previousRoles?.map((role) => (
-              <div className="obs-role" key={role.position}>
-                <strong>{role.position}</strong>
-                <span>{role.duration}</span>
-              </div>
-            ))}
-            {achievements.length > 0 && (
-              <ul className="obs-detail-list">
-                {achievements.map((achievement) => (
-                  <li key={achievement}>{achievement}</li>
-                ))}
-              </ul>
-            )}
-            {activeExperience.technologies && (
-              <div className="obs-tags">
-                {activeExperience.technologies.map((technology) => (
-                  <span key={technology}>{technology}</span>
-                ))}
-              </div>
-            )}
-          </>
-        ),
-      };
-    }
-
-    if (panel?.kind === "skills") {
-      return {
-        eyebrow: "Skills and technologies",
-        title: "What I work with",
-        content: (
-          <div className="obs-skill-directory">
-            {skillCategories.map((category) => (
-              <section key={category.name}>
-                <h3>{category.name}</h3>
-                <ul>
-                  {category.skills.map((skill) => (
-                    <li key={skill.name}>
-                      <span>{skill.name}</span>
-                      <small>{skill.experience}</small>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
-        ),
-      };
-    }
-
-    if (panel?.kind === "projects") {
-      return {
-        eyebrow: "Selected projects",
-        title: "Open-source tools and independent work",
-        content: (
-          <div className="obs-project-directory">
-            {projects.map((project) => (
-              <article key={project.title}>
-                <p className="obs-kicker">{project.stats}</p>
-                <h3>{project.title}</h3>
-                <p>{project.description}</p>
-                <div className="obs-tags">
-                  {project.technologies.map((technology) => (
-                    <span key={technology}>{technology}</span>
-                  ))}
-                </div>
-                <div className="obs-link-row">
-                  {project.links.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {link.label} <FaExternalLinkAlt aria-hidden />
-                    </a>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        ),
-      };
-    }
-
-    return null;
-  }, [activeExperience, panel]);
-
   return (
     <main className="observatory">
       <div className="obs-vignette" aria-hidden />
@@ -202,82 +89,134 @@ export default function Observatory() {
       </section>
 
       <section id="work" className="obs-work">
+        <div className="obs-scene-markers" aria-hidden="true">
+          {WORK_BEATS.map((beat, index) => (
+            <span
+              key={beat}
+              data-scene-beat={beat}
+              style={{ top: `${12 + index * 12}%` }}
+            />
+          ))}
+        </div>
         <header className="obs-work-intro">
           <p className="obs-kicker">Folio {ROMAN[2]} · Work experience</p>
           <h2>Where I’ve worked and what I delivered.</h2>
         </header>
-        {experiences.map((experience, index) => (
-          <article
-            key={experience.company}
-            data-scene-beat={WORK_BEATS[index]}
-            className={`obs-role-beat ${index % 2 ? "obs-role-right" : ""}`}
-          >
-            <div className="obs-role-card" data-scene-pulse>
-              <div className="obs-role-index">
-                {String(index + 1).padStart(2, "0")}
-              </div>
-              <p className="obs-kicker">{experience.duration}</p>
-              <h3>{experience.company}</h3>
+        <div className="obs-work-grid">
+          {experiences.map((experience, index) => (
+            <article
+              key={experience.company}
+              className={`obs-role-card ${index < 2 ? "obs-role-featured" : ""}`}
+              data-scene-pulse
+            >
+              <header className="obs-role-head">
+                <div className="obs-company-logo">
+                  <Image
+                    src={experience.logo}
+                    alt={`${experience.company} logo`}
+                    sizes="56px"
+                    loading="eager"
+                  />
+                </div>
+                <div>
+                  <p className="obs-kicker">{experience.duration}</p>
+                  <h3>{experience.company}</h3>
+                </div>
+                <span className="obs-role-index">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </header>
               <strong>{experience.position}</strong>
               <p>{experience.description}</p>
-              {experience.technologies && (
-                <div className="obs-tags">
-                  {experience.technologies.slice(0, 4).map((technology) => (
-                    <span key={technology}>{technology}</span>
+              {experience.previousRoles && (
+                <div className="obs-previous-roles">
+                  {experience.previousRoles.map((role) => (
+                    <div key={role.position}>
+                      <span>{role.position}</span>
+                      <small>{role.duration}</small>
+                    </div>
                   ))}
                 </div>
               )}
-              <button
-                className="obs-text-link"
-                onClick={() => setPanel({ kind: "work", index })}
-              >
-                View achievements <FaArrowRight aria-hidden />
-              </button>
-            </div>
-          </article>
-        ))}
-      </section>
-
-      <section id="skills" data-scene-beat="skills" className="obs-chapter">
-        <div className="obs-overlay obs-overlay-left">
-          <p className="obs-kicker">Folio {ROMAN[3]} · Skills</p>
-          <h2>Technologies I use across frontend and infrastructure.</h2>
-          <div className="obs-orbit-labels">
-            {skillCategories.map((category, index) => (
-              <span key={category.name}>
-                <b>0{index + 1}</b>
-                {category.name}
-              </span>
-            ))}
-          </div>
-          <button
-            className="obs-primary"
-            onClick={() => setPanel({ kind: "skills" })}
-          >
-            View all skills <FaArrowRight aria-hidden />
-          </button>
+              {experience.achievements && (
+                <ul className="obs-role-highlights">
+                  {experience.achievements.slice(0, 3).map((achievement) => (
+                    <li key={achievement}>{achievement}</li>
+                  ))}
+                </ul>
+              )}
+              <div className="obs-tags">
+                {experience.technologies?.map((technology) => (
+                  <span key={technology}>{technology}</span>
+                ))}
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section id="notebook" data-scene-beat="notebook" className="obs-chapter">
-        <div className="obs-overlay obs-overlay-right">
-          <p className="obs-kicker">Folio {ROMAN[4]} · Projects</p>
-          <h2>Open-source tools and products I’ve built.</h2>
-          <div className="obs-project-list">
-            {projects.map((project, index) => (
-              <div key={project.title}>
-                <span>0{index + 1}</span>
-                <strong>{project.title}</strong>
-                <small>{project.stats}</small>
-              </div>
+      <section
+        id="skills"
+        data-scene-beat="skills"
+        className="obs-chapter obs-dense-chapter"
+      >
+        <div className="obs-section-content">
+          <p className="obs-kicker">Folio {ROMAN[3]} · Skills</p>
+          <h2>Technologies I use across frontend and infrastructure.</h2>
+          <div className="obs-skill-grid">
+            {skillCategories.map((category) => (
+              <section key={category.name}>
+                <h3>{category.name}</h3>
+                <ul>
+                  {category.skills.map((skill) => (
+                    <li key={skill.name}>
+                      <Image src={skill.image} alt="" sizes="28px" />
+                      <span>{skill.name}</span>
+                      <small>{skill.experience}</small>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
           </div>
-          <button
-            className="obs-primary"
-            onClick={() => setPanel({ kind: "projects" })}
-          >
-            View project details <FaArrowRight aria-hidden />
-          </button>
+        </div>
+      </section>
+
+      <section
+        id="notebook"
+        data-scene-beat="notebook"
+        className="obs-chapter obs-dense-chapter"
+      >
+        <div className="obs-section-content">
+          <p className="obs-kicker">Folio {ROMAN[4]} · Projects</p>
+          <h2>Open-source tools and products I’ve built.</h2>
+          <div className="obs-project-grid">
+            {projects.map((project) => (
+              <article key={project.title}>
+                <Image src={project.image} alt="" sizes="56px" />
+                <p className="obs-kicker">{project.stats}</p>
+                <h3>{project.title}</h3>
+                <p>{project.description}</p>
+                <div className="obs-tags">
+                  {project.technologies.map((technology) => (
+                    <span key={technology}>{technology}</span>
+                  ))}
+                </div>
+                <div className="obs-link-row">
+                  {project.links.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {link.label} <FaExternalLinkAlt aria-hidden />
+                    </a>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -324,13 +263,13 @@ export default function Observatory() {
       <section
         id="testimonials"
         data-scene-beat="testimonials"
-        className="obs-chapter"
+        className="obs-chapter obs-dense-chapter"
       >
-        <div className="obs-overlay obs-overlay-left">
+        <div className="obs-section-content">
           <p className="obs-kicker">Folio {ROMAN[7]} · Testimonials</p>
           <h2>Feedback from engineers and leaders I’ve worked with.</h2>
           <div className="obs-voices">
-            {testimonials.slice(0, 2).map((testimonial) => (
+            {testimonials.map((testimonial) => (
               <blockquote key={testimonial.name}>
                 <p>“{testimonial.testimonial}”</p>
                 <footer>
@@ -385,17 +324,6 @@ export default function Observatory() {
           </div>
         </div>
       </section>
-
-      {drawer && (
-        <DetailDrawer
-          eyebrow={drawer.eyebrow}
-          onClose={closePanel}
-          open={panel !== null}
-          title={drawer.title}
-        >
-          {drawer.content}
-        </DetailDrawer>
-      )}
     </main>
   );
 }
