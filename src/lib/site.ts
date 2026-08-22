@@ -12,10 +12,10 @@ export const SITE_URL = `${SITE_ORIGIN}${BASE_PATH}`;
 export const SITE = {
   name: "Divyansh Singh",
   shortName: "Divyansh Singh",
-  role: "Senior Frontend Engineer",
-  title: "Divyansh Singh — Software Engineer at Rippling",
+  role: "Software Engineer II",
+  title: "Divyansh Singh — Software Engineer II at Rippling",
   description:
-    "Working notebook of Divyansh Singh — Senior Frontend Engineer at Rippling. Essays on React, Node.js internals, CI/CD, and web infrastructure.",
+    "Working notebook of Divyansh Singh — Software Engineer II at Rippling, building frontend infrastructure, developer tooling, and CI/CD systems.",
   keywords: [
     "Divyansh Singh",
     "rgndunes",
@@ -36,11 +36,11 @@ export const SITE = {
   author: {
     name: "Divyansh Singh",
     handle: "rgndunes",
-    email: "divyanshsinghmehta9@gmail.com",
+    email: "rgndunes@gmail.com",
     url: SITE_URL,
     image: `${SITE_URL}/og-default.png`,
     location: "Bengaluru, India",
-    jobTitle: "Senior Frontend Engineer",
+    jobTitle: "Software Engineer II",
     worksFor: "Rippling",
     sameAs: [
       "https://github.com/RgnDunes",

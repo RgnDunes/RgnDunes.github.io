@@ -10,9 +10,9 @@ import KiitLogo from "../../assets/images/logos/kiit-logo.png";
 import LogoPlate from "../LogoPlate";
 
 const stats = [
-  { n: "530+", k: "Merchants onboarded", note: "MY / SG expansion" },
+  { n: "81→52m", k: "Build P90", note: "Successful builds" },
+  { n: "11,516→54", k: "Import graph", note: "One product area" },
   { n: "100K+", k: "Weekly downloads", note: "i18nify-js (npm)" },
-  { n: "100+", k: "Students mentored", note: "AccioJob · Airtribe" },
   { n: "27+", k: "Teams adopting", note: "Internal SDKs" },
 ];
 
@@ -94,7 +94,7 @@ export default function About() {
             <div>
               <div className="font-display text-base text-ink">B.Tech, KIIT University</div>
               <div className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted">
-                CGPA 9.65 · Class of 2019
+                CSE · CGPA 9.24 · Class of 2022
               </div>
             </div>
           </div>
@@ -119,10 +119,10 @@ export default function About() {
 
           <p className="font-body text-[16.5px] leading-[1.68] text-ink-2">
             At <span className="text-ink">Rippling</span>, I work on the Web
-            Infrastructure team - migrating package auth to AWS Secrets Manager
-            with zero downtime, building a flakiness detection system on top of
-            Datadog, and redesigning route attribution so it stops silently
-            drifting. Before that, four years at{" "}
+            Infrastructure team - speeding up local development by replacing
+            eager route imports, parallelizing safe integration tests, and
+            building reliability and incident-response tooling. Before that,
+            four years at{" "}
             <span className="text-ink">Razorpay</span>: leading the international
             expansion into Malaysia and Singapore, shipping the Mastercard
             Biometric Authentication demoed at GFF 2024, and open-sourcing{" "}

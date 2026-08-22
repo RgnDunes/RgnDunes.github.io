@@ -276,11 +276,11 @@ const CRITERIA = [
   { key: "jsonLdValid", desc: "JSON-LD parses cleanly (schema.org)", weight: 2, pass: (p) => p.jsonLdCount === 0 || (p.jsonLdCount > 0 && p.jsonLdTypes.length > 0) },
   { key: "titleUnique", desc: "title differs from site default (not the home fallback)", weight: 1, pass: (p) => {
       if (p.file === "index.html") return true;
-      return p.title && !/^Divyansh Singh — Software Engineer at Rippling$/.test(p.title);
+      return p.title && !/^Divyansh Singh — Software Engineer II at Rippling$/.test(p.title);
     } },
   { key: "descUnique", desc: "description differs from site default", weight: 1, pass: (p) => {
       if (p.file === "index.html") return true;
-      return p.description && !/Working notebook of Divyansh Singh — Senior Frontend Engineer at Rippling\./.test(p.description);
+      return p.description && !/Working notebook of Divyansh Singh — Software Engineer II at Rippling,/.test(p.description);
     } },
 ];
 

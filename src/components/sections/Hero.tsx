@@ -14,8 +14,8 @@ const verses = [
 ];
 
 const nowItems = [
-  { k: "Building at", v: "Rippling · L6" },
-  { k: "Focus", v: "Web Infra / CI · CD" },
+  { k: "Building at", v: "Rippling · Software Engineer II" },
+  { k: "Focus", v: "Frontend Infra / Dev Tooling" },
   { k: "Location", v: "Bengaluru, IN" },
   { k: "Availability", v: "Open to talk" },
 ];
@@ -55,7 +55,7 @@ export default function Hero() {
           <span>Folio 01 · The Cover Page</span>
           <span className="text-ink">
             <span className="mr-2 inline-block h-1.5 w-1.5 translate-y-[-1px] rounded-full bg-saffron align-middle" />
-            Currently: Rippling · L6
+            Currently: Rippling · Software Engineer II
           </span>
           <span>{new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
         </div>
@@ -64,9 +64,9 @@ export default function Hero() {
         <div className="mt-10 md:mt-16">
           <div className="eyebrow mb-6">Introducing</div>
           <h1 className="sr-only">
-            Divyansh Singh — Senior Frontend Engineer at Rippling. Formerly
-            Razorpay. Building web infrastructure, developer tooling, and CI/CD
-            systems. Also known as rgndunes.
+            Divyansh Singh — Software Engineer II at Rippling. Formerly
+            Razorpay. Building frontend infrastructure, developer tooling, and
+            CI/CD systems. Also known as rgndunes.
           </h1>
           <motion.div
             aria-hidden
@@ -110,8 +110,8 @@ export default function Hero() {
           <div>
             <p className="max-w-[52ch] font-body text-lg leading-[1.55] text-ink-2 md:text-xl">
               A software engineer building the plumbing of the modern web -
-              <span className="text-ink"> CI/CD pipelines</span>, developer
-              tooling, and <span className="text-ink">deployment infrastructure</span>. Formerly
+              <span className="text-ink"> frontend infrastructure</span>, developer
+              tooling, and <span className="text-ink">CI/CD systems</span>. Formerly
               a senior frontend engineer at Razorpay, currently at{" "}
               <span className="text-ink">Rippling</span>. This is a working notebook
               of the things I have shipped, written, and taught.
