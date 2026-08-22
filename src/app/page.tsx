@@ -66,8 +66,10 @@ export default function Home() {
           <Projects />
           <DigitalProducts />
           <SectionOrnament index={2} />
-          <Articles />
-          <LatestBlog />
+          <section id="writing">
+            <LatestBlog />
+            <Articles />
+          </section>
           <SectionOrnament index={0} />
           <Testimonials />
           <Contact />

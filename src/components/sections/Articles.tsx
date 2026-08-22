@@ -8,7 +8,7 @@ import { articles } from "@/data/articles";
 const PER_PAGE = 6;
 
 export default function Articles() {
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const [q, setQ] = useState("");
@@ -50,21 +50,16 @@ export default function Articles() {
   };
 
   return (
-    <section id="publications" ref={ref} className="page-shell py-28 md:py-36">
+    <div ref={ref} className="page-shell py-28 md:py-36">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.7 }}
         className="grid gap-6 border-b border-rule pb-8 md:grid-cols-[auto_1fr] md:items-end md:gap-10"
       >
-        <div className="flex items-baseline gap-4">
-          <span className="folio text-6xl md:text-7xl">vi.</span>
-          <div>
-            <h2 className="font-display text-display-3 text-ink">
-              Talks & essays<span className="text-saffron">.</span>
-            </h2>
-          </div>
-        </div>
+        <h3 className="font-display text-3xl text-ink md:text-4xl">
+          Published elsewhere<span className="text-saffron">.</span>
+        </h3>
         <div className="flex flex-col items-end gap-3 md:justify-self-end">
           <p className="max-w-md font-mono text-[11.5px] uppercase tracking-[0.18em] text-muted md:text-right">
             Search {articles.length} pieces across performance, tooling, React and system design
@@ -225,7 +220,7 @@ export default function Articles() {
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }
 

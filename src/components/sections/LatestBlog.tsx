@@ -7,7 +7,7 @@ import { FaArrowRight, FaClock } from "react-icons/fa";
 import { blogPosts } from "@/data/blogPosts";
 
 export default function LatestBlog() {
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   const latest = [...blogPosts]
@@ -15,7 +15,7 @@ export default function LatestBlog() {
     .slice(0, 3);
 
   return (
-    <section id="writing" ref={ref} className="page-shell py-28 md:py-36">
+    <div ref={ref} className="page-shell pt-28 md:pt-36">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -23,15 +23,15 @@ export default function LatestBlog() {
         className="grid gap-6 border-b border-rule pb-8 md:grid-cols-[auto_1fr_auto] md:items-end md:gap-10"
       >
         <div className="flex items-baseline gap-4">
-          <span className="folio text-6xl md:text-7xl">vii.</span>
+          <span className="folio text-6xl md:text-7xl">vi.</span>
           <div>
             <h2 className="font-display text-display-3 text-ink">
-              Latest dispatches<span className="text-saffron">.</span>
+              Writing<span className="text-saffron">.</span>
             </h2>
           </div>
         </div>
         <p className="max-w-md font-mono text-[11.5px] uppercase tracking-[0.18em] text-muted md:justify-self-center md:text-center">
-          New essays land here every few weeks
+          Latest from the notebook
         </p>
         <Link
           href="/blog"
@@ -91,7 +91,7 @@ export default function LatestBlog() {
           </motion.article>
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
