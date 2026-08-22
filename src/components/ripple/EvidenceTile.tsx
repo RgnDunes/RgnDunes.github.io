@@ -1,7 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FaChartLine, FaExclamationTriangle, FaCodeBranch, FaTerminal } from "react-icons/fa";
+import {
+  FaChartLine,
+  FaExclamationTriangle,
+  FaCodeBranch,
+  FaTerminal,
+} from "react-icons/fa";
 import type { Evidence } from "./types";
 
 interface Props {
@@ -34,14 +39,10 @@ export default function EvidenceTile({
       onClick={() => !expanded && onOpen()}
       onMouseEnter={() => ev.cluster && onHover(ev.cluster)}
       onMouseLeave={() => onHover(null)}
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border p-4 text-left transition-all
-        ${expanded ? "cursor-default" : "cursor-pointer hover:border-ink"}
-        ${highlighted && !expanded ? "border-saffron shadow-[0_0_0_3px_rgb(232_106_43_/_0.12)]" : "border-rule"}
-        ${used ? "bg-paper-2" : "bg-paper"}`}
-      style={{
-        gridColumn: expanded ? "span 2" : "span 1",
-        gridRow: expanded ? "span 2" : "span 1",
-      }}
+      className={`ripple-evidence group relative flex flex-col overflow-hidden p-4 text-left transition-all
+        ${expanded ? "is-expanded cursor-default" : "cursor-pointer"}
+        ${highlighted && !expanded ? "is-highlighted" : ""}
+        ${used ? "is-read" : ""}`}
     >
       {/* Header row */}
       <div className="flex items-center justify-between">
@@ -78,7 +79,9 @@ export default function EvidenceTile({
       {/* PR body */}
       {ev.kind === "pr" && ev.pr && (
         <div className="mt-2 font-mono text-[11px] text-ink-2">
-          <div className="truncate">#{ev.pr.number} · {ev.pr.title}</div>
+          <div className="truncate">
+            #{ev.pr.number} · {ev.pr.title}
+          </div>
           <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted">
             <span>{ev.pr.author}</span>
             <span>·</span>
@@ -103,7 +106,7 @@ export default function EvidenceTile({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className="mt-4 border-t border-rule pt-4 text-[13.5px] leading-[1.6] text-ink-2"
+          className="ripple-evidence-detail mt-4 pt-4 text-[13.5px] leading-[1.6] text-ink-2"
         >
           {ev.detail}
         </motion.div>
@@ -147,22 +150,32 @@ function Sparkline({
   const h = height;
   const step = w / (series.length - 1);
   const pts = series
-    .map((v, i) => `${(i * step).toFixed(1)},${(h - v * h * 0.85 - 4).toFixed(1)}`)
+    .map(
+      (v, i) => `${(i * step).toFixed(1)},${(h - v * h * 0.85 - 4).toFixed(1)}`,
+    )
     .join(" ");
 
   const isHot = anomaly === "spike" || anomaly === "creep";
-  const stroke = isHot ? "#E86A2B" : anomaly === "flatline" ? "#7A746C" : "#3C3A37";
+  const stroke = isHot
+    ? "#E86A2B"
+    : anomaly === "flatline"
+      ? "#647386"
+      : "#6F8FFF";
 
   return (
     <div className="mt-2" style={{ height }}>
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-full w-full">
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="none"
+        className="h-full w-full"
+      >
         {/* Baseline */}
         <line
           x1={0}
           y1={h - 4}
           x2={w}
           y2={h - 4}
-          stroke="rgb(210 202 189)"
+          stroke="rgb(220 229 239 / 0.16)"
           strokeWidth="0.75"
         />
         {/* Threshold band (hot values above 0.7) */}
@@ -172,7 +185,7 @@ function Sparkline({
             y={h - h * 0.85 * 0.7 - 4}
             width={w}
             height={h * 0.85 * 0.7}
-            fill="rgb(232 106 43 / 0.06)"
+            fill="rgb(232 106 43 / 0.1)"
           />
         )}
         {/* Line */}
@@ -193,7 +206,7 @@ function Sparkline({
               cx={i * step}
               cy={h - v * h * 0.85 - 4}
               r={hot ? 2.2 : 1.2}
-              fill={hot ? "#E86A2B" : "#3C3A37"}
+              fill={hot ? "#E86A2B" : "#6F8FFF"}
             />
           );
         })}

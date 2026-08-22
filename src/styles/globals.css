@@ -512,6 +512,715 @@
 }
 
 /* Reduced motion */
+/* ============================================================
+   Ripple · spatial incident command
+   ============================================================ */
+
+.ripple-shell {
+  --obs-black: #05070a;
+  --obs-ink: #f2eee7;
+  --obs-dim: #9da4ad;
+  --obs-line: rgba(220, 229, 239, 0.16);
+  --obs-saffron: #e86a2b;
+  --obs-green: #4fb493;
+  --obs-sapphire: #6f8fff;
+  --paper: 5 7 10;
+  --paper-2: 10 14 19;
+  --ink: 242 238 231;
+  --ink-2: 180 187 195;
+  --muted: 118 130 143;
+  --rule: 47 58 71;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 79 180 147;
+  position: fixed;
+  isolation: isolate;
+  background: #05070a;
+  color: rgb(var(--ink-2));
+  overscroll-behavior: contain;
+}
+.ripple-shell::after {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 7, 10, 0.97),
+      rgba(5, 7, 10, 0.72) 54%,
+      rgba(5, 7, 10, 0.9)
+    ),
+    radial-gradient(circle at 68% 40%, transparent, rgba(5, 7, 10, 0.48) 62%);
+}
+.ripple-shell::-webkit-scrollbar-track {
+  background: #05070a;
+}
+.ripple-shell::-webkit-scrollbar-thumb {
+  border-radius: 0;
+  background: rgba(111, 143, 255, 0.3);
+}
+.ripple-backdrop {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 76% 34%,
+      rgba(111, 143, 255, 0.12),
+      transparent 23%
+    ),
+    radial-gradient(
+      circle at 66% 52%,
+      rgba(232, 106, 43, 0.08),
+      transparent 28%
+    ),
+    #05070a;
+}
+.ripple-grid-plane {
+  position: absolute;
+  top: 35%;
+  left: 38%;
+  width: 82vw;
+  height: 72vh;
+  background-image:
+    linear-gradient(rgba(111, 143, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(111, 143, 255, 0.12) 1px, transparent 1px);
+  background-size: 54px 54px;
+  mask-image: linear-gradient(to bottom, black, transparent 82%);
+  opacity: 0.55;
+  transform: perspective(760px) rotateX(66deg) rotateZ(-8deg);
+  transform-origin: 50% 0;
+  animation: ripple-grid-drift 18s linear infinite;
+}
+.ripple-core {
+  position: absolute;
+  top: 24%;
+  right: 11%;
+  width: clamp(13rem, 24vw, 23rem);
+  aspect-ratio: 1;
+  border: 1px solid rgba(111, 143, 255, 0.22);
+  border-radius: 50%;
+  box-shadow:
+    0 0 80px rgba(111, 143, 255, 0.09),
+    inset 0 0 65px rgba(232, 106, 43, 0.05);
+  animation: ripple-core-breathe 7s ease-in-out infinite;
+}
+.ripple-core::before,
+.ripple-core::after,
+.ripple-core span {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+.ripple-core::before {
+  inset: 12%;
+  border: 1px dashed rgba(79, 180, 147, 0.28);
+  animation: ripple-spin 24s linear infinite;
+}
+.ripple-core::after {
+  inset: 31%;
+  border: 1px solid rgba(232, 106, 43, 0.48);
+  box-shadow: 0 0 28px rgba(232, 106, 43, 0.22);
+}
+.ripple-core span {
+  inset: 46%;
+  background: #f2eee7;
+  box-shadow:
+    0 0 14px #f2eee7,
+    0 0 32px rgba(232, 106, 43, 0.9);
+}
+.ripple-orbit {
+  position: absolute;
+  top: 36%;
+  right: 3%;
+  width: 42vw;
+  height: 18vw;
+  border: 1px solid rgba(242, 238, 231, 0.09);
+  border-radius: 50%;
+  transform: rotate(-17deg);
+}
+.ripple-orbit::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 4%;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--obs-green);
+  box-shadow: 0 0 16px var(--obs-green);
+}
+.ripple-orbit-two {
+  top: 29%;
+  right: 8%;
+  width: 34vw;
+  transform: rotate(24deg);
+}
+.ripple-orbit-two::after {
+  left: 82%;
+  background: var(--obs-saffron);
+  box-shadow: 0 0 16px var(--obs-saffron);
+}
+.ripple-signal-path {
+  position: absolute;
+  top: 17%;
+  right: 4%;
+  width: 38vw;
+  height: 58vh;
+  border-top: 1px solid rgba(111, 143, 255, 0.13);
+  border-left: 1px solid rgba(111, 143, 255, 0.13);
+  transform: skewY(-12deg);
+}
+.ripple-signal-path span {
+  position: absolute;
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 50%;
+  background: #6f8fff;
+  box-shadow: 0 0 12px rgba(111, 143, 255, 0.8);
+}
+.ripple-signal-path span:nth-child(1) {
+  top: -0.18rem;
+  left: 18%;
+}
+.ripple-signal-path span:nth-child(2) {
+  top: -0.18rem;
+  left: 62%;
+}
+.ripple-signal-path span:nth-child(3) {
+  top: 24%;
+  left: -0.18rem;
+}
+.ripple-signal-path span:nth-child(4) {
+  top: 58%;
+  left: -0.18rem;
+}
+.ripple-signal-path span:nth-child(5) {
+  right: 16%;
+  bottom: 8%;
+}
+
+.ripple-masthead {
+  border-bottom: 1px solid rgba(220, 229, 239, 0.12);
+  background: rgba(5, 7, 10, 0.78);
+  backdrop-filter: blur(18px);
+}
+.ripple-ident {
+  color: rgba(242, 238, 231, 0.72);
+}
+.ripple-live-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--obs-saffron);
+  box-shadow: 0 0 14px rgba(232, 106, 43, 0.78);
+  animation: ripple-pulse 1.8s ease-in-out infinite;
+}
+.ripple-exit {
+  border: 1px solid rgba(220, 229, 239, 0.17);
+  background: rgba(5, 7, 10, 0.54);
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
+}
+.ripple-exit:hover {
+  border-color: rgba(232, 106, 43, 0.7);
+}
+.ripple-intro,
+.ripple-play,
+.ripple-scorecard {
+  position: relative;
+  z-index: 2;
+}
+.ripple-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(28rem, 1.08fr);
+  align-items: center;
+  gap: clamp(4rem, 9vw, 9rem);
+  min-height: calc(100vh - 4rem);
+  padding-block: clamp(3rem, 7vh, 6rem);
+}
+.ripple-intro-copy {
+  display: grid;
+  align-content: center;
+  gap: 1.7rem;
+}
+.ripple-kicker::before {
+  content: "";
+  width: 2.5rem;
+  height: 1px;
+  background: var(--obs-saffron);
+  box-shadow: 0 0 12px rgba(232, 106, 43, 0.45);
+}
+.ripple-intro h1 {
+  margin: 0;
+  font-size: clamp(4.2rem, 7.7vw, 7.8rem);
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+.ripple-intro h1 > span {
+  color: var(--obs-saffron);
+  font-style: italic;
+}
+.ripple-intro h1 small {
+  display: block;
+  margin-top: 0.25em;
+  color: rgba(242, 238, 231, 0.48);
+  font:
+    500 0.16em/1.2 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.ripple-intro-copy > p {
+  color: rgba(242, 238, 231, 0.66);
+}
+.ripple-intro-actions {
+  margin-top: 0.4rem;
+}
+.ripple-primary-action,
+.ripple-secondary-action {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1.2rem;
+  font:
+    600 0.65rem/1 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+.ripple-primary-action {
+  background: var(--obs-saffron);
+  color: #05070a;
+  box-shadow: 0 0 28px rgba(232, 106, 43, 0.2);
+}
+.ripple-primary-action:hover {
+  background: #f2eee7;
+  transform: translateY(-2px);
+}
+.ripple-secondary-action {
+  border: 1px solid rgba(220, 229, 239, 0.2);
+  color: var(--obs-ink);
+}
+.ripple-text-action {
+  margin-left: auto;
+  color: rgba(242, 238, 231, 0.46);
+  font:
+    500 0.58rem/1.4 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.ripple-text-action:hover {
+  color: var(--obs-ink);
+}
+.ripple-key {
+  display: inline-grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  margin-left: 0.35rem;
+  place-items: center;
+  border: 1px solid rgba(220, 229, 239, 0.18);
+  color: var(--obs-ink);
+}
+.ripple-protocol {
+  align-self: center;
+  border-left: 1px solid rgba(111, 143, 255, 0.34);
+  background: linear-gradient(
+    90deg,
+    rgba(7, 10, 15, 0.78),
+    rgba(7, 10, 15, 0.2)
+  );
+  backdrop-filter: blur(8px);
+}
+.ripple-protocol > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 0 1.2rem 2rem;
+  color: var(--obs-sapphire);
+  font:
+    500 0.58rem/1.4 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.ripple-protocol > header small {
+  color: rgba(242, 238, 231, 0.34);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+}
+.ripple-rule {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.35rem 0 1.35rem 2rem;
+  border-top: 1px solid rgba(220, 229, 239, 0.12);
+}
+.ripple-rule > span {
+  color: rgba(111, 143, 255, 0.64);
+  font:
+    500 0.58rem/1.5 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.12em;
+}
+.ripple-rule h3 {
+  margin: 0;
+  color: var(--obs-ink);
+  font-size: 1.2rem;
+}
+.ripple-rule p {
+  max-width: 42ch;
+  margin-top: 0.45rem;
+  color: rgba(242, 238, 231, 0.48);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.ripple-play {
+  padding-bottom: 5rem;
+}
+.ripple-incident-banner {
+  position: relative;
+  border-top: 1px solid rgba(232, 106, 43, 0.5);
+  border-bottom: 1px solid rgba(220, 229, 239, 0.14);
+  background: linear-gradient(
+    90deg,
+    rgba(10, 14, 19, 0.86),
+    rgba(10, 14, 19, 0.24)
+  );
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
+}
+.ripple-incident-banner::after {
+  content: "Live incident";
+  position: absolute;
+  top: 1.35rem;
+  right: 1.6rem;
+  color: rgba(232, 106, 43, 0.48);
+  font:
+    500 0.5rem/1 var(--font-jetbrains),
+    monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.ripple-strike {
+  border-left: 2px solid var(--obs-saffron);
+  background: linear-gradient(90deg, rgba(232, 106, 43, 0.13), transparent);
+}
+.ripple-timer {
+  border: 1px solid rgba(79, 180, 147, 0.3);
+  background: rgba(5, 7, 10, 0.7);
+  color: var(--obs-green);
+}
+.ripple-timer.is-danger {
+  border-color: rgba(232, 106, 43, 0.65);
+  color: var(--obs-saffron);
+}
+.ripple-console {
+  align-items: start;
+}
+.ripple-evidence-grid {
+  perspective: 900px;
+}
+.ripple-evidence {
+  min-height: 9rem;
+  border: 1px solid rgba(220, 229, 239, 0.14);
+  background: linear-gradient(
+    145deg,
+    rgba(15, 20, 27, 0.88),
+    rgba(7, 10, 14, 0.76)
+  );
+  clip-path: polygon(
+    0 0,
+    calc(100% - 13px) 0,
+    100% 13px,
+    100% 100%,
+    13px 100%,
+    0 calc(100% - 13px)
+  );
+  transform: translateZ(0);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.02);
+}
+.ripple-evidence:not(.is-expanded):hover,
+.ripple-evidence.is-highlighted {
+  z-index: 2;
+  border-color: rgba(111, 143, 255, 0.66);
+  background: linear-gradient(
+    145deg,
+    rgba(19, 27, 38, 0.95),
+    rgba(8, 12, 17, 0.88)
+  );
+  box-shadow: 0 0 28px rgba(111, 143, 255, 0.1);
+  transform: translateY(-3px) rotateX(1.5deg);
+}
+.ripple-evidence.is-highlighted {
+  border-color: rgba(232, 106, 43, 0.74);
+  box-shadow: 0 0 30px rgba(232, 106, 43, 0.12);
+}
+.ripple-evidence.is-expanded {
+  grid-column: 1 / -1;
+  grid-row: span 2;
+  border-color: rgba(79, 180, 147, 0.48);
+  background: rgba(10, 15, 20, 0.96);
+}
+.ripple-evidence.is-read:not(.is-expanded) {
+  border-color: rgba(79, 180, 147, 0.24);
+}
+.ripple-evidence-detail {
+  border-top: 1px solid rgba(220, 229, 239, 0.12);
+}
+.ripple-log,
+.ripple-hypothesis,
+.ripple-outcome {
+  border: 1px solid rgba(220, 229, 239, 0.14);
+  background: rgba(7, 10, 14, 0.88);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  backdrop-filter: blur(10px);
+}
+.ripple-log {
+  color: rgba(242, 238, 231, 0.68);
+  box-shadow: inset 0 0 42px rgba(79, 180, 147, 0.035);
+}
+.ripple-log > div:first-child {
+  color: rgba(242, 238, 231, 0.42);
+}
+.ripple-log-time {
+  color: rgba(79, 180, 147, 0.58);
+}
+.ripple-hypothesis {
+  border-top-color: rgba(111, 143, 255, 0.48);
+}
+.ripple-hypothesis-option {
+  position: relative;
+  border: 1px solid rgba(220, 229, 239, 0.13);
+  background: rgba(5, 7, 10, 0.48);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.ripple-hypothesis-option:hover:not(:disabled) {
+  border-color: rgba(111, 143, 255, 0.58);
+  background: rgba(111, 143, 255, 0.08);
+}
+.ripple-outcome {
+  border-top-color: rgba(79, 180, 147, 0.48);
+}
+.ripple-result-bar {
+  color: #05070a;
+}
+.ripple-result-bar.is-resolved {
+  background: var(--obs-green);
+}
+.ripple-result-bar.is-escalated {
+  background: var(--obs-saffron);
+}
+
+.ripple-scorecard {
+  display: grid;
+  align-content: center;
+  min-height: calc(100vh - 4rem);
+  padding-block: 4rem;
+}
+.ripple-scorecard h2 {
+  max-width: 12ch;
+  font-size: clamp(3.5rem, 8vw, 7rem) !important;
+  letter-spacing: -0.055em;
+}
+.ripple-stats {
+  border-top: 1px solid rgba(220, 229, 239, 0.16);
+  border-bottom: 1px solid rgba(220, 229, 239, 0.16);
+}
+.ripple-stat {
+  position: relative;
+  min-width: 0;
+}
+.ripple-stat + .ripple-stat {
+  border-left: 1px solid rgba(220, 229, 239, 0.14);
+}
+.ripple-stat .font-display {
+  color: var(--obs-green);
+}
+
+.ripple-shell button:focus-visible {
+  outline: 2px solid var(--obs-sapphire);
+  outline-offset: 3px;
+}
+
+@keyframes ripple-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ripple-pulse {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.72);
+  }
+}
+@keyframes ripple-core-breathe {
+  50% {
+    opacity: 0.62;
+    transform: scale(1.035);
+  }
+}
+@keyframes ripple-grid-drift {
+  to {
+    background-position:
+      0 54px,
+      54px 0;
+  }
+}
+
+@media (min-width: 640px) {
+  .ripple-evidence.is-expanded {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 900px) {
+  .ripple-intro {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+    padding-block: 4rem;
+  }
+  .ripple-protocol {
+    max-width: 44rem;
+  }
+  .ripple-core {
+    top: 12%;
+    right: -10%;
+    opacity: 0.58;
+  }
+  .ripple-orbit,
+  .ripple-signal-path {
+    opacity: 0.5;
+  }
+}
+
+@media (max-width: 639px) {
+  .ripple-ident span:nth-child(n + 3) {
+    display: none;
+  }
+  .ripple-exit {
+    width: 2.35rem;
+    height: 2.35rem;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+  .ripple-exit svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+  .ripple-intro {
+    gap: 3.5rem;
+    min-height: auto;
+    padding-block: 3.5rem 5rem;
+  }
+  .ripple-intro h1 {
+    font-size: clamp(3.45rem, 17vw, 4.8rem);
+  }
+  .ripple-intro h1 small {
+    max-width: 26ch;
+    font-size: 0.14em;
+    line-height: 1.5;
+  }
+  .ripple-intro-copy {
+    gap: 1.4rem;
+  }
+  .ripple-text-action {
+    width: 100%;
+    margin: 0.4rem 0 0;
+    text-align: left;
+  }
+  .ripple-protocol > header {
+    padding-left: 1.2rem;
+  }
+  .ripple-protocol > header small {
+    display: none;
+  }
+  .ripple-rule {
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 1.2rem 0 1.2rem 1.2rem;
+  }
+  .ripple-incident-banner::after {
+    display: none;
+  }
+  .ripple-play {
+    padding-top: 1.25rem;
+  }
+  .ripple-diagnosis {
+    gap: 1rem;
+  }
+  .ripple-core {
+    top: 18%;
+    right: -38%;
+    width: 21rem;
+  }
+  .ripple-grid-plane {
+    left: 5%;
+    width: 150vw;
+  }
+  .ripple-scorecard {
+    min-height: auto;
+    padding-block: 4rem;
+  }
+  .ripple-scorecard h2 {
+    font-size: clamp(3.2rem, 16vw, 4.6rem) !important;
+  }
+  .ripple-stat + .ripple-stat {
+    border-left: 0;
+  }
+  .ripple-stat:nth-child(even) {
+    border-left: 1px solid rgba(220, 229, 239, 0.14);
+  }
+}
+
+@media (hover: none) {
+  .ripple-primary-action:hover {
+    background: var(--obs-saffron);
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ripple-grid-plane,
+  .ripple-core,
+  .ripple-core::before,
+  .ripple-live-dot {
+    animation: none !important;
+  }
+  .ripple-evidence,
+  .ripple-primary-action {
+    transform: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -2833,12 +3542,15 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     background: rgba(5, 7, 10, 0.96);
     backdrop-filter: blur(18px);
   }
-  .obs-mobile-menu a {
+  .obs-mobile-menu a,
+  .obs-mobile-menu button {
     display: flex;
     gap: 1rem;
+    width: 100%;
     padding: 1rem;
     color: rgba(242, 238, 231, 0.82);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
   }
   .obs-mobile-menu span {
     color: var(--obs-saffron);

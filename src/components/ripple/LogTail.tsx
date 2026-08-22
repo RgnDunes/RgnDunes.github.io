@@ -39,22 +39,22 @@ export default function LogTail() {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-rule bg-ink p-4">
-      <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-paper/50">
+    <div className="ripple-log p-4">
+      <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em]">
         <span className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-[#28c840] animate-pulse" />
           Live log tail
         </span>
         <span>tail -f prod</span>
       </div>
-      <div className="h-40 overflow-hidden font-mono text-[11px] text-paper/75">
+      <div className="h-40 overflow-hidden font-mono text-[11px]">
         {lines.map((l, i) => (
           <div
             key={l.id}
             className="truncate leading-[1.6]"
             style={{ opacity: 0.35 + (i / lines.length) * 0.65 }}
           >
-            <span className="text-paper/40">{fakeTs(l.id)}</span>{" "}
+            <span className="ripple-log-time">{fakeTs(l.id)}</span>{" "}
             <span>{l.text}</span>
           </div>
         ))}

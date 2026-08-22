@@ -9,9 +9,9 @@ import ScrollProvider from "@/three/scroll/ScrollProvider";
 const RippleShell = dynamic(() => import("@/components/ripple/RippleShell"), {
   ssr: false,
   loading: () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-paper">
-      <div className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
-        Loading Ripple…
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070a]">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-white/50">
+        Ripple · opening incident channel…
       </div>
     </div>
   ),

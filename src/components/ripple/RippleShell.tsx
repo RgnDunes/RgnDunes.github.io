@@ -28,6 +28,7 @@ interface Attempt {
   expanded: Set<string>;
   chosen: string | null;
   strikeUsed: boolean;
+  wrongGuesses: number;
   resolved: boolean;
   hoverCluster: string | null;
 }
@@ -44,6 +45,7 @@ interface Attempt {
  * All incidents drawn from real production engineering scenarios.
  */
 export default function RippleShell({ onExit }: Props) {
+  const shellRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>("intro");
   const [index, setIndex] = useState(0);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
@@ -54,6 +56,12 @@ export default function RippleShell({ onExit }: Props) {
     setReducedMotion(m.matches);
   }, []);
 
+  useEffect(() => {
+    if (phase === "intro" || phase === "playing" || phase === "shift-over") {
+      shellRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [index, phase]);
+
   const startShift = useCallback(() => {
     setIndex(0);
     setAttempts([]);
@@ -62,6 +70,7 @@ export default function RippleShell({ onExit }: Props) {
 
   const currentIncident = INCIDENTS[index];
   const [attempt, setAttempt] = useState<Attempt | null>(null);
+  const attemptTimeLeft = attempt?.timeLeft;
 
   // Initialise attempt when phase becomes playing
   useEffect(() => {
@@ -77,6 +86,7 @@ export default function RippleShell({ onExit }: Props) {
       expanded: new Set(),
       chosen: null,
       strikeUsed: false,
+      wrongGuesses: 0,
       resolved: false,
       hoverCluster: null,
     });
@@ -85,8 +95,8 @@ export default function RippleShell({ onExit }: Props) {
 
   // Timer
   useEffect(() => {
-    if (phase !== "playing" || !attempt) return;
-    if (attempt.timeLeft <= 0) {
+    if (phase !== "playing" || attemptTimeLeft === undefined) return;
+    if (attemptTimeLeft <= 0) {
       // Time up → fail
       setPhase("failed");
       return;
@@ -94,11 +104,15 @@ export default function RippleShell({ onExit }: Props) {
     const iv = setInterval(() => {
       setAttempt((prev) => {
         if (!prev) return prev;
-        return { ...prev, timeLeft: prev.timeLeft - 1, timeSpent: prev.timeSpent + 1 };
+        return {
+          ...prev,
+          timeLeft: prev.timeLeft - 1,
+          timeSpent: prev.timeSpent + 1,
+        };
       });
     }, 1000);
     return () => clearInterval(iv);
-  }, [phase, attempt?.timeLeft, attempt]);
+  }, [phase, attemptTimeLeft]);
 
   // ESC handling
   useEffect(() => {
@@ -117,7 +131,11 @@ export default function RippleShell({ onExit }: Props) {
       if (prev.expanded.has(id)) return prev;
       const next = new Set(prev.expanded);
       next.add(id);
-      return { ...prev, expanded: next, timeLeft: Math.max(0, prev.timeLeft - 2) };
+      return {
+        ...prev,
+        expanded: next,
+        timeLeft: Math.max(0, prev.timeLeft - 2),
+      };
     });
   };
 
@@ -133,12 +151,13 @@ export default function RippleShell({ onExit }: Props) {
       }
       // Wrong
       if (prev.strikeUsed) {
-        return { ...prev, chosen: h.id };
+        return { ...prev, chosen: h.id, wrongGuesses: 2 };
       }
       return {
         ...prev,
         chosen: h.id,
         strikeUsed: true,
+        wrongGuesses: 1,
         timeLeft: Math.max(0, prev.timeLeft - 15),
       };
     });
@@ -149,21 +168,34 @@ export default function RippleShell({ onExit }: Props) {
     if (!attempt || phase !== "playing") return;
     if (attempt.resolved) {
       setPhase("resolved");
-    } else if (attempt.chosen && attempt.strikeUsed && !attempt.resolved) {
+    } else if (
+      attempt.chosen &&
+      attempt.wrongGuesses >= 2 &&
+      !attempt.resolved
+    ) {
       // Both strikes used and still wrong
       // (chose again after strike was already true)
-      const chosenH = attempt.incident.hypotheses.find((h) => h.id === attempt.chosen);
+      const chosenH = attempt.incident.hypotheses.find(
+        (h) => h.id === attempt.chosen,
+      );
       if (chosenH && !chosenH.correct) {
         setPhase("failed");
       }
     }
-  }, [attempt, phase]);
+  }, [attempt?.chosen, attempt?.resolved, attempt?.wrongGuesses, phase]);
 
   // When strike happens, clear the chosen so player can pick again
   useEffect(() => {
     if (!attempt) return;
-    if (attempt.chosen && !attempt.resolved && attempt.strikeUsed && phase === "playing") {
-      const chosenH = attempt.incident.hypotheses.find((h) => h.id === attempt.chosen);
+    if (
+      attempt.chosen &&
+      !attempt.resolved &&
+      attempt.wrongGuesses === 1 &&
+      phase === "playing"
+    ) {
+      const chosenH = attempt.incident.hypotheses.find(
+        (h) => h.id === attempt.chosen,
+      );
       if (chosenH && !chosenH.correct) {
         // If they just used their strike (first wrong), clear selection to allow retry.
         const t = setTimeout(() => {
@@ -172,13 +204,14 @@ export default function RippleShell({ onExit }: Props) {
         return () => clearTimeout(t);
       }
     }
-  }, [attempt, phase]);
+  }, [attempt?.chosen, attempt?.resolved, attempt?.wrongGuesses, phase]);
 
   const nextIncident = () => {
     // Commit the finished attempt to history
     if (attempt) {
       setAttempts((prev) => [...prev, attempt]);
     }
+    setAttempt(null);
     if (index + 1 >= INCIDENTS.length) {
       setPhase("shift-over");
     } else {
@@ -205,15 +238,20 @@ export default function RippleShell({ onExit }: Props) {
   }, [attempts, phase, attempt]);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-paper">
+    <div
+      ref={shellRef}
+      className="ripple-shell fixed inset-0 z-50 overflow-y-auto"
+    >
+      <RippleBackdrop />
+
       {/* Top masthead */}
-      <div className="sticky top-0 z-40 border-b border-rule bg-paper/90 backdrop-blur-md">
-        <div className="page-shell flex h-14 items-center justify-between">
-          <div className="flex items-center gap-3 font-mono text-[10.5px] uppercase tracking-[0.24em] text-ink">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-saffron animate-pulse" />
+      <div className="ripple-masthead sticky top-0 z-40">
+        <div className="page-shell flex h-16 items-center justify-between">
+          <div className="ripple-ident flex items-center gap-3 font-mono text-[10.5px] uppercase tracking-[0.24em] text-ink">
+            <span className="ripple-live-dot" />
             <span>Ripple</span>
-            <span className="text-muted">·</span>
-            <span className="text-muted">Debug the fire</span>
+            <span className="text-muted">/</span>
+            <span className="text-muted">Incident command</span>
           </div>
 
           {phase === "playing" && attempt && (
@@ -224,7 +262,10 @@ export default function RippleShell({ onExit }: Props) {
                   {index + 1} / {INCIDENTS.length}
                 </span>
               </div>
-              <TimerPill timeLeft={attempt.timeLeft} total={attempt.incident.seconds} />
+              <TimerPill
+                timeLeft={attempt.timeLeft}
+                total={attempt.incident.seconds}
+              />
               {attempt.strikeUsed && (
                 <span className="hidden items-center gap-1.5 rounded-full border border-saffron/40 bg-saffron/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-saffron sm:flex">
                   <FaExclamationTriangle className="h-2.5 w-2.5" />
@@ -236,7 +277,7 @@ export default function RippleShell({ onExit }: Props) {
 
           <button
             onClick={onExit}
-            className="flex items-center gap-2 rounded-full border border-rule bg-paper px-3.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-2 transition-all hover:border-ink hover:text-ink"
+            className="ripple-exit flex items-center gap-2 px-3.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-2 transition-all hover:text-ink"
           >
             <FaTimes className="h-2.5 w-2.5" />
             Leave
@@ -273,9 +314,35 @@ export default function RippleShell({ onExit }: Props) {
   );
 }
 
+function RippleBackdrop() {
+  return (
+    <div className="ripple-backdrop" aria-hidden="true">
+      <div className="ripple-grid-plane" />
+      <div className="ripple-core">
+        <span />
+      </div>
+      <div className="ripple-orbit ripple-orbit-one" />
+      <div className="ripple-orbit ripple-orbit-two" />
+      <div className="ripple-signal-path">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+    </div>
+  );
+}
+
 /* ─── Intro ──────────────────────────────────────────── */
 
-function Intro({ onStart, onExit }: { onStart: () => void; onExit: () => void }) {
+function Intro({
+  onStart,
+  onExit,
+}: {
+  onStart: () => void;
+  onExit: () => void;
+}) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") onStart();
@@ -289,76 +356,83 @@ function Intro({ onStart, onExit }: { onStart: () => void; onExit: () => void })
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="page-shell mx-auto max-w-3xl py-16"
+      className="ripple-intro page-shell"
     >
-      <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
-        <span className="h-1.5 w-1.5 rounded-full bg-saffron" />
-        The Shift · a debugging game
+      <div className="ripple-intro-copy">
+        <div className="ripple-kicker flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
+          Shift 01 · five live incidents
+        </div>
+
+        <h1 className="font-display leading-[0.92] text-ink">
+          Debug the <span>fire</span>
+          <small>before it spreads.</small>
+        </h1>
+
+        <p className="max-w-[54ch] text-[16px] leading-[1.65] text-ink-2">
+          You are on-call. Read the production evidence, isolate the root cause,
+          and resolve five incidents before their clocks run out.
+        </p>
+
+        <div className="ripple-intro-actions flex flex-wrap items-center gap-4">
+          <button onClick={onStart} className="ripple-primary-action">
+            <FaPlay className="h-3 w-3" />
+            Start the shift
+          </button>
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted">
+            Enter <span className="ripple-key">↵</span>
+          </span>
+          <button onClick={onExit} className="ripple-text-action">
+            Return to portfolio
+          </button>
+        </div>
       </div>
 
-      <h1 className="mt-5 font-display italic leading-[0.95] text-ink"
-          style={{ fontSize: "clamp(3rem, 8vw, 6rem)" }}>
-        Debug the <span className="text-saffron">fire</span>
-        <span className="text-ink">.</span>
-      </h1>
-
-      <p className="mt-6 max-w-[54ch] text-[16px] leading-[1.65] text-ink-2">
-        You are on-call. Five production incidents queue up. For each one, you
-        get a dashboard of evidence - charts, logs, PRs, alerts - a time
-        budget, and four possible root causes. All scenarios are drawn from
-        the kind of things that actually break in production.
-      </p>
-
-      <div className="mt-10 grid gap-4 md:grid-cols-2">
+      <div className="ripple-protocol" aria-label="How the game works">
+        <header>
+          <span>Response protocol</span>
+          <small>Signal → decision → outcome</small>
+        </header>
         <RuleCard
-          n="i."
-          title="Read the evidence"
-          body="Click any tile to inspect it. Each inspection costs 2 seconds. Not every tile is signal - some are noise, some are red herrings. Related evidence lights up on hover."
+          n="01"
+          title="Inspect"
+          body="Open only the evidence you need. Every inspection costs two seconds."
         />
         <RuleCard
-          n="ii."
-          title="File a hypothesis"
-          body="Pick the root cause you believe explains the incident. First wrong guess costs 15 seconds; the second closes the ticket unresolved."
+          n="02"
+          title="Correlate"
+          body="Separate related signals from harmless noise and deliberate red herrings."
         />
         <RuleCard
-          n="iii."
-          title="Beat the clock"
-          body="Each incident has its own time budget. Difficulty escalates: P3 first, SEV-1 last. Run out of time = the fire spreads."
+          n="03"
+          title="Decide"
+          body="File the root cause. A wrong call costs fifteen seconds; two close the incident."
         />
         <RuleCard
-          n="iv."
-          title="End of shift"
-          body="Five incidents. Editorial scorecard at the end: resolved, first-try, MTTR average, evidence read."
+          n="04"
+          title="Stabilize"
+          body="Resolve all five incidents as severity escalates from P3 to SEV-1."
         />
-      </div>
-
-      <div className="mt-10 flex flex-wrap items-center gap-4">
-        <button onClick={onStart} className="btn-primary">
-          <FaPlay className="h-3 w-3" />
-          Punch in
-        </button>
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted">
-          or press <span className="kbd">↵</span>
-        </span>
-        <button
-          onClick={onExit}
-          className="ml-auto font-mono text-[10.5px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-ink"
-        >
-          Back to the notebook
-        </button>
       </div>
     </motion.div>
   );
 }
 
-function RuleCard({ n, title, body }: { n: string; title: string; body: string }) {
+function RuleCard({
+  n,
+  title,
+  body,
+}: {
+  n: string;
+  title: string;
+  body: string;
+}) {
   return (
-    <div className="rounded-2xl border border-rule bg-paper-2 p-5">
-      <div className="flex items-baseline gap-3">
-        <span className="folio text-3xl leading-none">{n}</span>
-        <h3 className="font-display text-xl text-ink">{title}</h3>
+    <div className="ripple-rule">
+      <span>{n}</span>
+      <div>
+        <h3>{title}</h3>
+        <p>{body}</p>
       </div>
-      <p className="mt-3 text-[14px] leading-[1.6] text-ink-2">{body}</p>
     </div>
   );
 }
@@ -370,14 +444,14 @@ function TimerPill({ timeLeft, total }: { timeLeft: number; total: number }) {
   const danger = pct < 0.3;
   return (
     <div
-      className={`flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] ${
-        danger ? "border-saffron bg-saffron/10 text-saffron" : "border-rule bg-paper text-ink"
+      className={`ripple-timer flex items-center gap-2 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] ${
+        danger ? "is-danger" : ""
       }`}
     >
       <span className="relative block h-1.5 w-16 overflow-hidden rounded-full bg-rule">
         <motion.span
           className="absolute inset-y-0 left-0 rounded-full"
-          style={{ background: danger ? "#E86A2B" : "#141416" }}
+          style={{ background: danger ? "#E86A2B" : "#4FB493" }}
           animate={{ width: `${pct * 100}%` }}
           transition={{ duration: 0.9, ease: "linear" }}
         />
@@ -408,21 +482,31 @@ function IncidentView({
   onNext: () => void;
   reducedMotion: boolean;
 }) {
-  const { incident, expanded, hoverCluster, strikeUsed, chosen, resolved, timeLeft } = attempt;
-  const chosenH = chosen ? incident.hypotheses.find((h) => h.id === chosen) || null : null;
+  const {
+    incident,
+    expanded,
+    hoverCluster,
+    strikeUsed,
+    chosen,
+    resolved,
+    timeLeft,
+  } = attempt;
+  const chosenH = chosen
+    ? incident.hypotheses.find((h) => h.id === chosen) || null
+    : null;
   const isDone = phase === "resolved" || phase === "failed";
 
   return (
-    <div className="page-shell py-8 md:py-12">
+    <div className="ripple-play page-shell py-8 md:py-12">
       {/* Incident header */}
-      <div className="rounded-3xl border border-rule bg-paper-2 p-5 md:p-7">
+      <div className="ripple-incident-banner p-5 md:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
               <SeverityChip d={incident.difficulty} />
               <span className="text-ink">{incident.service}</span>
             </div>
-            <h2 className="mt-3 font-display text-[26px] italic leading-[1.1] text-ink md:text-[32px]">
+            <h2 className="mt-3 font-display text-[26px] leading-[1.1] text-ink md:text-[32px]">
               <span className="text-saffron">
                 <FaFire className="mr-2 inline h-4 w-4" />
               </span>
@@ -442,7 +526,7 @@ function IncidentView({
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-4 rounded-2xl border border-saffron bg-saffron/10 px-4 py-3"
+            className="ripple-strike mt-4 px-4 py-3"
           >
             <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-saffron">
               <FaExclamationTriangle className="h-3 w-3" />
@@ -456,9 +540,9 @@ function IncidentView({
         )}
       </AnimatePresence>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="ripple-console mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         {/* Evidence grid */}
-        <div className="grid auto-rows-[minmax(140px,auto)] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="ripple-evidence-grid grid auto-rows-[minmax(140px,auto)] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {incident.evidence.map((ev) => (
             <EvidenceTile
               key={ev.id}
@@ -473,15 +557,17 @@ function IncidentView({
         </div>
 
         {/* Side: log tail + hypothesis submit */}
-        <div className="flex flex-col gap-6">
+        <div className="ripple-diagnosis flex flex-col gap-6">
           <LogTail />
 
-          <div className="rounded-2xl border border-rule bg-paper p-4">
+          <div className="ripple-hypothesis p-4">
             <div className="mb-3 flex items-center justify-between font-mono text-[10.5px] uppercase tracking-[0.22em] text-muted">
               <span>File a hypothesis</span>
               <span className="text-ink">
                 {expanded.size}
-                <span className="text-muted">/{incident.evidence.length} read</span>
+                <span className="text-muted">
+                  /{incident.evidence.length} read
+                </span>
               </span>
             </div>
             <ul className="space-y-2">
@@ -494,21 +580,23 @@ function IncidentView({
                     <button
                       onClick={() => !isDone && !chosen && onSubmit(h)}
                       disabled={isDone || !!chosen}
-                      className={`w-full rounded-xl border px-3.5 py-2.5 text-left text-[13.5px] leading-[1.4] transition-all
+                      className={`ripple-hypothesis-option w-full px-3.5 py-2.5 text-left text-[13.5px] leading-[1.4] transition-all
                         ${
                           revealed && isCorrect
                             ? "border-seal bg-seal/10 text-ink"
                             : revealed && isChosen && !isCorrect
-                            ? "border-saffron bg-saffron/10 text-ink"
-                            : isChosen && !revealed
-                            ? "border-saffron bg-saffron/10 text-ink"
-                            : "border-rule bg-paper text-ink-2 hover:border-ink hover:text-ink"
+                              ? "border-saffron bg-saffron/10 text-ink"
+                              : isChosen && !revealed
+                                ? "border-saffron bg-saffron/10 text-ink"
+                                : "text-ink-2 hover:text-ink"
                         }
                         ${isDone || chosen ? "cursor-default" : "cursor-pointer"}
                       `}
                     >
                       <div className="flex items-start gap-2">
-                        {revealed && isCorrect && <FaCheck className="mt-0.5 h-3 w-3 text-seal" />}
+                        {revealed && isCorrect && (
+                          <FaCheck className="mt-0.5 h-3 w-3 text-seal" />
+                        )}
                         {revealed && isChosen && !isCorrect && (
                           <FaTimes className="mt-0.5 h-3 w-3 text-saffron" />
                         )}
@@ -530,13 +618,11 @@ function IncidentView({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-8 overflow-hidden rounded-3xl border border-rule bg-paper-2"
+            className="ripple-outcome mt-8 overflow-hidden"
           >
             <div
-              className={`flex items-center justify-between px-6 py-3 font-mono text-[10.5px] uppercase tracking-[0.24em] ${
-                phase === "resolved"
-                  ? "bg-seal text-paper"
-                  : "bg-ink text-paper"
+              className={`ripple-result-bar flex items-center justify-between px-6 py-3 font-mono text-[10.5px] uppercase tracking-[0.24em] ${
+                phase === "resolved" ? "is-resolved" : "is-escalated"
               }`}
             >
               <span className="flex items-center gap-2">
@@ -546,32 +632,35 @@ function IncidentView({
                   </>
                 ) : (
                   <>
-                    <FaExclamationTriangle className="h-3 w-3" /> Incident escalated
+                    <FaExclamationTriangle className="h-3 w-3" /> Incident
+                    escalated
                   </>
                 )}
               </span>
               <span>
-                MTTR{" "}
-                <span className="text-paper">
-                  {String(attempt.timeSpent).padStart(2, "0")}s
-                </span>
+                MTTR <span>{String(attempt.timeSpent).padStart(2, "0")}s</span>
               </span>
             </div>
             <div className="grid gap-6 p-6 md:grid-cols-[1fr_auto] md:items-start md:gap-10">
               <div>
                 <div className="eyebrow mb-2">Postmortem</div>
                 <p className="max-w-[64ch] text-[15px] leading-[1.65] text-ink-2">
-                  {(phase === "resolved"
-                    ? incident.hypotheses.find((h) => h.correct)!
-                    : incident.hypotheses.find((h) => h.correct)!
-                  ).postmortem}
+                  {
+                    (phase === "resolved"
+                      ? incident.hypotheses.find((h) => h.correct)!
+                      : incident.hypotheses.find((h) => h.correct)!
+                    ).postmortem
+                  }
                 </p>
                 <div className="mt-5 eyebrow mb-1">Fix shipped</div>
                 <p className="max-w-[64ch] text-[14.5px] leading-[1.6] text-ink">
                   {incident.hypotheses.find((h) => h.correct)!.fix}
                 </p>
               </div>
-              <button onClick={onNext} className="btn-primary self-start">
+              <button
+                onClick={onNext}
+                className="ripple-primary-action self-start"
+              >
                 Next incident <FaArrowRight className="h-3 w-3" />
               </button>
             </div>
@@ -618,41 +707,53 @@ function Scorecard({
     passRate === 100 && stats.firstTryResolutions === stats.incidentsResolved
       ? "Staff-worthy"
       : passRate === 100
-      ? "Solid on-call"
-      : passRate >= 60
-      ? "Kept the fire small"
-      : passRate >= 40
-      ? "Rough shift"
-      : "Rough night";
+        ? "Solid on-call"
+        : passRate >= 60
+          ? "Kept the fire small"
+          : passRate >= 40
+            ? "Rough shift"
+            : "Rough night";
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="page-shell mx-auto max-w-3xl py-16"
+      className="ripple-scorecard page-shell"
     >
       <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.24em] text-muted">
         <span className="h-1.5 w-1.5 rounded-full bg-saffron" />
         End of shift
       </div>
-      <h2 className="mt-4 font-display italic leading-[0.95] text-ink"
-          style={{ fontSize: "clamp(2.5rem, 7vw, 5rem)" }}>
-        {grade}<span className="text-saffron">.</span>
+      <h2
+        className="mt-4 font-display leading-[0.95] text-ink"
+        style={{ fontSize: "clamp(2.5rem, 7vw, 5rem)" }}
+      >
+        {grade}
+        <span className="text-saffron">.</span>
       </h2>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
-        <Stat n={`${String(stats.incidentsResolved).padStart(2, "0")}/${String(stats.incidentsAttempted).padStart(2, "0")}`} k="Resolved" />
+      <div className="ripple-stats mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+        <Stat
+          n={`${String(stats.incidentsResolved).padStart(2, "0")}/${String(stats.incidentsAttempted).padStart(2, "0")}`}
+          k="Resolved"
+        />
         <Stat n={`${passRate.toFixed(0)}%`} k="Pass rate" />
-        <Stat n={String(stats.firstTryResolutions).padStart(2, "0")} k="First try" />
-        <Stat n={`${Math.round(stats.totalTimeSpent / Math.max(1, stats.incidentsAttempted))}s`} k="Avg MTTR" />
+        <Stat
+          n={String(stats.firstTryResolutions).padStart(2, "0")}
+          k="First try"
+        />
+        <Stat
+          n={`${Math.round(stats.totalTimeSpent / Math.max(1, stats.incidentsAttempted))}s`}
+          k="Avg MTTR"
+        />
       </div>
 
       <div className="mt-10 flex flex-wrap items-center gap-3">
-        <button onClick={onReplay} className="btn-primary">
+        <button onClick={onReplay} className="ripple-primary-action">
           Play the shift again
         </button>
-        <button onClick={onExit} className="btn-ghost">
-          Back to the notebook
+        <button onClick={onExit} className="ripple-secondary-action">
+          Return to portfolio
         </button>
       </div>
 
@@ -668,7 +769,7 @@ function Scorecard({
 
 function Stat({ n, k }: { n: string; k: string }) {
   return (
-    <div className="rounded-2xl border border-rule bg-paper-2 p-5">
+    <div className="ripple-stat p-5">
       <div className="eyebrow mb-2">{k}</div>
       <div className="font-display text-3xl italic text-ink">{n}</div>
     </div>

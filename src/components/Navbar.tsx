@@ -83,6 +83,18 @@ export default function Navbar({ onGameModeToggle }: NavbarProps) {
                 {item.name}
               </a>
             ))}
+            {onGameModeToggle && (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  onGameModeToggle();
+                }}
+              >
+                <span>↗</span>
+                Play · Debug the fire
+              </button>
+            )}
             <a href={RESUME_URL} target="_blank" rel="noopener noreferrer">
               Résumé ↗
             </a>
