@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
 import { skillCategories } from "@/data/skills";
+import { nudgeSceneRotation } from "@/three/scroll/store";
 
 export default function Skills() {
   const ref = useRef<HTMLElement>(null);
@@ -37,7 +38,10 @@ export default function Skills() {
         {skillCategories.map((c) => (
           <button
             key={c.name}
-            onClick={() => setActive(c.name)}
+            onClick={() => {
+              setActive(c.name);
+              nudgeSceneRotation();
+            }}
             className={`rounded-full border px-4 py-2 font-mono text-[11.5px] uppercase tracking-[0.15em] transition-all ${
               active === c.name
                 ? "border-ink bg-ink text-paper"

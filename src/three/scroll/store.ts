@@ -18,7 +18,9 @@ export interface SceneScrollState {
   pointerY: number;
   position: number;
   progress: number;
+  pulseId: number;
   reducedMotion: boolean;
+  rotationNudge: number;
   velocity: number;
 }
 
@@ -28,7 +30,9 @@ const state: SceneScrollState = {
   pointerY: 0,
   position: 0,
   progress: 0,
+  pulseId: 0,
   reducedMotion: false,
+  rotationNudge: 0,
   velocity: 0,
 };
 
@@ -40,6 +44,14 @@ export function updateSceneScrollState(next: Partial<SceneScrollState>) {
   Object.assign(state, next);
 }
 
+export function triggerScenePulse() {
+  state.pulseId += 1;
+}
+
+export function nudgeSceneRotation() {
+  state.rotationNudge += 1;
+}
+
 export function resetSceneScrollState() {
   Object.assign(state, {
     activeIndex: 0,
@@ -47,7 +59,9 @@ export function resetSceneScrollState() {
     pointerY: 0,
     position: 0,
     progress: 0,
+    pulseId: 0,
     reducedMotion: false,
+    rotationNudge: 0,
     velocity: 0,
   });
 }

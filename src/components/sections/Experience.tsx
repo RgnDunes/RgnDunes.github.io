@@ -77,10 +77,11 @@ export default function Experience() {
     <section id="work" ref={ref} className="page-shell py-28 md:py-36">
       {/* Section header */}
       <motion.div
+        data-scene-pin-header
         initial={{ opacity: 0, y: 24 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.7 }}
-        className="grid gap-6 border-b border-rule pb-8 md:grid-cols-[auto_1fr] md:items-end md:gap-10"
+        className="relative z-20 grid gap-6 border-b border-rule bg-paper/90 pb-8 backdrop-blur-md md:grid-cols-[auto_1fr] md:items-end md:gap-10"
       >
         <div className="flex items-baseline gap-4">
           <span className="folio text-6xl md:text-7xl">ii.</span>

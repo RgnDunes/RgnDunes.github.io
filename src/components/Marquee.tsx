@@ -25,7 +25,10 @@ const items: { label: string; kind: "stat" | "sep" | "word" | "icon" }[] = [
 
 export default function Marquee() {
   return (
-    <div className="relative overflow-hidden border-y border-rule bg-ink py-5 text-paper">
+    <div
+      data-scene-stats
+      className="relative overflow-hidden border-y border-rule bg-ink py-5 text-paper"
+    >
       {/* fade edges */}
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-ink to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-ink to-transparent" />
@@ -49,6 +52,7 @@ export default function Marquee() {
                 return (
                   <span
                     key={`${k}-${i}`}
+                    data-counter={/^\d+(?:K)?\+?$/.test(item.label) ? item.label : undefined}
                     className="font-display text-3xl italic text-paper md:text-4xl"
                   >
                     {item.label}

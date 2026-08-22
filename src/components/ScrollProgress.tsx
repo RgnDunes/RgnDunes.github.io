@@ -108,13 +108,6 @@ export default function ScrollProgress() {
             <a
               key={s.id}
               href={`#${s.id}`}
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById(s.id)?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start",
-                });
-              }}
               className="pointer-events-auto absolute -translate-y-1/2"
               style={{ top: `${pos * 100}%`, left: 0 }}
               aria-label={`Jump to ${s.title}`}

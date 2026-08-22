@@ -16,6 +16,7 @@ const vertexShader = /* glsl */ `
   uniform float uDrift;
   uniform float uMix;
   uniform float uPixelRatio;
+  uniform float uPulse;
   uniform float uSize;
   uniform float uTime;
 
@@ -38,7 +39,7 @@ const vertexShader = /* glsl */ `
     vec4 viewPosition = modelViewMatrix * vec4(point, 1.0);
     float distanceToCamera = max(0.5, -viewPosition.z);
     gl_PointSize = clamp(
-      uSize * uPixelRatio * (24.0 / distanceToCamera),
+      uSize * (1.0 + uPulse * 1.4) * uPixelRatio * (24.0 / distanceToCamera),
       1.0,
       8.0
     );
@@ -106,6 +107,7 @@ export default function ParticleField({ count }: { count: number }) {
       uMix: { value: 0 },
       uOpacity: { value: 0 },
       uPixelRatio: { value: Math.min(1.5, gl.getPixelRatio()) },
+      uPulse: { value: 0 },
       uSize: { value: formations[0].size },
       uTime: { value: 0 },
     }),
@@ -117,6 +119,9 @@ export default function ParticleField({ count }: { count: number }) {
   const cameraTarget = useRef(formations[0].target.clone());
   const nextCameraPosition = useRef(new THREE.Vector3());
   const nextCameraTarget = useRef(new THREE.Vector3());
+  const lastPulse = useRef(0);
+  const pulseStrength = useRef(0);
+  const targetRotation = useRef(0);
   const visibleOpacity = useRef(0);
 
   useEffect(() => {
@@ -128,6 +133,17 @@ export default function ParticleField({ count }: { count: number }) {
   useFrame((_, delta) => {
     const frameDelta = Math.min(delta, 0.05);
     const scroll = getSceneScrollState();
+    if (scroll.pulseId !== lastPulse.current && !scroll.reducedMotion) {
+      lastPulse.current = scroll.pulseId;
+      pulseStrength.current = 1;
+    }
+    pulseStrength.current = THREE.MathUtils.damp(
+      pulseStrength.current,
+      0,
+      4.2,
+      frameDelta
+    );
+    uniforms.uPulse.value = pulseStrength.current;
     const lastIndex = formations.length - 1;
     const position = scroll.reducedMotion
       ? 0
@@ -196,7 +212,14 @@ export default function ParticleField({ count }: { count: number }) {
     camera.lookAt(cameraTarget.current);
 
     if (pointsRef.current && !scroll.reducedMotion) {
+      targetRotation.current = scroll.rotationNudge * 0.08;
       pointsRef.current.rotation.y += frameDelta * 0.018;
+      pointsRef.current.rotation.z = THREE.MathUtils.damp(
+        pointsRef.current.rotation.z,
+        targetRotation.current,
+        3,
+        frameDelta
+      );
     }
   });
 

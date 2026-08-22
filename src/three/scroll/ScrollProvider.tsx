@@ -8,6 +8,7 @@ import { useDeviceProfile } from "@/hooks/useDeviceProfile";
 import {
   resetSceneScrollState,
   SCENE_SECTIONS,
+  triggerScenePulse,
   updateSceneScrollState,
 } from "./store";
 
@@ -119,6 +120,79 @@ export default function ScrollProvider({
       },
     });
 
+    const effectTriggers: ScrollTrigger[] = [];
+    const effectTweens: gsap.core.Tween[] = [];
+    if (!profile.reducedMotion) {
+      document.querySelectorAll("#notebook article").forEach((card) => {
+        effectTriggers.push(
+          ScrollTrigger.create({
+            trigger: card,
+            start: "top 84%",
+            onEnter: triggerScenePulse,
+          })
+        );
+      });
+
+      const marquee = document.querySelector<HTMLElement>("[data-scene-stats]");
+      if (marquee) {
+        const counters = Array.from(
+          marquee.querySelectorAll<HTMLElement>("[data-counter]")
+        );
+        effectTriggers.push(
+          ScrollTrigger.create({
+            trigger: marquee,
+            start: "top 88%",
+            once: true,
+            onEnter: () => {
+              triggerScenePulse();
+              counters.forEach((counter) => {
+                const raw = counter.dataset.counter ?? "";
+                const match = raw.match(/^(\d+)(K)?(\+)?$/);
+                if (!match) return;
+                const target = Number(match[1]);
+                const suffix = `${match[2] ?? ""}${match[3] ?? ""}`;
+                const value = { current: 0 };
+                effectTweens.push(
+                  gsap.to(value, {
+                    current: target,
+                    duration: 1.4,
+                    ease: "power2.out",
+                    onUpdate: () => {
+                      counter.textContent = `${Math.round(value.current)}${suffix}`;
+                    },
+                  })
+                );
+              });
+            },
+          })
+        );
+      }
+    }
+
+    if (
+      !profile.coarsePointer &&
+      !profile.reducedMotion &&
+      window.innerWidth >= 1024 &&
+      window.innerHeight >= 700
+    ) {
+      const work = document.getElementById("work");
+      const workHeader = work?.querySelector<HTMLElement>(
+        "[data-scene-pin-header]"
+      );
+      if (work && workHeader) {
+        effectTriggers.push(
+          ScrollTrigger.create({
+            anticipatePin: 1,
+            end: "bottom bottom-=140",
+            endTrigger: work,
+            pin: workHeader,
+            pinSpacing: false,
+            start: "top top+=80",
+          })
+        );
+      }
+    }
+
     const handleAnchorClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
       const anchor = target?.closest("a[href^='#']") as
@@ -148,6 +222,8 @@ export default function ScrollProvider({
       window.cancelAnimationFrame(refreshFrame);
       document.removeEventListener("click", handleAnchorClick);
       pageTrigger.kill();
+      effectTriggers.forEach((trigger) => trigger.kill());
+      effectTweens.forEach((tween) => tween.kill());
       if (lenis) {
         gsap.ticker.remove(tickLenis);
         lenis.destroy();
