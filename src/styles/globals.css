@@ -3993,11 +3993,12 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 
 .route-stage {
   min-height: 100vh;
+  backface-visibility: hidden;
   transform-origin: var(--route-origin-x, 50vw) var(--route-origin-y, 50vh);
   transition:
-    transform 420ms cubic-bezier(0.76, 0, 0.24, 1),
-    filter 420ms cubic-bezier(0.76, 0, 0.24, 1),
-    opacity 340ms ease;
+    transform 620ms cubic-bezier(0.65, 0, 0.35, 1),
+    filter 620ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 480ms ease;
 }
 .route-transition {
   position: fixed;
@@ -4009,64 +4010,84 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   background: radial-gradient(
     circle at var(--route-origin-x, 50vw) var(--route-origin-y, 50vh),
     transparent 0,
-    rgba(2, 3, 5, 0.38) 24%,
-    rgba(2, 3, 5, 0.66) 68%,
-    rgba(2, 3, 5, 0.72) 100%
+    rgba(2, 3, 5, 0.24) 24%,
+    rgba(2, 3, 5, 0.7) 68%,
+    rgba(2, 3, 5, 0.92) 100%
   );
-  transition: opacity 200ms ease;
+  transition: opacity 320ms ease;
+  will-change: opacity;
 }
 .route-transition-core,
 .route-transition-rings {
   position: absolute;
   left: var(--route-origin-x, 50vw);
   top: var(--route-origin-y, 50vh);
-  width: 4vmax;
-  height: 4vmax;
+  width: 12vmax;
+  height: 12vmax;
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0.05);
+  will-change: transform, opacity;
 }
 .route-transition-core {
-  background: #000;
+  background: radial-gradient(
+    circle,
+    #000 0 12%,
+    rgba(0, 0, 0, 0.98) 22%,
+    rgba(0, 0, 0, 0.8) 38%,
+    rgba(0, 0, 0, 0.48) 54%,
+    rgba(0, 0, 0, 0.18) 70%,
+    transparent 88%
+  );
+  filter: blur(6px);
   box-shadow:
-    0 0 40px 10px rgba(232, 106, 43, 0.24),
-    0 0 120px 35px rgba(111, 143, 255, 0.17);
-  transition: transform 420ms cubic-bezier(0.76, 0, 0.24, 1);
+    0 0 54px 12px rgba(216, 208, 136, 0.16),
+    0 0 150px 42px rgba(112, 132, 64, 0.14);
+  transition: transform 620ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 .route-transition-rings {
-  border: 1px solid rgba(242, 238, 231, 0.5);
+  border: 1px solid rgba(216, 208, 136, 0.44);
   box-shadow:
-    0 0 30px rgba(232, 106, 43, 0.6),
-    inset 0 0 25px rgba(111, 143, 255, 0.45);
+    0 0 34px rgba(216, 208, 136, 0.36),
+    inset 0 0 28px rgba(112, 132, 64, 0.32);
   transition:
-    transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 260ms ease;
+    transform 600ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 440ms ease;
 }
 [data-route-phase="departing"] .route-stage {
-  transform: perspective(900px) translateZ(-180px) scale(0.8) rotateX(1deg);
-  filter: blur(4px) saturate(0.68);
-  opacity: 0.44;
+  transform: scale(0.9);
+  filter: blur(2px) saturate(0.74);
+  opacity: 0.38;
+  will-change: transform, filter, opacity;
 }
 [data-route-phase="departing"] .route-transition {
   opacity: 1;
 }
 [data-route-phase="departing"] .route-transition-core {
-  transform: translate(-50%, -50%) scale(8.5);
+  transform: translate(-50%, -50%) scale(12);
 }
 [data-route-phase="departing"] .route-transition-rings {
-  transform: translate(-50%, -50%) scale(15) rotate(130deg);
+  transform: translate(-50%, -50%) scale(14) rotate(110deg);
+  opacity: 0;
+}
+[data-route-phase="arriving"] .route-transition-core {
+  transform: translate(-50%, -50%) scale(12);
+}
+[data-route-phase="arriving"] .route-transition-rings {
+  transform: translate(-50%, -50%) scale(14) rotate(110deg);
   opacity: 0;
 }
 [data-route-phase="arriving"] .route-stage {
-  animation: route-arrive 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: route-arrive 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, filter, opacity;
 }
 [data-route-phase="arriving"] .route-transition {
-  animation: route-curtain 420ms ease both;
+  animation: route-curtain 520ms ease both;
 }
 @keyframes route-arrive {
   from {
-    transform: perspective(900px) translateZ(-140px) scale(0.84);
-    filter: blur(4px);
-    opacity: 0.28;
+    transform: scale(0.94);
+    filter: blur(2px);
+    opacity: 0.34;
   }
   to {
     transform: none;

@@ -18,8 +18,8 @@ type RouteTransitionContextValue = {
 
 const RouteTransitionContext =
   createContext<RouteTransitionContextValue | null>(null);
-const DEPARTURE_MS = 420;
-const ARRIVAL_MS = 440;
+const DEPARTURE_MS = 620;
+const ARRIVAL_MS = 540;
 
 export function useRouteTransition() {
   return useContext(RouteTransitionContext);
