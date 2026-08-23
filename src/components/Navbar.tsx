@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FaGamepad } from "react-icons/fa";
 import { withBasePath } from "@/lib/site";
 
 const RESUME_URL = withBasePath("/Divyansh_Singh_Resume.pdf");
@@ -18,11 +17,7 @@ const nav = [
   { name: "Contact", href: "#contact" },
 ];
 
-interface NavbarProps {
-  onGameModeToggle?: () => void;
-}
-
-export default function Navbar({ onGameModeToggle }: NavbarProps) {
+export default function Navbar() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -98,14 +93,6 @@ export default function Navbar({ onGameModeToggle }: NavbarProps) {
         <a href={RESUME_URL} target="_blank" rel="noopener noreferrer">
           Résumé ↗
         </a>
-        {onGameModeToggle && (
-          <button
-            onClick={onGameModeToggle}
-            aria-label="Open Ripple debugging game"
-          >
-            <FaGamepad aria-hidden /> Play
-          </button>
-        )}
         <button
           ref={triggerRef}
           className="obs-menu-toggle"
@@ -134,18 +121,6 @@ export default function Navbar({ onGameModeToggle }: NavbarProps) {
                 {item.name}
               </a>
             ))}
-            {onGameModeToggle && (
-              <button
-                type="button"
-                onClick={() => {
-                  closeMenu();
-                  onGameModeToggle();
-                }}
-              >
-                <span>↗</span>
-                Play · Debug the fire
-              </button>
-            )}
             <a href={RESUME_URL} target="_blank" rel="noopener noreferrer">
               Résumé ↗
             </a>

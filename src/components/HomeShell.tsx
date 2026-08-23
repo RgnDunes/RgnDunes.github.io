@@ -1,22 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import CinematicBackdrop from "@/components/CinematicBackdrop";
 import ScrollProvider from "@/three/scroll/ScrollProvider";
-
-const RippleShell = dynamic(() => import("@/components/ripple/RippleShell"), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070a]">
-      <div className="font-mono text-[10.5px] uppercase tracking-[0.24em] text-white/50">
-        Ripple · opening incident channel…
-      </div>
-    </div>
-  ),
-});
 
 const SceneCanvas = dynamic(() => import("@/three/SceneCanvas"), {
   ssr: false,
@@ -29,22 +17,13 @@ const SceneCanvas = dynamic(() => import("@/three/SceneCanvas"), {
  * that Google can index without executing JS.
  */
 export default function HomeShell({ children }: { children: React.ReactNode }) {
-  const [gameMode, setGameMode] = useState(false);
-  const enterGameMode = useCallback(() => setGameMode(true), []);
-  const exitGameMode = useCallback(() => setGameMode(false), []);
-
   return (
     <ScrollProvider>
-      {!gameMode && <SceneCanvas />}
-      {!gameMode && <CinematicBackdrop />}
-      {!gameMode && <ScrollProgress />}
-      {!gameMode && (
-        <>
-          <Navbar onGameModeToggle={enterGameMode} />
-          {children}
-        </>
-      )}
-      {gameMode && <RippleShell onExit={exitGameMode} />}
+      <SceneCanvas />
+      <CinematicBackdrop />
+      <ScrollProgress />
+      <Navbar />
+      {children}
     </ScrollProvider>
   );
 }

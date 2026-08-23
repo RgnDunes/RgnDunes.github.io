@@ -12,7 +12,6 @@ import {
   FaEnvelope,
   FaGithub,
   FaLinkedin,
-  FaGamepad,
   FaArrowRight,
 } from "react-icons/fa";
 import type { IconType } from "react-icons";
@@ -29,10 +28,9 @@ interface Cmd {
 interface Props {
   open: boolean;
   onClose: () => void;
-  onGameModeToggle?: () => void;
 }
 
-export default function CommandPalette({ open, onClose, onGameModeToggle }: Props) {
+export default function CommandPalette({ open, onClose }: Props) {
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,14 +55,10 @@ export default function CommandPalette({ open, onClose, onGameModeToggle }: Prop
 
       { id: "resume", label: "Download résumé", group: "Actions", icon: FaArrowRight, hint: "PDF", action: () => { onClose(); window.open(`${process.env.NODE_ENV === "production" ? "/Portfolio-v5" : ""}/Divyansh_Singh_Resume.pdf`, "_blank"); } },
       { id: "email", label: "Copy email address", group: "Actions", icon: FaEnvelope, hint: "rgndunes@gmail.com", action: async () => { try { await navigator.clipboard.writeText("rgndunes@gmail.com"); } catch {} onClose(); } },
-      ...(onGameModeToggle
-        ? [{ id: "play", label: "Play · Debug the fire", group: "Actions", icon: FaGamepad, hint: "β", action: () => { onClose(); onGameModeToggle(); } } as Cmd]
-        : []),
-
       { id: "gh", label: "GitHub", group: "Elsewhere", icon: FaGithub, hint: "@RgnDunes", action: () => { onClose(); window.open("https://github.com/RgnDunes", "_blank"); } },
       { id: "li", label: "LinkedIn", group: "Elsewhere", icon: FaLinkedin, hint: "/in/rgndunes", action: () => { onClose(); window.open("https://linkedin.com/in/rgndunes", "_blank"); } },
     ],
-    [router, onClose, onGameModeToggle]
+    [router, onClose]
   );
 
   const filtered = useMemo(() => {
