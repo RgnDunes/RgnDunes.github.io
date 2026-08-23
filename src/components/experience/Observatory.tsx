@@ -9,6 +9,7 @@ import { products } from "@/data/products";
 import { blogPosts } from "@/data/blogPosts";
 import { testimonials } from "@/data/testimonials";
 import { youtubeVideos } from "@/data/youtubeVideos";
+import { withBasePath } from "@/lib/site";
 import ProfileImage from "@/assets/images/profile.jpg";
 import TransitionLink from "@/components/transitions/TransitionLink";
 import PersonalVisualStory from "./PersonalVisualStory";
@@ -545,7 +546,7 @@ export default function Observatory() {
           <PersonalVisualStory />
           <figure className="obs-ride-photo">
             <Image
-              src="/assets/divyansh-motorcycle-ride.jpeg"
+              src={withBasePath("/assets/divyansh-motorcycle-ride.jpeg")}
               alt="Divyansh's motorcycle packed for a long ride"
               fill
               sizes="(max-width: 767px) 100vw, 44vw"
@@ -590,7 +591,7 @@ export default function Observatory() {
                   >
                     <span className="obs-video-frame">
                       <Image
-                        src={video.thumbnail}
+                        src={withBasePath(video.thumbnail)}
                         alt=""
                         fill
                         sizes={
