@@ -66,7 +66,8 @@ const fragmentShader = /* glsl */ `
     float edge = smoothstep(0.5, 0.06, distanceToCenter);
     vec3 color = mix(uColorA, uColorB, clamp(uMix, 0.0, 1.0));
     color *= 0.82 + vSeed * 0.28;
-    gl_FragColor = vec4(color, edge * vDepth * uOpacity);
+    float transitionDip = 1.0 - sin(clamp(uMix, 0.0, 1.0) * 3.14159265) * 0.76;
+    gl_FragColor = vec4(color, edge * vDepth * uOpacity * transitionDip);
   }
 `;
 
@@ -80,15 +81,15 @@ export default function ParticleField({ count }: { count: number }) {
     const first = formations[0].positions;
     nextGeometry.setAttribute(
       "position",
-      new THREE.BufferAttribute(first.slice(), 3)
+      new THREE.BufferAttribute(first.slice(), 3),
     );
     nextGeometry.setAttribute(
       "positionA",
-      new THREE.BufferAttribute(first.slice(), 3)
+      new THREE.BufferAttribute(first.slice(), 3),
     );
     nextGeometry.setAttribute(
       "positionB",
-      new THREE.BufferAttribute(formations[1].positions.slice(), 3)
+      new THREE.BufferAttribute(formations[1].positions.slice(), 3),
     );
 
     const seeds = new Float32Array(count);
@@ -111,7 +112,7 @@ export default function ParticleField({ count }: { count: number }) {
       uSize: { value: formations[0].size },
       uTime: { value: 0 },
     }),
-    [formations, gl]
+    [formations, gl],
   );
 
   const currentPair = useRef<[number, number]>([0, 1]);
@@ -141,7 +142,7 @@ export default function ParticleField({ count }: { count: number }) {
       pulseStrength.current,
       0,
       4.2,
-      frameDelta
+      frameDelta,
     );
     uniforms.uPulse.value = pulseStrength.current;
     const lastIndex = formations.length - 1;
@@ -157,10 +158,10 @@ export default function ParticleField({ count }: { count: number }) {
       currentPair.current[1] !== endIndex
     ) {
       const positionA = geometry.getAttribute(
-        "positionA"
+        "positionA",
       ) as THREE.BufferAttribute;
       const positionB = geometry.getAttribute(
-        "positionB"
+        "positionB",
       ) as THREE.BufferAttribute;
       positionA.copyArray(formations[startIndex].positions);
       positionB.copyArray(formations[endIndex].positions);
@@ -178,16 +179,12 @@ export default function ParticleField({ count }: { count: number }) {
     uniforms.uColorB.value.copy(end.color);
     if (!scroll.reducedMotion) uniforms.uTime.value += frameDelta;
 
-    const targetOpacity = THREE.MathUtils.lerp(
-      start.opacity,
-      end.opacity,
-      mix
-    );
+    const targetOpacity = THREE.MathUtils.lerp(start.opacity, end.opacity, mix);
     visibleOpacity.current = THREE.MathUtils.damp(
       visibleOpacity.current,
       targetOpacity,
       3,
-      frameDelta
+      frameDelta,
     );
     uniforms.uOpacity.value = visibleOpacity.current;
 
@@ -195,11 +192,11 @@ export default function ParticleField({ count }: { count: number }) {
     nextCameraTarget.current.copy(start.target).lerp(end.target, mix);
     cameraPosition.current.lerp(
       nextCameraPosition.current,
-      1 - Math.exp(-frameDelta * 3.2)
+      1 - Math.exp(-frameDelta * 3.2),
     );
     cameraTarget.current.lerp(
       nextCameraTarget.current,
-      1 - Math.exp(-frameDelta * 3.2)
+      1 - Math.exp(-frameDelta * 3.2),
     );
 
     const parallaxX = scroll.reducedMotion ? 0 : scroll.pointerX * 0.24;
@@ -207,18 +204,17 @@ export default function ParticleField({ count }: { count: number }) {
     camera.position.set(
       cameraPosition.current.x + parallaxX,
       cameraPosition.current.y + parallaxY,
-      cameraPosition.current.z
+      cameraPosition.current.z,
     );
     camera.lookAt(cameraTarget.current);
 
     if (pointsRef.current && !scroll.reducedMotion) {
       targetRotation.current = scroll.rotationNudge * 0.08;
-      pointsRef.current.rotation.y += frameDelta * 0.018;
       pointsRef.current.rotation.z = THREE.MathUtils.damp(
         pointsRef.current.rotation.z,
         targetRotation.current,
         3,
-        frameDelta
+        frameDelta,
       );
     }
   });

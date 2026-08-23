@@ -1838,7 +1838,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   mask-image: linear-gradient(to bottom, black, transparent 85%);
 }
 .observatory-canvas {
-  opacity: 0.62;
+  opacity: 0.5;
 }
 
 .obs-vignette {
@@ -3603,7 +3603,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 
 @media (max-width: 767px) {
   .observatory-canvas {
-    opacity: 0.48;
+    opacity: 0.38;
   }
   .obs-nav {
     min-height: 64px;
