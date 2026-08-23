@@ -2,7 +2,7 @@
   "name": "personal-portfolio",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://rgndunes.github.io/Portfolio-v5",
+  "homepage": "https://rgndunes.github.io/",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

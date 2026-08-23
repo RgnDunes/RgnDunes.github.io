@@ -10,7 +10,7 @@ This project is configured to deploy to GitHub Pages automatically. Here's how i
 
 1. Push changes to the `main` branch
 2. GitHub Actions will automatically build and deploy to the `gh-pages` branch
-3. The site will be available at https://rgndunes.github.io/Portfolio-v5
+3. The site will be available at https://rgndunes.github.io/
 
 ### Manual Deployment
 
