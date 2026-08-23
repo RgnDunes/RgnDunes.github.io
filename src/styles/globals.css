@@ -1931,7 +1931,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
-  opacity: 0.48;
+  opacity: 0.72;
 }
 .cinematic-reel {
   position: absolute;
@@ -1966,17 +1966,17 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   background:
     linear-gradient(
       90deg,
-      rgba(5, 7, 10, 0.98) 0%,
-      rgba(5, 7, 10, 0.84) 38%,
-      rgba(5, 7, 10, 0.32) 68%,
-      rgba(5, 7, 10, 0.58) 100%
+      rgba(5, 7, 10, 0.7) 0%,
+      rgba(5, 7, 10, 0.44) 38%,
+      rgba(5, 7, 10, 0.08) 68%,
+      rgba(5, 7, 10, 0.22) 100%
     ),
     linear-gradient(
       180deg,
-      rgba(5, 7, 10, 0.5),
+      rgba(5, 7, 10, 0.28),
       transparent 22%,
       transparent 72%,
-      rgba(5, 7, 10, 0.72)
+      rgba(5, 7, 10, 0.38)
     );
 }
 .cinematic-shot {
@@ -1984,51 +1984,51 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   object-position: 72% 50%;
   visibility: hidden;
   opacity: 0;
-  filter: saturate(0.72) contrast(1.1) brightness(0.78);
+  filter: saturate(0.86) contrast(1.06) brightness(0.96);
   transform-origin: 74% 50%;
   will-change: opacity, transform;
 }
 .cinematic-shot.is-iron-man {
   object-position: 74% 50%;
-  filter: saturate(0.7) contrast(1.14) brightness(0.72);
+  filter: saturate(0.84) contrast(1.1) brightness(0.9);
 }
 .cinematic-shot.is-loki-timeline {
   object-position: 72% 50%;
-  filter: saturate(0.76) contrast(1.12) brightness(0.66);
+  filter: saturate(0.88) contrast(1.08) brightness(0.88);
 }
 .cinematic-shot.is-captain-resolve {
   object-position: 82% 42%;
 }
 .cinematic-shot.is-captain-mjolnir {
   object-position: 83% 48%;
-  filter: saturate(0.64) contrast(1.12) brightness(0.7);
+  filter: saturate(0.8) contrast(1.08) brightness(0.9);
 }
 .cinematic-shot.is-spider-web {
   object-position: 84% 46%;
-  filter: saturate(0.76) contrast(1.12) brightness(0.7);
+  filter: saturate(0.88) contrast(1.08) brightness(0.92);
 }
 .cinematic-shot.is-wolverine-deadpool {
   object-position: 62% 50%;
-  filter: saturate(0.74) contrast(1.08) brightness(0.68);
+  filter: saturate(0.88) contrast(1.05) brightness(0.88);
 }
 .cinematic-shot.is-loki-throne {
   object-position: 58% 50%;
-  filter: saturate(0.72) contrast(1.1) brightness(0.66);
+  filter: saturate(0.86) contrast(1.06) brightness(0.86);
 }
 .cinematic-shot.is-reading,
 .cinematic-shot.is-books {
-  filter: saturate(0.58) contrast(1.08) brightness(0.56);
+  filter: saturate(0.76) contrast(1.05) brightness(0.78);
 }
 .cinematic-shot.is-red-hulk {
   object-position: 84% 48%;
-  filter: saturate(0.7) contrast(1.1) brightness(0.6);
+  filter: saturate(0.86) contrast(1.06) brightness(0.82);
 }
 .cinematic-shot.is-personal {
   object-position: 55% 50%;
 }
 .cinematic-shot.is-finale {
   object-position: 50% 50%;
-  filter: saturate(0.68) contrast(1.12) brightness(0.62);
+  filter: saturate(0.82) contrast(1.08) brightness(0.84);
   transform-origin: 50% 56%;
 }
 
@@ -2040,15 +2040,15 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   background:
     radial-gradient(
       circle at center,
-      transparent 35%,
-      rgba(5, 7, 10, 0.45) 100%
+      transparent 44%,
+      rgba(5, 7, 10, 0.28) 100%
     ),
     linear-gradient(
       90deg,
-      rgba(5, 7, 10, 0.56),
+      rgba(5, 7, 10, 0.3),
       transparent 35%,
       transparent 68%,
-      rgba(5, 7, 10, 0.42)
+      rgba(5, 7, 10, 0.24)
     );
 }
 
@@ -2172,7 +2172,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   pointer-events: none;
   background: radial-gradient(
     ellipse at center,
-    rgba(5, 7, 10, 0.84),
+    rgba(5, 7, 10, 0.56),
     rgba(5, 7, 10, 0) 70%
   );
 }
@@ -2439,7 +2439,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   inset: -4rem -6rem;
   background: radial-gradient(
     ellipse at center,
-    rgba(5, 7, 10, 0.82),
+    rgba(5, 7, 10, 0.52),
     transparent 72%
   );
   pointer-events: none;
@@ -2466,12 +2466,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   position: relative;
   z-index: 11;
   padding: 10vh max(7vw, 5rem) 12vh;
-  background: linear-gradient(
-    90deg,
-    rgba(5, 7, 10, 0.94),
-    rgba(5, 7, 10, 0.82) 56%,
-    rgba(5, 7, 10, 0.72)
-  );
+  background: transparent;
 }
 .obs-work-intro {
   max-width: 760px;
@@ -3110,10 +3105,10 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   inset: -3rem -2rem;
   background: linear-gradient(
     90deg,
-    rgba(5, 7, 10, 0.97) 0,
-    rgba(5, 7, 10, 0.88) 54%,
-    rgba(5, 7, 10, 0.46) 82%,
-    rgba(5, 7, 10, 0.16) 100%
+    rgba(5, 7, 10, 0.58) 0,
+    rgba(5, 7, 10, 0.4) 54%,
+    rgba(5, 7, 10, 0.16) 82%,
+    transparent 100%
   );
   pointer-events: none;
 }
@@ -3495,8 +3490,8 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   inset: -5rem -8rem;
   background: radial-gradient(
     ellipse at center,
-    rgba(5, 7, 10, 0.82),
-    rgba(5, 7, 10, 0.18) 56%,
+    rgba(5, 7, 10, 0.52),
+    rgba(5, 7, 10, 0.1) 56%,
     transparent 74%
   );
   pointer-events: none;
@@ -3805,7 +3800,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     opacity: 0.38;
   }
   .cinematic-backdrop {
-    opacity: 0.36;
+    opacity: 0.6;
   }
   .cinematic-reel {
     inset: -3.5%;
@@ -3817,15 +3812,15 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     background:
       linear-gradient(
         180deg,
-        rgba(5, 7, 10, 0.34),
-        rgba(5, 7, 10, 0.5) 54%,
-        rgba(5, 7, 10, 0.82)
+        rgba(5, 7, 10, 0.16),
+        rgba(5, 7, 10, 0.24) 54%,
+        rgba(5, 7, 10, 0.5)
       ),
-      linear-gradient(90deg, rgba(5, 7, 10, 0.72), transparent 86%);
+      linear-gradient(90deg, rgba(5, 7, 10, 0.42), transparent 86%);
   }
   .cinematic-shot {
     object-position: 68% 50%;
-    filter: saturate(0.66) contrast(1.05) brightness(0.68);
+    filter: saturate(0.8) contrast(1.04) brightness(0.84);
   }
   .cinematic-shot.is-iron-man {
     object-position: 66% 50%;
@@ -3874,8 +3869,8 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     inset: -4rem -2rem;
     background: radial-gradient(
       ellipse at center,
-      rgba(5, 7, 10, 0.9),
-      rgba(5, 7, 10, 0.1) 72%
+      rgba(5, 7, 10, 0.62),
+      rgba(5, 7, 10, 0.06) 72%
     );
   }
   .observatory h1 {
@@ -4114,9 +4109,9 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     inset: -2rem -1.25rem;
     background: linear-gradient(
       90deg,
-      rgba(5, 7, 10, 0.985),
-      rgba(5, 7, 10, 0.94) 72%,
-      rgba(5, 7, 10, 0.84)
+      rgba(5, 7, 10, 0.62),
+      rgba(5, 7, 10, 0.46) 72%,
+      rgba(5, 7, 10, 0.28)
     );
   }
   .obs-channel-head {
