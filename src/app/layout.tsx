@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { SITE, SITE_URL, absoluteUrl, withBasePath } from "@/lib/site";
+import RouteTransitionProvider from "@/components/transitions/RouteTransitionProvider";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -111,10 +112,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  colorScheme: "light dark",
+  colorScheme: "dark light",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F6F0E7" },
-    { media: "(prefers-color-scheme: dark)", color: "#141416" },
+    { media: "(prefers-color-scheme: light)", color: "#05070A" },
+    { media: "(prefers-color-scheme: dark)", color: "#05070A" },
   ],
 };
 
@@ -188,11 +189,15 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <head>
-        <link rel="preconnect" href="https://api.counterapi.dev" crossOrigin="" />
+        <link
+          rel="preconnect"
+          href="https://api.counterapi.dev"
+          crossOrigin=""
+        />
         <link rel="dns-prefetch" href="https://api.counterapi.dev" />
       </head>
       <body className="bg-paper text-ink-2 antialiased">
-        {children}
+        <RouteTransitionProvider>{children}</RouteTransitionProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

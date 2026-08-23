@@ -5,6 +5,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { blogPosts } from "@/data/blogPosts";
 import ViewCounter from "@/components/ViewCounter";
+import ObservatoryInterior from "@/components/blog/ObservatoryInterior";
+import TransitionLink from "@/components/transitions/TransitionLink";
 import { SITE, SITE_URL, absoluteUrl } from "@/lib/site";
 
 interface Props {
@@ -110,7 +112,7 @@ function readArticleHtml(contentPath: string | undefined): string {
     // Fail the build loudly rather than silently shipping empty article
     // shells — an empty article page is worse for SEO than a build error.
     throw new Error(
-      `Blog article body file is missing: ${abs}. Referenced from src/data/blogPosts.ts.`
+      `Blog article body file is missing: ${abs}. Referenced from src/data/blogPosts.ts.`,
     );
   }
 }
@@ -127,7 +129,7 @@ function readArticleHtml(contentPath: string | undefined): string {
 function stripByClass(html: string, className: string): string {
   const re = new RegExp(
     `<(div|section|header|nav|footer)\\s[^>]*class=["'][^"']*\\b${className}\\b[^"']*["'][^>]*>`,
-    "i"
+    "i",
   );
   let out = html;
   let m: RegExpExecArray | null;
@@ -182,7 +184,7 @@ function normaliseArticleHtml(raw: string): string {
   // Strip the article's own inline tag pills (we render our own).
   html = html.replace(
     /<(div|nav|ul|p)[^>]*class=["'][^"']*\btags?\b[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi,
-    ""
+    "",
   );
   // The article page template already renders the post title in an <h1>;
   // some body variants repeat it. Demote any residual <h1>s to <h2>.
@@ -191,12 +193,15 @@ function normaliseArticleHtml(raw: string): string {
     .replace(/<\/h1>/gi, "</h2>");
   // External <a href="http…"> without rel gets rel=noopener + target=_blank
   // so click targets are safe and Google isn't fed link-equity leaks.
-  html = html.replace(/<a\s+([^>]*href=["']https?:[^"']+["'][^>]*)>/gi, (m, attrs) => {
-    let out = attrs;
-    if (!/\brel=/i.test(out)) out = `${out} rel="noopener noreferrer"`;
-    if (!/\btarget=/i.test(out)) out = `${out} target="_blank"`;
-    return `<a ${out}>`;
-  });
+  html = html.replace(
+    /<a\s+([^>]*href=["']https?:[^"']+["'][^>]*)>/gi,
+    (m, attrs) => {
+      let out = attrs;
+      if (!/\brel=/i.test(out)) out = `${out} rel="noopener noreferrer"`;
+      if (!/\btarget=/i.test(out)) out = `${out} target="_blank"`;
+      return `<a ${out}>`;
+    },
+  );
   return html.trim();
 }
 
@@ -214,14 +219,9 @@ function bodyToPlain(html: string): string {
     .trim();
 }
 
-function articleJsonLd(
-  post: (typeof blogPosts)[number],
-  bodyHtml: string
-) {
+function articleJsonLd(post: (typeof blogPosts)[number], bodyHtml: string) {
   const url = `${SITE_URL}/blog/${post.slug}`;
-  const image = post.coverImage
-    ? absoluteUrl(post.coverImage)
-    : SITE.ogDefault;
+  const image = post.coverImage ? absoluteUrl(post.coverImage) : SITE.ogDefault;
   const imageObj = {
     "@type": "ImageObject",
     url: image,
@@ -285,7 +285,7 @@ function articleJsonLd(
 function findRelated(
   post: (typeof blogPosts)[number],
   all: typeof blogPosts,
-  limit = 3
+  limit = 3,
 ) {
   const tagSet = new Set(post.tags);
   return all
@@ -299,19 +299,16 @@ function findRelated(
       (a, b) =>
         b.overlap - a.overlap ||
         new Date(b.post.publishedAt).getTime() -
-          new Date(a.post.publishedAt).getTime()
+          new Date(a.post.publishedAt).getTime(),
     )
     .slice(0, limit)
     .map((r) => r.post);
 }
 
-function findPrevNext(
-  post: (typeof blogPosts)[number],
-  all: typeof blogPosts
-) {
+function findPrevNext(post: (typeof blogPosts)[number], all: typeof blogPosts) {
   const sorted = [...all].sort(
     (a, b) =>
-      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
   );
   const idx = sorted.findIndex((p) => p.slug === post.slug);
   return {
@@ -337,184 +334,166 @@ export default function BlogPostPage({ params }: Props) {
   const { newer, older } = findPrevNext(post, blogPosts);
 
   return (
-    <div className="min-h-screen bg-paper text-ink-2">
-      {/* Editorial masthead — thin ink bar, matches the notebook identity */}
-      <div className="border-b border-rule bg-ink py-3 text-center font-mono text-[10.5px] uppercase tracking-[0.28em] text-paper/90">
-        Engineering Diaries · {post.tags[0]}
-      </div>
+    <ObservatoryInterior>
+      <div className="obs-reading-shell min-h-screen text-ink-2">
+        <div className="obs-reading-masthead">
+          Engineering Diaries · {post.tags[0]}
+        </div>
 
-      <article className="mx-auto max-w-[720px] px-5 pb-24 pt-10 md:px-8 md:pt-16">
-        {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-10">
-          <ol className="flex flex-wrap items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted">
-            <li>
-              <Link href="/" className="hover:text-ink transition-colors">
-                Home
-              </Link>
-            </li>
-            <li aria-hidden className="text-rule">
-              ·
-            </li>
-            <li>
-              <Link href="/blog" className="hover:text-ink transition-colors">
-                Blog
-              </Link>
-            </li>
-            <li aria-hidden className="text-rule">
-              ·
-            </li>
-            <li className="text-ink" aria-current="page">
-              {post.title.length > 60
-                ? `${post.title.slice(0, 60)}…`
-                : post.title}
-            </li>
-          </ol>
-        </nav>
+        <article className="obs-reading-plane">
+          <nav aria-label="Breadcrumb" className="obs-reading-breadcrumb">
+            <ol>
+              <li>
+                <TransitionLink href="/">Home</TransitionLink>
+              </li>
+              <li aria-hidden>·</li>
+              <li>
+                <TransitionLink href="/blog">Articles</TransitionLink>
+              </li>
+            </ol>
+          </nav>
 
-        {/* Article header — folio numeral, title, dek, byline strip */}
-        <header className="mb-12">
-          <div className="mb-6 flex items-baseline gap-4">
-            <span className="folio text-4xl md:text-5xl">§</span>
-            <div className="eyebrow">
-              {post.tags.slice(0, 3).join(" · ")}
+          <header className="obs-reading-header">
+            <div className="obs-reading-rail">
+              <span className="folio">§</span>
+              <div className="eyebrow">
+                {post.tags.slice(0, 3).map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
             </div>
-          </div>
-          <h1 className="font-display text-[2rem] font-medium leading-[1.08] tracking-[-0.02em] text-ink md:text-[3rem] lg:text-[3.5rem]">
-            {post.title}
-          </h1>
-          <p className="mt-6 max-w-[60ch] font-body text-lg leading-[1.55] text-ink-2 md:text-xl">
-            {post.description}
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-rule py-4 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted">
-            <span>
-              By <span className="text-ink">{post.author.name}</span>
-            </span>
-            <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
-            <time dateTime={post.publishedAt} className="text-ink-2">
-              {publishedLabel}
-            </time>
-            <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
-            <span>{post.readingTime}</span>
-            <span aria-hidden className="h-1 w-1 rounded-full bg-rule" />
-            <ViewCounter pageId={`blog-${post.slug}`} showLabel={false} />
-          </div>
-        </header>
+            <div className="obs-reading-intro">
+              <h1 className="obs-reading-title">{post.title}</h1>
+              <p className="obs-reading-dek">{post.description}</p>
+              <div className="obs-reading-byline">
+                <span>
+                  By <strong>{post.author.name}</strong>
+                </span>
+                <time dateTime={post.publishedAt}>{publishedLabel}</time>
+                <span>{post.readingTime}</span>
+                <ViewCounter pageId={`blog-${post.slug}`} showLabel={false} />
+              </div>
+            </div>
+          </header>
 
-        {/* Article body — prose-notebook applies typography via globals.css */}
-        <div
-          className="prose prose-notebook max-w-none"
-          dangerouslySetInnerHTML={{ __html: bodyHtml }}
-        />
+          {/* Article body — prose-notebook applies typography via globals.css */}
+          <div
+            className="prose prose-notebook max-w-none"
+            dangerouslySetInnerHTML={{ __html: bodyHtml }}
+          />
 
-        {/* Fleuron divider */}
-        <div
-          className="mt-16 text-center font-display text-2xl italic tracking-[0.4em] text-saffron/50"
-          aria-hidden
-        >
-          · · ·
-        </div>
-
-        {/* Tags */}
-        <div className="mt-8 flex flex-wrap gap-2">
-          {post.tags.map((tag) => (
-            <Link
-              key={tag}
-              href={`/blog?tag=${encodeURIComponent(tag)}`}
-              rel="nofollow"
-              className="chip"
-            >
-              {tag}
-            </Link>
-          ))}
-        </div>
-
-        {/* Related essays */}
-        {related.length > 0 && (
-          <section
-            aria-labelledby="related-heading"
-            className="mt-20 border-t border-rule pt-10"
+          {/* Fleuron divider */}
+          <div
+            className="mt-16 text-center font-display text-2xl italic tracking-[0.4em] text-saffron/50"
+            aria-hidden
           >
-            <h2
-              id="related-heading"
-              className="mb-6 font-mono text-[10.5px] uppercase tracking-[0.22em] text-muted"
-            >
-              Related essays
-            </h2>
-            <ul className="grid gap-8 md:grid-cols-3">
-              {related.map((r) => (
-                <li key={r.slug}>
-                  <Link href={`/blog/${r.slug}`} className="group block">
-                    <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-saffron">
-                      {r.tags.slice(0, 2).join(" · ")}
-                    </div>
-                    <h3 className="font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
-                      {r.title}
-                    </h3>
-                    <p className="mt-2 clamp-3 text-sm leading-[1.55] text-ink-2">
-                      {r.description}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+            · · ·
+          </div>
 
-        {/* Prev/next navigation */}
-        <nav
-          aria-label="Post navigation"
-          className="mt-16 grid gap-6 border-t border-rule pt-10 md:grid-cols-2"
-        >
-          {older ? (
-            <Link
-              rel="prev"
-              href={`/blog/${older.slug}`}
-              className="group block"
+          {/* Tags */}
+          <div className="mt-8 flex flex-wrap gap-2">
+            {post.tags.map((tag) => (
+              <Link
+                key={tag}
+                href={`/blog?tag=${encodeURIComponent(tag)}`}
+                rel="nofollow"
+                className="chip"
+              >
+                {tag}
+              </Link>
+            ))}
+          </div>
+
+          {/* Related essays */}
+          {related.length > 0 && (
+            <section
+              aria-labelledby="related-heading"
+              className="mt-20 border-t border-rule pt-10"
             >
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-                ← Older essay
-              </span>
-              <span className="mt-2 block font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
-                {older.title}
-              </span>
-            </Link>
-          ) : (
-            <span />
+              <h2
+                id="related-heading"
+                className="mb-6 font-mono text-[10.5px] uppercase tracking-[0.22em] text-muted"
+              >
+                Related essays
+              </h2>
+              <ul className="grid gap-8 md:grid-cols-3">
+                {related.map((r) => (
+                  <li key={r.slug}>
+                    <TransitionLink
+                      href={`/blog/${r.slug}`}
+                      className="group block"
+                    >
+                      <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-saffron">
+                        {r.tags.slice(0, 2).join(" · ")}
+                      </div>
+                      <h3 className="font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
+                        {r.title}
+                      </h3>
+                      <p className="mt-2 clamp-3 text-sm leading-[1.55] text-ink-2">
+                        {r.description}
+                      </p>
+                    </TransitionLink>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
-          {newer ? (
-            <Link
-              rel="next"
-              href={`/blog/${newer.slug}`}
-              className="group block md:text-right"
+
+          {/* Prev/next navigation */}
+          <nav
+            aria-label="Post navigation"
+            className="mt-16 grid gap-6 border-t border-rule pt-10 md:grid-cols-2"
+          >
+            {older ? (
+              <TransitionLink
+                rel="prev"
+                href={`/blog/${older.slug}`}
+                className="group block"
+              >
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+                  ← Older essay
+                </span>
+                <span className="mt-2 block font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
+                  {older.title}
+                </span>
+              </TransitionLink>
+            ) : (
+              <span />
+            )}
+            {newer ? (
+              <TransitionLink
+                rel="next"
+                href={`/blog/${newer.slug}`}
+                className="group block md:text-right"
+              >
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+                  Newer essay →
+                </span>
+                <span className="mt-2 block font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
+                  {newer.title}
+                </span>
+              </TransitionLink>
+            ) : null}
+          </nav>
+
+          {/* Back link */}
+          <div className="mt-16 flex justify-center border-t border-rule pt-10">
+            <TransitionLink
+              href="/blog"
+              className="link-quiet font-mono text-[11px] uppercase tracking-[0.22em]"
             >
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-                Newer essay →
-              </span>
-              <span className="mt-2 block font-display text-[17px] leading-snug text-ink transition-colors group-hover:text-saffron">
-                {newer.title}
-              </span>
-            </Link>
-          ) : null}
-        </nav>
+              ← Return to the full archive
+            </TransitionLink>
+          </div>
+        </article>
 
-        {/* Back link */}
-        <div className="mt-16 flex justify-center border-t border-rule pt-10">
-          <Link href="/blog" className="link-quiet font-mono text-[11px] uppercase tracking-[0.22em]">
-            ← Return to the full archive
-          </Link>
-        </div>
-      </article>
-
-      {older && (
-        <link rel="prev" href={`${SITE_URL}/blog/${older.slug}`} />
-      )}
-      {newer && (
-        <link rel="next" href={`${SITE_URL}/blog/${newer.slug}`} />
-      )}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-    </div>
+        {older && <link rel="prev" href={`${SITE_URL}/blog/${older.slug}`} />}
+        {newer && <link rel="next" href={`${SITE_URL}/blog/${newer.slug}`} />}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </div>
+    </ObservatoryInterior>
   );
 }

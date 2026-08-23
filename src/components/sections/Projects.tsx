@@ -131,16 +131,22 @@ export default function Projects() {
 function FeaturedCard({ feature, inView }: { feature: Project; inView: boolean }) {
   const mx = useMotionValue(-200);
   const my = useMotionValue(-200);
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
   const spotlight = useMotionTemplate`radial-gradient(360px circle at ${mx}px ${my}px, rgba(232, 106, 43, 0.20), transparent 60%)`;
 
   const onMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     mx.set(e.clientX - rect.left);
     my.set(e.clientY - rect.top);
+    rotateX.set(((e.clientY - rect.top) / rect.height - 0.5) * -3);
+    rotateY.set(((e.clientX - rect.left) / rect.width - 0.5) * 3);
   };
   const onLeave = () => {
     mx.set(-200);
     my.set(-200);
+    rotateX.set(0);
+    rotateY.set(0);
   };
 
   return (
@@ -148,6 +154,7 @@ function FeaturedCard({ feature, inView }: { feature: Project; inView: boolean }
       initial={{ opacity: 0, y: 30 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.7, delay: 0.1 }}
+      style={{ rotateX, rotateY, transformPerspective: 1200 }}
       onMouseMove={onMouseMove}
       onMouseLeave={onLeave}
       className="relative mt-12 grid gap-8 overflow-hidden rounded-3xl border border-rule bg-paper-2 p-6 md:grid-cols-[1.1fr_1fr] md:gap-12 md:p-10"

@@ -24,17 +24,31 @@ interface MediaItem {
 interface PreviousRole {
   position: string;
   duration: string;
+  startDate: string;
+  endDate: string;
   description: string;
   achievements: string[];
   media?: MediaItem[];
 }
 
+interface AchievementGroup {
+  title: string;
+  items: string[];
+}
+
 interface Experience {
   company: string;
   position: string;
+  roleDuration?: string;
+  roleStartDate?: string;
+  roleEndDate?: string;
   duration: string;
+  startDate: string;
+  endDate?: string;
+  track: "primary" | "concurrent";
   description: string;
   achievements?: string[];
+  achievementGroups?: AchievementGroup[];
   previousRoles?: PreviousRole[];
   logo: string | StaticImageData;
   technologies?: string[];
@@ -46,6 +60,8 @@ export const experiences: Experience[] = [
     company: "Rippling",
     position: "Software Engineer II, Web Infrastructure",
     duration: "Jun 2025 - Present",
+    startDate: "2025-06",
+    track: "primary",
     description:
       "Frontend infrastructure, developer tooling, CI/CD systems, test reliability, and incident response.",
     achievements: [
@@ -60,13 +76,59 @@ export const experiences: Experience[] = [
       "Designed owner-first P1 incident automation after analyzing about 90 on-call engagements across 11 weeks; replaying the reference week showed 6 of 9 incidents would not have paged Web Infrastructure first.",
       "Added a browser beacon and backend endpoint to capture bundle failures before Datadog RUM, LogRocket, or Sentry initialize, recording the failure mode, deployment context, and affected script.",
     ],
+    achievementGroups: [
+      {
+        title: "Developer speed",
+        items: [
+          "Reworked eager route imports: 11,516 → 54 modules and 90s → 10.54s finished loading; extended the analysis across six product areas.",
+          "Moved an internal developer CLI into the frontend monorepo, reached ~100% function coverage, and added independently deployed app support.",
+        ],
+      },
+      {
+        title: "CI and test reliability",
+        items: [
+          "Parallelized safe integration suites across ten domains: build P90 81 → 52m, backend PR P90 76 → 40m, and frontend PR P90 88 → 58m.",
+          "Built flaky-test detection with 20× reruns, test and module scoring, and Datadog, S3 dashboard, and Slack reporting.",
+        ],
+      },
+      {
+        title: "Platform and security",
+        items: [
+          "Replaced permanent package credentials with 12-hour IAM tokens across three repositories and moved the flow to AWS Secrets Manager.",
+          "Centralized service ownership for backend, frontend, and mobile; updated Python, JavaScript, and Terraform consumers with CI safeguards.",
+        ],
+      },
+      {
+        title: "Observability and incident response",
+        items: [
+          "Split deployment telemetry into four six-hour recovery windows so missed runs retain complete, duplicate-free data.",
+          "Automated reporting for 50+ weekly support queries, saving 1–2 hours of manual on-call work each week.",
+          "Designed owner-first P1 automation from ~90 engagements; 6 of 9 reference-week incidents would avoid paging Web Infrastructure first.",
+          "Captured bundle failures before RUM, LogRocket, or Sentry startup with a browser beacon and backend endpoint.",
+        ],
+      },
+    ],
     logo: ripplingLogo,
-    technologies: ["React", "TypeScript", "AWS", "Datadog", "Buildkite", "Playwright", "Slack API"],
+    technologies: [
+      "React",
+      "TypeScript",
+      "AWS",
+      "Datadog",
+      "Buildkite",
+      "Playwright",
+      "Slack API",
+    ],
   },
   {
     company: "Razorpay",
-    position: "Senior Frontend Engineer",
+    position: "Senior Frontend Engineer, Internationalization",
+    roleDuration: "Nov 2024 - Jun 2025",
+    roleStartDate: "2024-11",
+    roleEndDate: "2025-06",
     duration: "May 2021 - Jun 2025",
+    startDate: "2021-05",
+    endDate: "2025-06",
+    track: "primary",
     description:
       "International expansion, i18n infrastructure, and payment authentication across Malaysia, Singapore, and India.",
     achievements: [
@@ -77,7 +139,14 @@ export const experiences: Experience[] = [
       "Earned four Razorpay SPOT awards for ownership and engineering impact.",
     ],
     logo: razorpayLogo,
-    technologies: ["React", "TypeScript", "Rollup", "Blade UI", "Playwright", "Jest"],
+    technologies: [
+      "React",
+      "TypeScript",
+      "Rollup",
+      "Blade UI",
+      "Playwright",
+      "Jest",
+    ],
     media: [
       { src: espritDeCorp1, caption: "Esprit De Corps Award" },
       { src: espritDeCorp2, caption: "Esprit De Corps Award" },
@@ -87,6 +156,8 @@ export const experiences: Experience[] = [
       {
         position: "Software Development Engineer I",
         duration: "Aug 2022 - Oct 2024",
+        startDate: "2022-08",
+        endDate: "2024-10",
         description:
           "Payment authentication, tokenization, and frontend infrastructure.",
         achievements: [
@@ -100,15 +171,14 @@ export const experiences: Experience[] = [
       {
         position: "Frontend Engineer Intern",
         duration: "May 2021 - Jul 2022",
-        description:
-          "Payment disputes and fraud detection UI for RazorpayX.",
+        startDate: "2021-05",
+        endDate: "2022-07",
+        description: "Payment disputes and fraud detection UI for RazorpayX.",
         achievements: [
           "Halved payment-dispute resolution time from 20 to 10 minutes.",
           "Revamped a risk-management interface, increasing engagement by 33% while reducing load time by 21%.",
         ],
-        media: [
-          { src: rzpInternCert, caption: "Internship Certificate" },
-        ],
+        media: [{ src: rzpInternCert, caption: "Internship Certificate" }],
       },
     ],
   },
@@ -116,6 +186,9 @@ export const experiences: Experience[] = [
     company: "AccioJob",
     position: "React & Redux Instructor",
     duration: "Jan 2023 - May 2025",
+    startDate: "2023-01",
+    endDate: "2025-05",
+    track: "concurrent",
     description:
       "Freelance instructor teaching frontend development from HTML/CSS/JS through advanced React, state management, and modern frontend patterns.",
     achievements: undefined,
@@ -126,6 +199,9 @@ export const experiences: Experience[] = [
     company: "Airtribe",
     position: "Full Stack Mentor",
     duration: "Apr 2024 - Oct 2024",
+    startDate: "2024-04",
+    endDate: "2024-10",
+    track: "concurrent",
     description:
       "Mentored 100+ students preparing for frontend and backend roles. Invited as Jury Member for a Tech-AI Hackathon held in Bangalore.",
     achievements: undefined,
@@ -136,39 +212,42 @@ export const experiences: Experience[] = [
     company: "GeeksforGeeks",
     position: "Technical Content Writer Intern",
     duration: "Oct 2020 - Aug 2021",
+    startDate: "2020-10",
+    endDate: "2021-08",
+    track: "concurrent",
     description:
       "Published 11+ technical articles and enhanced 2 existing ones covering Linked Lists, Python, Git, ReactJS, Firestore, Flask, and more.",
     achievements: undefined,
     logo: gfgLogo,
     technologies: ["Python", "ReactJS", "Flask", "Git"],
-    media: [
-      { src: gfgInternCert, caption: "Internship Certificate" },
-    ],
+    media: [{ src: gfgInternCert, caption: "Internship Certificate" }],
   },
   {
     company: "Correlations.ai",
     position: "SWE Intern",
     duration: "Dec 2020 - Feb 2021",
+    startDate: "2020-12",
+    endDate: "2021-02",
+    track: "primary",
     description:
       "Worked on Login Infrastructure and Mail Templating Services using ReactJS, Flask, and MongoDB.",
     achievements: undefined,
     logo: correlationsLogo,
     technologies: ["ReactJS", "Flask", "MongoDB"],
-    media: [
-      { src: correlationsInternCert, caption: "Internship Certificate" },
-    ],
+    media: [{ src: correlationsInternCert, caption: "Internship Certificate" }],
   },
   {
     company: "TagHive Inc.",
     position: "Android Developer Intern",
     duration: "Aug 2020 - Oct 2020",
+    startDate: "2020-08",
+    endDate: "2020-10",
+    track: "primary",
     description:
       "Contributed to the Android development of Class Saathi, an ed-tech app by TagHive (South Korea).",
     achievements: undefined,
     logo: taghiveLogo,
     technologies: ["Android", "Java"],
-    media: [
-      { src: taghiveInternCert, caption: "Internship Certificate" },
-    ],
+    media: [{ src: taghiveInternCert, caption: "Internship Certificate" }],
   },
 ] as const;

@@ -56,8 +56,7 @@ export default function ViewCounter({ pageId, showLabel = true }: ViewCounterPro
 
         setStats({ totalViews, uniqueViews });
         setLoading(false);
-      } catch (error) {
-        console.error("[ViewCounter] Error:", error);
+      } catch {
         setLoading(false);
       }
     };
