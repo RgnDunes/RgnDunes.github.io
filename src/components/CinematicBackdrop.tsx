@@ -17,6 +17,7 @@ const SHOTS = [
     start: 0,
     travelX: -18,
     travelY: -12,
+    zoom: 1.16,
   },
   {
     activeSection: "about",
@@ -27,6 +28,7 @@ const SHOTS = [
     start: 1,
     travelX: 22,
     travelY: -8,
+    zoom: 1.26,
   },
   {
     activeSection: "work",
@@ -37,6 +39,7 @@ const SHOTS = [
     start: 2,
     travelX: -12,
     travelY: -24,
+    zoom: 1.18,
   },
   {
     activeSection: "work",
@@ -48,6 +51,7 @@ const SHOTS = [
     start: 5,
     travelX: 12,
     travelY: -20,
+    zoom: 1.18,
   },
   {
     activeSection: "skills",
@@ -58,6 +62,7 @@ const SHOTS = [
     start: 9,
     travelX: -10,
     travelY: -16,
+    zoom: 1.16,
   },
   {
     activeSection: "notebook",
@@ -68,6 +73,7 @@ const SHOTS = [
     start: 10,
     travelX: 20,
     travelY: -10,
+    zoom: 1.18,
   },
   {
     activeSection: "articles",
@@ -78,6 +84,7 @@ const SHOTS = [
     start: 11,
     travelX: -12,
     travelY: -6,
+    zoom: 1.24,
   },
   {
     activeSection: "books",
@@ -88,6 +95,7 @@ const SHOTS = [
     start: 12,
     travelX: 12,
     travelY: -6,
+    zoom: 1.24,
   },
   {
     activeSection: "testimonials",
@@ -98,6 +106,7 @@ const SHOTS = [
     start: 13,
     travelX: -10,
     travelY: -16,
+    zoom: 1.16,
   },
   {
     activeSection: "personal",
@@ -108,6 +117,7 @@ const SHOTS = [
     start: 14,
     travelX: 24,
     travelY: -12,
+    zoom: 1.18,
   },
   {
     activeSection: "contact",
@@ -118,6 +128,7 @@ const SHOTS = [
     start: 15,
     travelX: 0,
     travelY: 12,
+    zoom: 1.28,
   },
 ] as const;
 
@@ -198,7 +209,12 @@ export default function CinematicBackdrop() {
         const pointerY = compact || scroll.reducedMotion ? 0 : scroll.pointerY;
         const x = timelineOffset * shot.travelX + pointerX * -7;
         const y = timelineOffset * shot.travelY + pointerY * -4;
-        const scale = scroll.reducedMotion ? 1.055 : 1.04 + progress * 0.035;
+        const baseScale = compact
+          ? Math.max(1.12, shot.zoom - 0.04)
+          : shot.zoom;
+        const scale = scroll.reducedMotion
+          ? baseScale
+          : baseScale + progress * 0.045;
 
         element.style.opacity = opacity.toFixed(3);
         element.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(3)})`;
