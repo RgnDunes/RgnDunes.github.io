@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
-import ComicPanelBackdrop from "@/components/ComicPanelBackdrop";
+import CinematicBackdrop from "@/components/CinematicBackdrop";
 import ScrollProvider from "@/three/scroll/ScrollProvider";
 
 const RippleShell = dynamic(() => import("@/components/ripple/RippleShell"), {
@@ -36,7 +36,7 @@ export default function HomeShell({ children }: { children: React.ReactNode }) {
   return (
     <ScrollProvider>
       {!gameMode && <SceneCanvas />}
-      {!gameMode && <ComicPanelBackdrop />}
+      {!gameMode && <CinematicBackdrop />}
       {!gameMode && <ScrollProgress />}
       {!gameMode && (
         <>
