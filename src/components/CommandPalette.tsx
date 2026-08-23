@@ -46,26 +46,112 @@ export default function CommandPalette({ open, onClose }: Props) {
 
   const commands: Cmd[] = useMemo(
     () => [
-      { id: "home", label: "Top of page", group: "Navigation", icon: FaHome, action: () => { onClose(); window.scrollTo({ top: 0, behavior: "smooth" }); } },
-      { id: "work", label: "Work · Experience", group: "Navigation", icon: FaBriefcase, action: () => goHash("#work") },
-      { id: "skills", label: "Skills · Toolkit", group: "Navigation", icon: FaCode, action: () => goHash("#skills") },
-      { id: "notebook", label: "Notebook · Projects", group: "Navigation", icon: FaBook, action: () => goHash("#notebook") },
-      { id: "writing", label: "Writing · Blog", group: "Navigation", icon: FaBook, hint: "/blog", action: () => { onClose(); router.push("/blog"); } },
-      { id: "contact", label: "Contact", group: "Navigation", icon: FaEnvelope, action: () => goHash("#contact") },
+      {
+        id: "home",
+        label: "Top of page",
+        group: "Navigation",
+        icon: FaHome,
+        action: () => {
+          onClose();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        },
+      },
+      {
+        id: "work",
+        label: "Work · Experience",
+        group: "Navigation",
+        icon: FaBriefcase,
+        action: () => goHash("#work"),
+      },
+      {
+        id: "skills",
+        label: "Skills · Toolkit",
+        group: "Navigation",
+        icon: FaCode,
+        action: () => goHash("#skills"),
+      },
+      {
+        id: "notebook",
+        label: "Notebook · Projects",
+        group: "Navigation",
+        icon: FaBook,
+        action: () => goHash("#notebook"),
+      },
+      {
+        id: "writing",
+        label: "Writing · Blog",
+        group: "Navigation",
+        icon: FaBook,
+        hint: "/blog",
+        action: () => {
+          onClose();
+          router.push("/blog");
+        },
+      },
+      {
+        id: "contact",
+        label: "Contact",
+        group: "Navigation",
+        icon: FaEnvelope,
+        action: () => goHash("#contact"),
+      },
 
-      { id: "resume", label: "Download résumé", group: "Actions", icon: FaArrowRight, hint: "PDF", action: () => { onClose(); window.open(`${process.env.NODE_ENV === "production" ? "/Portfolio-v5" : ""}/Divyansh_Singh_Resume.pdf`, "_blank"); } },
-      { id: "email", label: "Copy email address", group: "Actions", icon: FaEnvelope, hint: "rgndunes@gmail.com", action: async () => { try { await navigator.clipboard.writeText("rgndunes@gmail.com"); } catch {} onClose(); } },
-      { id: "gh", label: "GitHub", group: "Elsewhere", icon: FaGithub, hint: "@RgnDunes", action: () => { onClose(); window.open("https://github.com/RgnDunes", "_blank"); } },
-      { id: "li", label: "LinkedIn", group: "Elsewhere", icon: FaLinkedin, hint: "/in/rgndunes", action: () => { onClose(); window.open("https://linkedin.com/in/rgndunes", "_blank"); } },
+      {
+        id: "resume",
+        label: "Download résumé",
+        group: "Actions",
+        icon: FaArrowRight,
+        hint: "PDF",
+        action: () => {
+          onClose();
+          window.open("/Divyansh_Singh_Resume.pdf", "_blank");
+        },
+      },
+      {
+        id: "email",
+        label: "Copy email address",
+        group: "Actions",
+        icon: FaEnvelope,
+        hint: "rgndunes@gmail.com",
+        action: async () => {
+          try {
+            await navigator.clipboard.writeText("rgndunes@gmail.com");
+          } catch {}
+          onClose();
+        },
+      },
+      {
+        id: "gh",
+        label: "GitHub",
+        group: "Elsewhere",
+        icon: FaGithub,
+        hint: "@RgnDunes",
+        action: () => {
+          onClose();
+          window.open("https://github.com/RgnDunes", "_blank");
+        },
+      },
+      {
+        id: "li",
+        label: "LinkedIn",
+        group: "Elsewhere",
+        icon: FaLinkedin,
+        hint: "/in/rgndunes",
+        action: () => {
+          onClose();
+          window.open("https://linkedin.com/in/rgndunes", "_blank");
+        },
+      },
     ],
-    [router, onClose]
+    [router, onClose],
   );
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return commands;
     return commands.filter(
-      (c) => c.label.toLowerCase().includes(s) || c.group.toLowerCase().includes(s)
+      (c) =>
+        c.label.toLowerCase().includes(s) || c.group.toLowerCase().includes(s),
     );
   }, [q, commands]);
 
@@ -83,15 +169,26 @@ export default function CommandPalette({ open, onClose }: Props) {
     const onKey = (e: KeyboardEvent) => {
       if (!open) return;
       if (e.key === "Escape") onClose();
-      if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => Math.min(i + 1, filtered.length - 1)); }
-      if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => Math.max(i - 1, 0)); }
-      if (e.key === "Enter") { e.preventDefault(); filtered[active]?.action(); }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActive((i) => Math.min(i + 1, filtered.length - 1));
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActive((i) => Math.max(i - 1, 0));
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        filtered[active]?.action();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, filtered, active, onClose]);
 
-  useEffect(() => { setActive(0); }, [q]);
+  useEffect(() => {
+    setActive(0);
+  }, [q]);
 
   const grouped = useMemo(() => {
     const m = new Map<string, Cmd[]>();
@@ -163,12 +260,16 @@ export default function CommandPalette({ open, onClose }: Props) {
                           >
                             <span
                               className={`flex h-7 w-7 items-center justify-center rounded-md border ${
-                                isActive ? "border-saffron text-saffron" : "border-rule text-ink-2"
+                                isActive
+                                  ? "border-saffron text-saffron"
+                                  : "border-rule text-ink-2"
                               }`}
                             >
                               <Icon className="h-3.5 w-3.5" />
                             </span>
-                            <span className={`flex-1 text-sm ${isActive ? "text-ink" : "text-ink-2"}`}>
+                            <span
+                              className={`flex-1 text-sm ${isActive ? "text-ink" : "text-ink-2"}`}
+                            >
                               {c.label}
                             </span>
                             {c.hint && (
@@ -181,7 +282,9 @@ export default function CommandPalette({ open, onClose }: Props) {
                       );
                     })}
                   </ul>
-                  {gIdx < grouped.length - 1 && <div className="mx-4 mt-2 rule-hair" />}
+                  {gIdx < grouped.length - 1 && (
+                    <div className="mx-4 mt-2 rule-hair" />
+                  )}
                 </li>
               ))}
             </ul>

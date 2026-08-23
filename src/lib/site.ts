@@ -3,11 +3,8 @@
  * metadata, sitemap, robots, JSON-LD, RSS, OG images.
  */
 
-const isProd = process.env.NODE_ENV === "production";
-
-export const BASE_PATH = isProd ? "/Portfolio-v5" : "";
 export const SITE_ORIGIN = "https://rgndunes.github.io";
-export const SITE_URL = `${SITE_ORIGIN}${BASE_PATH}`;
+export const SITE_URL = SITE_ORIGIN;
 
 export const SITE = {
   name: "Divyansh Singh",
@@ -63,5 +60,5 @@ export function absoluteUrl(pathname: string): string {
 
 export function withBasePath(pathname: string): string {
   const clean = pathname.startsWith("/") ? pathname : `/${pathname}`;
-  return `${BASE_PATH}${clean}`;
+  return clean;
 }
