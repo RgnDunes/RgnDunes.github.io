@@ -184,7 +184,7 @@ export default function CinematicBackdrop() {
       if (section) observer.observe(section);
     });
 
-    const render = () => {
+    const render = (time: number) => {
       const scroll = getSceneScrollState();
       const compact = window.innerWidth < 768;
 
@@ -207,8 +207,15 @@ export default function CinematicBackdrop() {
         const timelineOffset = progress - 0.5;
         const pointerX = compact || scroll.reducedMotion ? 0 : scroll.pointerX;
         const pointerY = compact || scroll.reducedMotion ? 0 : scroll.pointerY;
-        const x = timelineOffset * shot.travelX + pointerX * -7;
-        const y = timelineOffset * shot.travelY + pointerY * -4;
+        const motionFactor = scroll.reducedMotion ? 0 : compact ? 0.45 : 1;
+        const idlePhase = time * 0.00032 + index * 1.37;
+        const idleX = Math.sin(idlePhase) * 10 * motionFactor;
+        const idleY = Math.cos(idlePhase * 0.83 + 0.7) * 7 * motionFactor;
+        const idleScale =
+          (Math.sin(idlePhase * 0.61 + 1.2) + 1) * 0.006 * motionFactor;
+        const idleRotation = Math.sin(idlePhase * 0.47) * 0.18 * motionFactor;
+        const x = timelineOffset * shot.travelX + pointerX * -7 + idleX;
+        const y = timelineOffset * shot.travelY + pointerY * -4 + idleY;
         const enterProgress = scroll.reducedMotion
           ? 1
           : smoothstep(scroll.position, shot.start - shot.feather, shot.start);
@@ -217,10 +224,10 @@ export default function CinematicBackdrop() {
           : smoothstep(scroll.position, shot.end, shot.end + shot.feather);
         const baseScale = compact ? Math.max(1, shot.zoom - 0.02) : shot.zoom;
         const transitionScale = (1 - enterProgress) * 0.1 + exitProgress * 0.14;
-        const scale = baseScale + transitionScale;
+        const scale = baseScale + transitionScale + idleScale;
 
         element.style.opacity = opacity.toFixed(3);
-        element.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(3)})`;
+        element.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotateZ(${idleRotation.toFixed(3)}deg) scale(${scale.toFixed(3)})`;
         element.style.visibility = opacity > 0.005 ? "visible" : "hidden";
       });
 
