@@ -2000,7 +2000,40 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     transparent 100%
   );
 }
+.cinematic-shot::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: -1px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      #05070a 0%,
+      rgba(5, 7, 10, 0.96) 4%,
+      rgba(5, 7, 10, 0.72) 11%,
+      rgba(5, 7, 10, 0.28) 18%,
+      transparent 27%,
+      transparent 73%,
+      rgba(5, 7, 10, 0.28) 82%,
+      rgba(5, 7, 10, 0.72) 89%,
+      rgba(5, 7, 10, 0.96) 96%,
+      #05070a 100%
+    ),
+    linear-gradient(
+      180deg,
+      #05070a 0%,
+      rgba(5, 7, 10, 0.9) 5%,
+      rgba(5, 7, 10, 0.54) 12%,
+      transparent 23%,
+      transparent 77%,
+      rgba(5, 7, 10, 0.54) 88%,
+      rgba(5, 7, 10, 0.9) 95%,
+      #05070a 100%
+    );
+}
 .cinematic-shot-media {
+  z-index: 0;
   object-fit: cover;
   object-position: 72% 50%;
 }
