@@ -5,12 +5,14 @@ import Image from "next/image";
 import { withBasePath } from "@/lib/site";
 import { getSceneScrollState } from "@/three/scroll/store";
 
+const CROSSFADE = 0.42;
+
 const SHOTS = [
   {
     activeSection: "top",
     className: "is-iron-man",
-    end: 0.72,
-    feather: 0.34,
+    end: 0.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/iron-man-reactor.webp"),
     start: 0,
     travelX: -18,
@@ -19,90 +21,91 @@ const SHOTS = [
   {
     activeSection: "about",
     className: "is-loki-timeline",
-    end: 1.34,
-    feather: 0.3,
+    end: 1.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/loki-timeline.webp"),
-    start: 0.72,
+    start: 1,
     travelX: 22,
     travelY: -8,
   },
   {
     activeSection: "work",
     className: "is-captain-resolve",
-    end: 4.7,
-    feather: 0.68,
+    end: 4.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/captain-america-resolve.webp"),
-    start: 1.45,
+    start: 2,
     travelX: -12,
     travelY: -24,
   },
   {
     activeSection: "work",
     className: "is-captain-mjolnir",
-    end: 8.28,
-    feather: 0.68,
+    end: 8.58,
+    feather: CROSSFADE,
+    skipReducedMotion: true,
     src: withBasePath("/assets/cinematic-reel/captain-america-mjolnir.webp"),
-    start: 5.38,
+    start: 5,
     travelX: 12,
     travelY: -20,
   },
   {
     activeSection: "skills",
     className: "is-spider-web",
-    end: 9.28,
-    feather: 0.26,
+    end: 9.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/spider-man-web.webp"),
-    start: 8.72,
+    start: 9,
     travelX: -10,
     travelY: -16,
   },
   {
     activeSection: "notebook",
     className: "is-wolverine-deadpool",
-    end: 10.3,
-    feather: 0.28,
+    end: 10.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/wolverine-deadpool.webp"),
-    start: 9.7,
+    start: 10,
     travelX: 20,
     travelY: -10,
   },
   {
     activeSection: "articles",
     className: "is-loki-throne is-reading",
-    end: 11.3,
-    feather: 0.28,
+    end: 11.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/loki-throne.webp"),
-    start: 10.7,
+    start: 11,
     travelX: -12,
     travelY: -6,
   },
   {
     activeSection: "books",
     className: "is-loki-throne is-books",
-    end: 12.3,
-    feather: 0.28,
+    end: 12.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/loki-throne.webp"),
-    start: 11.7,
+    start: 12,
     travelX: 12,
     travelY: -6,
   },
   {
     activeSection: "testimonials",
     className: "is-red-hulk",
-    end: 13.3,
-    feather: 0.28,
+    end: 13.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/red-hulk.webp"),
-    start: 12.7,
+    start: 13,
     travelX: -10,
     travelY: -16,
   },
   {
     activeSection: "personal",
     className: "is-wolverine-deadpool is-personal",
-    end: 14.34,
-    feather: 0.32,
+    end: 14.58,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/wolverine-deadpool.webp"),
-    start: 13.66,
+    start: 14,
     travelX: 24,
     travelY: -12,
   },
@@ -110,9 +113,9 @@ const SHOTS = [
     activeSection: "contact",
     className: "is-loki-throne is-finale",
     end: 15.2,
-    feather: 0.38,
+    feather: CROSSFADE,
     src: withBasePath("/assets/cinematic-reel/loki-throne.webp"),
-    start: 14.62,
+    start: 15,
     travelX: 0,
     travelY: 12,
   },
@@ -178,13 +181,12 @@ export default function CinematicBackdrop() {
         const element = shotRefs.current[index];
         if (!element) return;
 
-        const samplePosition = scroll.reducedMotion
-          ? (shot.start + shot.end) / 2
-          : scroll.position;
-        const opacity =
-          activeSectionRef.current === shot.activeSection
-            ? windowOpacity(samplePosition, shot.start, shot.end, shot.feather)
-            : 0;
+        const opacity = scroll.reducedMotion
+          ? activeSectionRef.current === shot.activeSection &&
+            !("skipReducedMotion" in shot)
+            ? 1
+            : 0
+          : windowOpacity(scroll.position, shot.start, shot.end, shot.feather);
         const progress = scroll.reducedMotion
           ? 0.5
           : clamp(
