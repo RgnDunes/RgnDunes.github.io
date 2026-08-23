@@ -563,7 +563,7 @@
 }
 .ripple-backdrop {
   position: fixed;
-  z-index: 0;
+  z-index: 1;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
@@ -579,6 +579,67 @@
       transparent 28%
     ),
     #05070a;
+}
+.ripple-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 73% 72%,
+    rgba(180, 34, 23, 0.18),
+    transparent 30%
+  );
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+.ripple-backdrop.is-heated::after {
+  opacity: 0.42;
+}
+.ripple-backdrop.is-escalated::after {
+  opacity: 1;
+}
+.ripple-gamma-figure {
+  position: absolute;
+  right: clamp(-7rem, -4vw, -2rem);
+  bottom: -4rem;
+  width: min(46rem, 54vw);
+  height: min(82vh, 50rem);
+  opacity: 0;
+  transform: translate3d(0, 5%, 0) scale(0.97);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 0 32px rgba(180, 34, 23, 0.2));
+  transition:
+    opacity 500ms ease,
+    transform 700ms cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+.ripple-backdrop.is-heated .ripple-gamma-figure {
+  opacity: 0.12;
+}
+.ripple-backdrop.is-escalated .ripple-gamma-figure {
+  opacity: 0.68;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+.ripple-gamma-body {
+  fill: rgba(150, 30, 24, 0.16);
+}
+.ripple-gamma-line,
+.ripple-gamma-cracks {
+  stroke: rgba(224, 68, 45, 0.72);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.ripple-gamma-eye {
+  stroke: #f6cf72;
+  stroke-width: 5;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 7px #f6cf72);
+}
+.ripple-gamma-cracks {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.ripple-backdrop.is-escalated .ripple-gamma-cracks {
+  animation: ripple-gamma-impact 700ms 150ms ease-out forwards;
 }
 .ripple-grid-plane {
   position: absolute;
@@ -1093,6 +1154,11 @@
       54px 0;
   }
 }
+@keyframes ripple-gamma-impact {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 
 @media (min-width: 640px) {
   .ripple-evidence.is-expanded {
@@ -1121,6 +1187,17 @@
 }
 
 @media (max-width: 639px) {
+  .ripple-gamma-figure {
+    right: -9rem;
+    width: 28rem;
+    opacity: 0;
+  }
+  .ripple-backdrop.is-heated .ripple-gamma-figure {
+    opacity: 0.07;
+  }
+  .ripple-backdrop.is-escalated .ripple-gamma-figure {
+    opacity: 0.24;
+  }
   .ripple-ident span:nth-child(n + 3) {
     display: none;
   }
@@ -2970,6 +3047,10 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   transform-origin: center;
   vector-effect: non-scaling-stroke;
 }
+.obs-story-armored,
+.obs-story-timekeeper {
+  display: none;
+}
 .obs-story-group path,
 .obs-story-group ellipse,
 .obs-story-group circle {
@@ -3077,14 +3158,8 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 .obs-personal-story.is-active .obs-story-stars {
   animation: obs-story-stars 6s ease-in-out infinite alternate;
 }
-.obs-personal-story.is-active .obs-story-armored {
-  animation: obs-story-armored 15s ease-in-out infinite;
-}
-.obs-personal-story.is-active .obs-story-timekeeper {
-  animation: obs-story-timekeeper 15s ease-in-out infinite;
-}
 .obs-personal-story.is-active .obs-story-cosmic {
-  animation: obs-story-cosmic 15s ease-in-out infinite;
+  animation: obs-story-cosmic-idle 8s ease-in-out infinite alternate;
 }
 .obs-personal-story.is-active .obs-story-beam-cone {
   animation: obs-story-beam-cone 1.8s ease-in-out infinite;
@@ -3139,6 +3214,16 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   94% {
     opacity: 0.72;
     transform: rotate(0) scale(1);
+  }
+}
+@keyframes obs-story-cosmic-idle {
+  from {
+    opacity: 0.5;
+    transform: rotate(-0.6deg) scale(0.99);
+  }
+  to {
+    opacity: 0.72;
+    transform: rotate(0.6deg) scale(1.01);
   }
 }
 @keyframes obs-story-beam-cone {
@@ -3934,12 +4019,12 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     min-height: auto;
   }
   .obs-story-armored,
-  .obs-story-cosmic {
+  .obs-story-timekeeper {
     opacity: 0 !important;
     animation: none !important;
   }
-  .obs-story-timekeeper {
-    opacity: 0.72 !important;
+  .obs-story-cosmic {
+    opacity: 0.5 !important;
     animation: none !important;
   }
   .obs-story-timekeeper .obs-story-ribbon,

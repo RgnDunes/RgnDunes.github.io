@@ -242,7 +242,10 @@ export default function RippleShell({ onExit }: Props) {
       ref={shellRef}
       className="ripple-shell fixed inset-0 z-50 overflow-y-auto"
     >
-      <RippleBackdrop />
+      <RippleBackdrop
+        escalated={phase === "failed"}
+        heated={phase === "failed" || Boolean(attempt?.strikeUsed)}
+      />
 
       {/* Top masthead */}
       <div className="ripple-masthead sticky top-0 z-40">
@@ -314,9 +317,20 @@ export default function RippleShell({ onExit }: Props) {
   );
 }
 
-function RippleBackdrop() {
+function RippleBackdrop({
+  escalated,
+  heated,
+}: {
+  escalated: boolean;
+  heated: boolean;
+}) {
   return (
-    <div className="ripple-backdrop" aria-hidden="true">
+    <div
+      className={`ripple-backdrop${heated ? " is-heated" : ""}${
+        escalated ? " is-escalated" : ""
+      }`}
+      aria-hidden="true"
+    >
       <div className="ripple-grid-plane" />
       <div className="ripple-core">
         <span />
@@ -330,6 +344,29 @@ function RippleBackdrop() {
         <span />
         <span />
       </div>
+      <svg
+        className="ripple-gamma-figure"
+        viewBox="0 0 640 720"
+        fill="none"
+        preserveAspectRatio="xMidYMax meet"
+      >
+        <path
+          className="ripple-gamma-body"
+          d="M120 720C121 594 158 495 230 441L219 352C183 304 180 241 206 185C232 127 273 92 320 92C367 92 408 127 434 185C460 241 457 304 421 352L410 441C482 495 519 594 520 720H120Z"
+        />
+        <path
+          className="ripple-gamma-line"
+          pathLength="1"
+          d="M120 720C121 594 158 495 230 441L219 352C183 304 180 241 206 185C232 127 273 92 320 92C367 92 408 127 434 185C460 241 457 304 421 352L410 441C482 495 519 594 520 720M213 226L275 202L320 218L365 202L427 226M238 285L284 302H356L402 285M255 354L320 379L385 354M227 443L142 505L82 610M413 443L498 505L558 610"
+        />
+        <path className="ripple-gamma-eye" d="M248 245L294 257" />
+        <path className="ripple-gamma-eye" d="M392 245L346 257" />
+        <path
+          className="ripple-gamma-cracks"
+          pathLength="1"
+          d="M319 610L278 662L296 679L247 720M322 610L366 650L347 671L395 720M206 646L167 675L183 690L142 720M435 645L476 674L459 692L502 720"
+        />
+      </svg>
     </div>
   );
 }
