@@ -162,36 +162,37 @@ export default function InfrastructureWorld() {
     const conduitOpacity = windowOpacity(position, 0.55, 1.35);
     if (conduit.current) conduit.current.visible = conduitOpacity > 0.01;
     conduitMaterials.current.forEach((material, index) => {
-      material.opacity = conduitOpacity * (index === 0 ? 0.2 : 0.28);
+      material.opacity = conduitOpacity * (index === 0 ? 0.07 : 0.1);
     });
 
     const careerOpacity = windowOpacity(position, 1.6, 8.6);
     if (career.current) career.current.visible = careerOpacity > 0.01;
     if (careerLineMaterial.current) {
-      careerLineMaterial.current.opacity = careerOpacity * 0.1;
+      careerLineMaterial.current.opacity = careerOpacity * 0.04;
     }
     const activeCareer = Math.round(THREE.MathUtils.clamp(position - 2, 0, 6));
     careerMaterials.current.forEach((material, index) => {
-      material.opacity = careerOpacity * (index === activeCareer ? 0.28 : 0.07);
+      material.opacity =
+        careerOpacity * (index === activeCareer ? 0.11 : 0.025);
       material.color.set(index === activeCareer ? "#E86A2B" : "#6F8FFF");
     });
 
     const skillsOpacity = windowOpacity(position, 8.7, 9.35);
     if (skills.current) skills.current.visible = skillsOpacity > 0.01;
     skillMaterials.current.forEach((material, index) => {
-      material.opacity = skillsOpacity * (index === 0 ? 0.28 : 0.15);
+      material.opacity = skillsOpacity * (index === 0 ? 0.1 : 0.055);
     });
 
     const projectsOpacity = windowOpacity(position, 9.7, 10.35);
     if (projects.current) projects.current.visible = projectsOpacity > 0.01;
     projectMaterials.current.forEach((material, index) => {
-      material.opacity = projectsOpacity * (index === 0 ? 0.16 : 0.24);
+      material.opacity = projectsOpacity * (index === 0 ? 0.06 : 0.09);
     });
 
     const archiveOpacity = windowOpacity(position, 10.7, 13.25);
     if (archive.current) archive.current.visible = archiveOpacity > 0.01;
     archiveMaterials.current.forEach((material) => {
-      material.opacity = archiveOpacity * 0.11;
+      material.opacity = archiveOpacity * 0.045;
     });
     if (archive.current && !scroll.reducedMotion) {
       archive.current.position.y = Math.sin(time * 0.18) * 0.035;

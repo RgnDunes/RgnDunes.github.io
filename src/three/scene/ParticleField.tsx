@@ -179,7 +179,8 @@ export default function ParticleField({ count }: { count: number }) {
     uniforms.uColorB.value.copy(end.color);
     if (!scroll.reducedMotion) uniforms.uTime.value += frameDelta;
 
-    const targetOpacity = THREE.MathUtils.lerp(start.opacity, end.opacity, mix);
+    const targetOpacity =
+      THREE.MathUtils.lerp(start.opacity, end.opacity, mix) * 0.38;
     visibleOpacity.current = THREE.MathUtils.damp(
       visibleOpacity.current,
       targetOpacity,
