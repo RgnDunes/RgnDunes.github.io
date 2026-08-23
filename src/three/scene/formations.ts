@@ -270,7 +270,7 @@ const SPECS: FormationSpec[] = [
     camera: [0, 0.15, 8.8],
     color: "#F6CF72",
     drift: 0.38,
-    opacity: 0.72,
+    opacity: 0.14,
     size: 1.22,
     target: [0.35, 0, 0],
   },
