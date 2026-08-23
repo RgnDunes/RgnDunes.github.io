@@ -1,0 +1,125 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1600 900"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">Armored engineer launching through an observatory</title>
+  <desc id="desc">
+    Original inked comic illustration of an armored engineer raising an
+    energy-lit palm.
+  </desc>
+  <defs>
+    <linearGradient id="void" x1="0" x2="1">
+      <stop offset="0" stop-color="#05070a" />
+      <stop offset=".54" stop-color="#07090d" />
+      <stop offset="1" stop-color="#160b0a" />
+    </linearGradient>
+    <linearGradient id="armor" x1="0" y1="1" x2="1" y2="0">
+      <stop stop-color="#32100e" />
+      <stop offset=".52" stop-color="#8f2f20" />
+      <stop offset="1" stop-color="#d15a2d" />
+    </linearGradient>
+    <radialGradient id="pulse">
+      <stop stop-color="#fff5c9" />
+      <stop offset=".25" stop-color="#f6cf72" stop-opacity=".95" />
+      <stop offset=".62" stop-color="#e86a2b" stop-opacity=".35" />
+      <stop offset="1" stop-color="#e86a2b" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.4" fill="#f6cf72" opacity=".2" />
+    </pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="12" /></filter>
+    <filter id="grain">
+      <feTurbulence
+        baseFrequency=".7"
+        numOctaves="3"
+        seed="19"
+        type="fractalNoise"
+      />
+      <feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 .16 0" />
+    </filter>
+    <mask id="fade">
+      <linearGradient id="fadeGradient">
+        <stop offset="0" stop-color="black" />
+        <stop offset=".38" stop-color="#222" />
+        <stop offset=".62" stop-color="white" />
+      </linearGradient>
+      <rect width="1600" height="900" fill="url(#fadeGradient)" />
+    </mask>
+  </defs>
+  <rect width="1600" height="900" fill="url(#void)" />
+  <g mask="url(#fade)">
+    <g fill="none" stroke="#f6cf72" opacity=".16">
+      <ellipse cx="1260" cy="430" rx="330" ry="315" stroke-width="2" />
+      <ellipse cx="1260" cy="430" rx="245" ry="235" stroke-dasharray="5 18" />
+      <path d="M700 745 1510 126M792 842 1546 273M892 884 1572 438" />
+    </g>
+    <path
+      d="M1000 750c-48-134-25-271 53-385l99-48 113 24 80 121-11 169-108 159z"
+      fill="url(#armor)"
+      stroke="#e86a2b"
+      stroke-width="9"
+    />
+    <path
+      d="m1072 365 16-126 74-71 104 28 61 98-30 114-117 57z"
+      fill="#5f2019"
+      stroke="#f6cf72"
+      stroke-width="7"
+    />
+    <path d="m1106 267 56-51 73 20 43 60-19 56-77 35-63-29z" fill="#ba4927" />
+    <path
+      d="m1131 286 48 10-11 16-43-2zm95 21 45-9 4 21-47 10z"
+      fill="#fff1b7"
+      filter="url(#glow)"
+    />
+    <path
+      d="M1048 410 878 285 839 96l78-31 78 184 151 105z"
+      fill="#7f291e"
+      stroke="#e86a2b"
+      stroke-width="10"
+    />
+    <path
+      d="M840 103c-34-14-66 18-56 55l27 84 92-34-18-85z"
+      fill="#a94025"
+      stroke="#f6cf72"
+      stroke-width="7"
+    />
+    <circle cx="802" cy="108" r="86" fill="url(#pulse)" filter="url(#glow)" />
+    <circle
+      cx="802"
+      cy="108"
+      r="46"
+      fill="none"
+      stroke="#fff2b1"
+      stroke-width="10"
+    />
+    <path
+      d="m1192 503 50 84-77 1z"
+      fill="#f6cf72"
+      opacity=".9"
+      filter="url(#glow)"
+    />
+    <path
+      d="m1035 728-114 142m324-98 64 110"
+      fill="none"
+      stroke="#e86a2b"
+      stroke-width="38"
+    />
+    <path
+      d="M783 142 644 263M810 178 707 337M838 190 792 358"
+      stroke="#f6cf72"
+      stroke-width="3"
+      opacity=".4"
+    />
+    <path
+      d="M990 750c-45-164-16-300 76-398m261-61c57 126 53 262-12 394"
+      fill="none"
+      stroke="#f2eee7"
+      stroke-width="3"
+      opacity=".28"
+    />
+    <path d="M950 350h510v390H950z" fill="url(#dots)" opacity=".5" />
+  </g>
+  <rect width="1600" height="900" filter="url(#grain)" opacity=".24" />
+</svg>

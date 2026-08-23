@@ -5,7 +5,6 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import ParticleField from "./ParticleField";
 import InfrastructureWorld from "./InfrastructureWorld";
-import CharacterWorld from "./CharacterWorld";
 
 export default function SceneManager({
   count,
@@ -36,7 +35,6 @@ export default function SceneManager({
     <>
       <ParticleField count={count} />
       <InfrastructureWorld />
-      <CharacterWorld />
     </>
   );
 }

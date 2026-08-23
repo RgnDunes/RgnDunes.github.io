@@ -1925,6 +1925,65 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   opacity: 0.5;
 }
 
+.comic-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.36;
+}
+.comic-panel-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 7, 10, 0.96) 0%,
+      rgba(5, 7, 10, 0.74) 42%,
+      rgba(5, 7, 10, 0.16) 68%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(5, 7, 10, 0.28),
+      transparent 24%,
+      transparent 76%,
+      rgba(5, 7, 10, 0.42)
+    );
+}
+.comic-panel {
+  top: -2% !important;
+  right: -14% !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 92% !important;
+  height: 104% !important;
+  max-width: none !important;
+  object-fit: contain;
+  object-position: 78% 50%;
+  visibility: hidden;
+  opacity: 0;
+  filter: saturate(0.9) contrast(1.08);
+  mix-blend-mode: screen;
+  transform-origin: 72% 50%;
+  will-change: opacity, transform;
+}
+.comic-panel.is-timekeeper,
+.comic-panel.is-finale {
+  object-position: 82% 50%;
+}
+.comic-panel.is-acrobat {
+  object-position: 76% 50%;
+}
+.comic-panel.is-finale {
+  right: -2% !important;
+  width: 100% !important;
+  filter: saturate(0.72) contrast(1.04) brightness(0.78);
+  transform-origin: 78% 58%;
+}
+
 .obs-vignette {
   position: fixed;
   inset: 0;
@@ -3696,6 +3755,37 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 @media (max-width: 767px) {
   .observatory-canvas {
     opacity: 0.38;
+  }
+  .comic-panel-backdrop {
+    opacity: 0.32;
+  }
+  .comic-panel-backdrop::after {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(5, 7, 10, 0.14),
+        rgba(5, 7, 10, 0.34) 58%,
+        rgba(5, 7, 10, 0.72)
+      ),
+      linear-gradient(90deg, rgba(5, 7, 10, 0.48), transparent 78%);
+  }
+  .comic-panel {
+    right: -34% !important;
+    width: 142% !important;
+    object-fit: cover;
+    object-position: 73% 50%;
+    filter: saturate(0.78) contrast(1.02) brightness(0.84);
+  }
+  .comic-panel.is-timekeeper,
+  .comic-panel.is-finale {
+    object-position: 79% 50%;
+  }
+  .comic-panel.is-finale {
+    right: -28% !important;
+    width: 136% !important;
+  }
+  .comic-panel.is-acrobat {
+    object-position: 70% 50%;
   }
   .obs-nav {
     min-height: 64px;
