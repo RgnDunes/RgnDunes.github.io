@@ -1989,6 +1989,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   will-change: opacity, transform;
 }
 .cinematic-shot.is-iron-man {
+  object-fit: contain;
   object-position: 74% 50%;
   filter: saturate(0.84) contrast(1.1) brightness(0.9);
 }
@@ -1997,13 +1998,16 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   filter: saturate(0.88) contrast(1.08) brightness(0.88);
 }
 .cinematic-shot.is-captain-resolve {
+  object-fit: contain;
   object-position: 82% 42%;
 }
 .cinematic-shot.is-captain-mjolnir {
+  object-fit: contain;
   object-position: 83% 48%;
   filter: saturate(0.8) contrast(1.08) brightness(0.9);
 }
 .cinematic-shot.is-spider-web {
+  object-fit: contain;
   object-position: 84% 46%;
   filter: saturate(0.88) contrast(1.08) brightness(0.92);
 }
@@ -2020,6 +2024,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   filter: saturate(0.76) contrast(1.05) brightness(0.78);
 }
 .cinematic-shot.is-red-hulk {
+  object-fit: contain;
   object-position: 84% 48%;
   filter: saturate(0.86) contrast(1.06) brightness(0.82);
 }

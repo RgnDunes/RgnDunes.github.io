@@ -17,7 +17,7 @@ const SHOTS = [
     start: 0,
     travelX: -18,
     travelY: -12,
-    zoom: 1.16,
+    zoom: 1.02,
   },
   {
     activeSection: "about",
@@ -28,7 +28,7 @@ const SHOTS = [
     start: 1,
     travelX: 22,
     travelY: -8,
-    zoom: 1.26,
+    zoom: 1.04,
   },
   {
     activeSection: "work",
@@ -39,7 +39,7 @@ const SHOTS = [
     start: 2,
     travelX: -12,
     travelY: -24,
-    zoom: 1.18,
+    zoom: 1.04,
   },
   {
     activeSection: "work",
@@ -51,7 +51,7 @@ const SHOTS = [
     start: 5,
     travelX: 12,
     travelY: -20,
-    zoom: 1.18,
+    zoom: 1.04,
   },
   {
     activeSection: "skills",
@@ -62,7 +62,7 @@ const SHOTS = [
     start: 9,
     travelX: -10,
     travelY: -16,
-    zoom: 1.16,
+    zoom: 1.03,
   },
   {
     activeSection: "notebook",
@@ -73,7 +73,7 @@ const SHOTS = [
     start: 10,
     travelX: 20,
     travelY: -10,
-    zoom: 1.18,
+    zoom: 1.04,
   },
   {
     activeSection: "articles",
@@ -84,7 +84,7 @@ const SHOTS = [
     start: 11,
     travelX: -12,
     travelY: -6,
-    zoom: 1.24,
+    zoom: 1.03,
   },
   {
     activeSection: "books",
@@ -95,7 +95,7 @@ const SHOTS = [
     start: 12,
     travelX: 12,
     travelY: -6,
-    zoom: 1.24,
+    zoom: 1.03,
   },
   {
     activeSection: "testimonials",
@@ -106,7 +106,7 @@ const SHOTS = [
     start: 13,
     travelX: -10,
     travelY: -16,
-    zoom: 1.16,
+    zoom: 1.03,
   },
   {
     activeSection: "personal",
@@ -117,7 +117,7 @@ const SHOTS = [
     start: 14,
     travelX: 24,
     travelY: -12,
-    zoom: 1.18,
+    zoom: 1.04,
   },
   {
     activeSection: "contact",
@@ -128,7 +128,7 @@ const SHOTS = [
     start: 15,
     travelX: 0,
     travelY: 12,
-    zoom: 1.28,
+    zoom: 1.05,
   },
 ] as const;
 
@@ -209,12 +209,15 @@ export default function CinematicBackdrop() {
         const pointerY = compact || scroll.reducedMotion ? 0 : scroll.pointerY;
         const x = timelineOffset * shot.travelX + pointerX * -7;
         const y = timelineOffset * shot.travelY + pointerY * -4;
-        const baseScale = compact
-          ? Math.max(1.12, shot.zoom - 0.04)
-          : shot.zoom;
-        const scale = scroll.reducedMotion
-          ? baseScale
-          : baseScale + progress * 0.045;
+        const enterProgress = scroll.reducedMotion
+          ? 1
+          : smoothstep(scroll.position, shot.start - shot.feather, shot.start);
+        const exitProgress = scroll.reducedMotion
+          ? 0
+          : smoothstep(scroll.position, shot.end, shot.end + shot.feather);
+        const baseScale = compact ? Math.max(1, shot.zoom - 0.02) : shot.zoom;
+        const transitionScale = (1 - enterProgress) * 0.1 + exitProgress * 0.14;
+        const scale = baseScale + transitionScale;
 
         element.style.opacity = opacity.toFixed(3);
         element.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(3)})`;
