@@ -29,7 +29,7 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
           <div className="obs-library-heading">
             <div>
               <p className="obs-kicker">Folio vi · Articles</p>
-              <h1>Engineering notes.</h1>
+              <h1>Published articles.</h1>
             </div>
             <p>
               Articles about frontend infrastructure, CI/CD, system design, and

@@ -157,7 +157,7 @@ function windowOpacity(
 }
 
 export default function CinematicBackdrop() {
-  const shotRefs = useRef<Array<HTMLImageElement | null>>([]);
+  const shotRefs = useRef<Array<HTMLDivElement | null>>([]);
   const activeSectionRef = useRef("top");
 
   useEffect(() => {
@@ -245,20 +245,24 @@ export default function CinematicBackdrop() {
     <div className="cinematic-backdrop" aria-hidden="true">
       <div className="cinematic-reel">
         {SHOTS.map((shot, index) => (
-          <Image
+          <div
             key={`${shot.activeSection}-${shot.className}`}
             ref={(element) => {
               shotRefs.current[index] = element;
             }}
             className={`cinematic-shot ${shot.className}`}
-            src={shot.src}
-            alt=""
-            decoding="async"
-            fill
-            priority={index === 0}
-            sizes="100vw"
-            unoptimized
-          />
+          >
+            <Image
+              className="cinematic-shot-media"
+              src={shot.src}
+              alt=""
+              decoding="async"
+              fill
+              priority={index === 0}
+              sizes="100vw"
+              unoptimized
+            />
+          </div>
         ))}
       </div>
     </div>

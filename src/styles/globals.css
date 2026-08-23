@@ -1980,43 +1980,96 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     );
 }
 .cinematic-shot {
-  object-fit: cover;
-  object-position: 72% 50%;
+  position: absolute;
+  inset: 0;
   visibility: hidden;
   opacity: 0;
   filter: saturate(0.86) contrast(1.06) brightness(0.96);
   transform-origin: 74% 50%;
   will-change: opacity, transform;
+  -webkit-mask-image: radial-gradient(
+    ellipse 82% 88% at center,
+    #000 52%,
+    rgba(0, 0, 0, 0.92) 70%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 82% 88% at center,
+    #000 52%,
+    rgba(0, 0, 0, 0.92) 70%,
+    transparent 100%
+  );
+}
+.cinematic-shot-media {
+  object-fit: cover;
+  object-position: 72% 50%;
+}
+.cinematic-shot:is(
+  .is-iron-man,
+  .is-captain-resolve,
+  .is-captain-mjolnir,
+  .is-spider-web,
+  .is-red-hulk
+) {
+  inset: -2.5% 2% -2.5% auto;
+  width: auto;
+  height: 105%;
+  -webkit-mask-image: radial-gradient(
+    ellipse 72% 86% at center,
+    #000 48%,
+    rgba(0, 0, 0, 0.88) 68%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 72% 86% at center,
+    #000 48%,
+    rgba(0, 0, 0, 0.88) 68%,
+    transparent 100%
+  );
 }
 .cinematic-shot.is-iron-man {
-  object-fit: contain;
-  object-position: 74% 50%;
+  aspect-ratio: 606 / 505;
   filter: saturate(0.84) contrast(1.1) brightness(0.9);
 }
-.cinematic-shot.is-loki-timeline {
+.cinematic-shot.is-iron-man .cinematic-shot-media {
+  object-position: 74% 50%;
+}
+.cinematic-shot.is-loki-timeline .cinematic-shot-media {
   object-position: 72% 50%;
+}
+.cinematic-shot.is-loki-timeline {
   filter: saturate(0.88) contrast(1.08) brightness(0.88);
 }
 .cinematic-shot.is-captain-resolve {
-  object-fit: contain;
+  aspect-ratio: 474 / 773;
+}
+.cinematic-shot.is-captain-resolve .cinematic-shot-media {
   object-position: 82% 42%;
 }
 .cinematic-shot.is-captain-mjolnir {
-  object-fit: contain;
-  object-position: 83% 48%;
+  aspect-ratio: 514 / 596;
   filter: saturate(0.8) contrast(1.08) brightness(0.9);
 }
+.cinematic-shot.is-captain-mjolnir .cinematic-shot-media {
+  object-position: 83% 48%;
+}
 .cinematic-shot.is-spider-web {
-  object-fit: contain;
-  object-position: 84% 46%;
+  aspect-ratio: 335 / 597;
   filter: saturate(0.88) contrast(1.08) brightness(0.92);
 }
-.cinematic-shot.is-wolverine-deadpool {
+.cinematic-shot.is-spider-web .cinematic-shot-media {
+  object-position: 84% 46%;
+}
+.cinematic-shot.is-wolverine-deadpool .cinematic-shot-media {
   object-position: 62% 50%;
+}
+.cinematic-shot.is-wolverine-deadpool {
   filter: saturate(0.88) contrast(1.05) brightness(0.88);
 }
-.cinematic-shot.is-loki-throne {
+.cinematic-shot.is-loki-throne .cinematic-shot-media {
   object-position: 58% 50%;
+}
+.cinematic-shot.is-loki-throne {
   filter: saturate(0.86) contrast(1.06) brightness(0.86);
 }
 .cinematic-shot.is-reading,
@@ -2024,15 +2077,19 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   filter: saturate(0.76) contrast(1.05) brightness(0.78);
 }
 .cinematic-shot.is-red-hulk {
-  object-fit: contain;
-  object-position: 84% 48%;
+  aspect-ratio: 316 / 632;
   filter: saturate(0.86) contrast(1.06) brightness(0.82);
 }
-.cinematic-shot.is-personal {
+.cinematic-shot.is-red-hulk .cinematic-shot-media {
+  object-position: 84% 48%;
+}
+.cinematic-shot.is-personal .cinematic-shot-media {
   object-position: 55% 50%;
 }
-.cinematic-shot.is-finale {
+.cinematic-shot.is-finale .cinematic-shot-media {
   object-position: 50% 50%;
+}
+.cinematic-shot.is-finale {
   filter: saturate(0.82) contrast(1.08) brightness(0.84);
   transform-origin: 50% 56%;
 }
@@ -2916,7 +2973,23 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   color: rgba(242, 238, 231, 0.22);
 }
 .obs-dense-chapter {
+  position: relative;
   min-height: auto;
+}
+.obs-dense-chapter::before,
+.obs-articles-chapter::before,
+.obs-books-chapter::before {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  inset: 4vh 3vw;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 46% 48%,
+    rgba(5, 7, 10, 0.52),
+    rgba(5, 7, 10, 0.28) 58%,
+    transparent 86%
+  );
 }
 .obs-section-content {
   position: relative;
@@ -3774,6 +3847,12 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     border: 1px solid rgba(255, 255, 255, 0.15);
     background: rgba(5, 7, 10, 0.96);
     backdrop-filter: blur(18px);
+    max-height: calc(100svh - 92px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .obs-progress {
+    display: none;
   }
   .obs-mobile-menu a,
   .obs-mobile-menu button {
@@ -3824,26 +3903,30 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
       linear-gradient(90deg, rgba(5, 7, 10, 0.42), transparent 86%);
   }
   .cinematic-shot {
-    object-position: 68% 50%;
     filter: saturate(0.8) contrast(1.04) brightness(0.84);
   }
-  .cinematic-shot.is-iron-man {
+  .cinematic-shot-media {
+    object-position: 68% 50%;
+  }
+  .cinematic-shot.is-iron-man .cinematic-shot-media {
     object-position: 66% 50%;
   }
-  .cinematic-shot.is-loki-timeline {
+  .cinematic-shot.is-loki-timeline .cinematic-shot-media {
     object-position: 64% 50%;
   }
-  .cinematic-shot.is-captain-resolve,
-  .cinematic-shot.is-captain-mjolnir,
-  .cinematic-shot.is-spider-web,
-  .cinematic-shot.is-red-hulk {
+  .cinematic-shot:is(
+      .is-captain-resolve,
+      .is-captain-mjolnir,
+      .is-spider-web,
+      .is-red-hulk
+    )
+    .cinematic-shot-media {
     object-position: 76% 44%;
   }
-  .cinematic-shot.is-wolverine-deadpool {
+  .cinematic-shot.is-wolverine-deadpool .cinematic-shot-media {
     object-position: 60% 50%;
   }
-  .cinematic-shot.is-loki-throne,
-  .cinematic-shot.is-finale {
+  .cinematic-shot:is(.is-loki-throne, .is-finale) .cinematic-shot-media {
     object-position: 50% 50%;
   }
   .obs-nav {
@@ -4197,6 +4280,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
    ============================================================ */
 
 .obs-articles-chapter {
+  position: relative;
   min-height: auto;
   padding-block: 10vh;
 }
@@ -4300,6 +4384,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
 }
 
 .obs-books-chapter {
+  position: relative;
   min-height: auto;
   padding-block: 10vh;
 }
@@ -4607,9 +4692,9 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   min-height: 100vh;
   transform-origin: var(--route-origin-x, 50vw) var(--route-origin-y, 50vh);
   transition:
-    transform 700ms cubic-bezier(0.76, 0, 0.24, 1),
-    filter 700ms cubic-bezier(0.76, 0, 0.24, 1),
-    opacity 520ms ease;
+    transform 420ms cubic-bezier(0.76, 0, 0.24, 1),
+    filter 420ms cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 340ms ease;
 }
 .route-transition {
   position: fixed;
@@ -4621,10 +4706,11 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   background: radial-gradient(
     circle at var(--route-origin-x, 50vw) var(--route-origin-y, 50vh),
     transparent 0,
-    rgba(2, 3, 5, 0.75) 18%,
-    #020305 56%
+    rgba(2, 3, 5, 0.38) 24%,
+    rgba(2, 3, 5, 0.66) 68%,
+    rgba(2, 3, 5, 0.72) 100%
   );
-  transition: opacity 260ms ease;
+  transition: opacity 200ms ease;
 }
 .route-transition-core,
 .route-transition-rings {
@@ -4641,7 +4727,7 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   box-shadow:
     0 0 40px 10px rgba(232, 106, 43, 0.24),
     0 0 120px 35px rgba(111, 143, 255, 0.17);
-  transition: transform 720ms cubic-bezier(0.76, 0, 0.24, 1);
+  transition: transform 420ms cubic-bezier(0.76, 0, 0.24, 1);
 }
 .route-transition-rings {
   border: 1px solid rgba(242, 238, 231, 0.5);
@@ -4649,35 +4735,35 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     0 0 30px rgba(232, 106, 43, 0.6),
     inset 0 0 25px rgba(111, 143, 255, 0.45);
   transition:
-    transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 380ms ease;
+    transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 260ms ease;
 }
 [data-route-phase="departing"] .route-stage {
-  transform: perspective(900px) translateZ(-260px) scale(0.72) rotateX(2deg);
-  filter: blur(7px) saturate(0.55);
-  opacity: 0.12;
+  transform: perspective(900px) translateZ(-180px) scale(0.8) rotateX(1deg);
+  filter: blur(4px) saturate(0.68);
+  opacity: 0.44;
 }
 [data-route-phase="departing"] .route-transition {
   opacity: 1;
 }
 [data-route-phase="departing"] .route-transition-core {
-  transform: translate(-50%, -50%) scale(52);
+  transform: translate(-50%, -50%) scale(8.5);
 }
 [data-route-phase="departing"] .route-transition-rings {
   transform: translate(-50%, -50%) scale(15) rotate(130deg);
   opacity: 0;
 }
 [data-route-phase="arriving"] .route-stage {
-  animation: route-arrive 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: route-arrive 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 [data-route-phase="arriving"] .route-transition {
-  animation: route-curtain 600ms ease both;
+  animation: route-curtain 420ms ease both;
 }
 @keyframes route-arrive {
   from {
-    transform: perspective(900px) translateZ(-220px) scale(0.78);
-    filter: blur(6px);
-    opacity: 0.1;
+    transform: perspective(900px) translateZ(-140px) scale(0.84);
+    filter: blur(4px);
+    opacity: 0.28;
   }
   to {
     transform: none;
@@ -4960,40 +5046,99 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
     monospace;
   text-transform: uppercase;
 }
-.obs-full-archive {
-  margin-top: 6rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--obs-line);
+.obs-not-found {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  align-items: end;
+  gap: clamp(4rem, 10vw, 10rem);
+  width: min(1180px, calc(100% - 3rem));
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: clamp(7rem, 14vh, 10rem) 0 clamp(4rem, 9vh, 7rem);
 }
-.observatory .obs-full-archive h2 {
-  max-width: none;
+.obs-not-found-hero {
+  position: relative;
+  z-index: 1;
+}
+.obs-not-found-code {
+  position: absolute;
+  z-index: -1;
+  left: -0.08em;
+  top: -0.48em;
+  color: rgba(242, 238, 231, 0.045);
   font:
-    500 0.65rem/1 var(--font-jetbrains),
+    500 clamp(10rem, 28vw, 24rem) / 1 var(--font-fraunces),
+    serif;
+  letter-spacing: -0.09em;
+}
+.observatory .obs-not-found h1 {
+  max-width: 10ch;
+  margin-top: 1rem;
+  font-size: clamp(4rem, 7vw, 7.5rem);
+  line-height: 0.9;
+}
+.obs-not-found-hero > p:not(.obs-kicker) {
+  max-width: 52ch;
+  margin-top: 2rem;
+  color: rgba(242, 238, 231, 0.66);
+  line-height: 1.7;
+}
+.obs-not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+.obs-not-found-routes {
+  display: grid;
+  align-self: end;
+}
+.observatory .obs-not-found-routes h2 {
+  max-width: none;
+  margin-bottom: 1rem;
+  color: var(--obs-dim);
+  font:
+    500 0.58rem/1 var(--font-jetbrains),
     monospace;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.obs-full-archive ul {
+.obs-not-found-routes a {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0 3rem;
-  margin-top: 1.5rem;
+  grid-template-columns: 2.25rem 1fr;
+  gap: 0.35rem 1rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--obs-line);
+  color: rgba(242, 238, 231, 0.76);
+  transition:
+    color 180ms ease,
+    transform 220ms ease;
 }
-.obs-full-archive li {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.8rem 0;
+.obs-not-found-routes a:last-child {
   border-bottom: 1px solid var(--obs-line);
-  color: rgba(242, 238, 231, 0.66);
-  font-size: 0.78rem;
 }
-.obs-full-archive a:hover {
+.obs-not-found-routes a:hover,
+.obs-not-found-routes a:focus-visible {
+  color: #fff;
+  transform: translateX(0.4rem);
+}
+.obs-not-found-routes span {
+  grid-row: span 2;
   color: var(--obs-saffron);
+  font:
+    500 0.58rem/1.5 var(--font-jetbrains),
+    monospace;
 }
-.obs-full-archive time {
+.obs-not-found-routes strong {
+  font:
+    500 1.35rem/1.1 var(--font-fraunces),
+    serif;
+}
+.obs-not-found-routes small {
   color: var(--obs-dim);
-  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.72rem;
 }
 
 .obs-reading-shell {
@@ -5163,9 +5308,17 @@ body:has(.observatory)::-webkit-scrollbar-thumb:hover {
   .obs-library-stats {
     grid-template-columns: 1fr;
   }
-  .obs-article-grid,
-  .obs-full-archive ul {
+  .obs-article-grid {
     grid-template-columns: 1fr;
+  }
+  .obs-not-found {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 4rem;
+    width: min(100% - 2.5rem, 1180px);
+  }
+  .observatory .obs-not-found h1 {
+    font-size: clamp(3.4rem, 15vw, 5.4rem);
   }
   .obs-signal-card {
     min-height: 310px;

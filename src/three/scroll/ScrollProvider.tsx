@@ -180,7 +180,12 @@ export default function ScrollProvider({
 
       event.preventDefault();
       if (lenis) {
-        lenis.scrollTo(destination, { duration: 1.05, offset: -64 });
+        const distance = Math.abs(destination.getBoundingClientRect().top - 64);
+        const duration = Math.min(
+          0.8,
+          Math.max(0.48, 0.42 + (distance / window.innerHeight) * 0.08),
+        );
+        lenis.scrollTo(destination, { duration, offset: -64 });
       } else {
         window.scrollTo({
           top: window.scrollY + destination.getBoundingClientRect().top - 64,

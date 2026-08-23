@@ -137,22 +137,6 @@ export default function BlogList({ posts }: { posts: BlogPost[] }) {
           </button>
         </nav>
       )}
-
-      <nav className="obs-full-archive" aria-label="All articles">
-        <h2>Complete article index</h2>
-        <ul>
-          {posts.map((post) => (
-            <li key={post.slug}>
-              <TransitionLink href={`/blog/${post.slug}`}>
-                {post.title}
-              </TransitionLink>
-              <time dateTime={post.publishedAt}>
-                {new Date(post.publishedAt).getFullYear()}
-              </time>
-            </li>
-          ))}
-        </ul>
-      </nav>
     </section>
   );
 }

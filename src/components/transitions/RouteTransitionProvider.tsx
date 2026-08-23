@@ -18,6 +18,8 @@ type RouteTransitionContextValue = {
 
 const RouteTransitionContext =
   createContext<RouteTransitionContextValue | null>(null);
+const DEPARTURE_MS = 420;
+const ARRIVAL_MS = 440;
 
 export function useRouteTransition() {
   return useContext(RouteTransitionContext);
@@ -53,7 +55,7 @@ export default function RouteTransitionProvider({
       }
 
       setPhase("departing");
-      timer.current = window.setTimeout(() => router.push(href), 720);
+      timer.current = window.setTimeout(() => router.push(href), DEPARTURE_MS);
     },
     [phase, router],
   );
@@ -63,7 +65,7 @@ export default function RouteTransitionProvider({
     destination.current = null;
     setPhase("arriving");
     window.scrollTo(0, 0);
-    timer.current = window.setTimeout(() => setPhase("idle"), 620);
+    timer.current = window.setTimeout(() => setPhase("idle"), ARRIVAL_MS);
   }, [pathname]);
 
   useEffect(
