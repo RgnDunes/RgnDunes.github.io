@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "your-ci-cache-is-a-second-package-manager-treat-it-like-one",
+    title: "Your CI Cache Is a Second Package Manager. Treat It Like One.",
+    description: "A CI cache can cut minutes from a build, or quietly make your release process non-reproducible. The difference is whether you treat it as disposable acceleration or hidden infrastructure.",
+    contentPath: "/blog/your-ci-cache-is-a-second-package-manager-treat-it-like-one_article.html",
+    publishedAt: "2026-08-25",
+    tags: ["CI/CD", "Build Systems", "Frontend Infrastructure", "Developer Experience", "npm"],
+    readingTime: "~20 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "ci-stop-running-every-test",
     title: "Your CI Runs Every Test On Every PR. That Is Not A Feature. That Is Waste.",
     description: "Most teams run the full test suite on every PR and call it thorough. It is not thorough - it is expensive, slow, and quietly teaches everyone to distrust the results. Change-based test selection is a decade old. Frontend teams are still running 40 minutes of tests to validate a one-line change.",
