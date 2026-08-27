@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Long Tasks Are Not Why Your Page Feels Slow. Chrome Shipped An API That Finally Tells You What Is.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE — "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css — not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site — React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography — "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings — serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links — saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes — pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral — small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip — grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote — oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box — "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) — inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="The Long Tasks API tells you that something blocked the main thread for 340ms. It will not tell you which script, which handler, or which line. Long Animation Frames does - and it measures the unit users actually perceive." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Long Tasks Are Not Why Your Page Feels Slow. Chrome Shipped An API That Finally Tells You What Is." />
+<meta property="og:description" content="The Long Tasks API tells you that something blocked the main thread for 340ms. It will not tell you which script, which handler, or which line. Long Animation Frames does - and it measures the unit users actually perceive." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/long-animation-frames-not-long-tasks" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Long Tasks Are Not Why Your Page Feels Slow. Chrome Shipped An API That Finally Tells You What Is." />
+<meta name="twitter:description" content="The Long Tasks API tells you that something blocked the main thread for 340ms. It will not tell you which script, which handler, or which line. Long Animation Frames does - and it measures the unit users actually perceive." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Web Performance &nbsp;&middot;&nbsp; Frontend Observability</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop&q=80" alt="A performance dashboard full of charts that do not explain themselves" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Deep Dive &middot; Web Performance</div>
+  <h1>Long Tasks Are Not Why Your Page Feels Slow. <em>Chrome Shipped An API That Finally Tells You What Is.</em></h1>
+  <p class="hero-sub">The Long Tasks API has been telling us "something took 340ms" since 2017 and refusing to say what. Long Animation Frames gives you the function name, the source URL, and the character position. Here is how it works, and where it still lets you down.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>August 2026</span>
+    <span class="byline-dot"></span>
+    <span>~19 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">Performance</span>
+    <span class="tag">Browser APIs</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 &middot; The Symptom</div>
+    <h2>The Dashboard Said We Were Fine</h2>
+    <p>There is a specific kind of frustration that comes from a performance dashboard which is simultaneously green and wrong. Our p75 numbers were inside budget. The synthetic runs in CI passed. And yet the support queue kept collecting the same sentence, phrased a dozen different ways: <em>the page freezes for a second when I click things</em>.</p>
+    <p>I have spent the last few years on frontend infrastructure, which mostly means I own the tools that are supposed to answer exactly this question. So I did the obvious thing. I opened the Long Tasks data we had been collecting from real users for months, and I looked for the freeze.</p>
+    <p>It was there. Plenty of entries, comfortably over the threshold, clustered right around the interactions people were complaining about. The API had faithfully recorded that <strong>something on the main thread ran for 340 milliseconds</strong>.</p>
+    <p>And that was the entire contents of the message. Not which script. Not which event handler. Not which of the roughly two hundred functions that could plausibly have been on the stack. Just a duration, a start time, and the digital equivalent of a shrug.</p>
+    <div class="pull-quote">
+      <p>Long Tasks is a smoke alarm that tells you the building is on fire but refuses, on principle, to tell you which room.</p>
+    </div>
+    <p>What follows is what I learned digging into why that API is so unhelpful, why its core assumption is subtly wrong, and what replaced it. If you have ever stared at a <code>longtask</code> entry and wondered what you were supposed to <em>do</em> with it, this is for you.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 &middot; The Old Tool</div>
+    <h2>What Long Tasks Actually Measures</h2>
+    <p>The Long Tasks API landed in 2017 and it does exactly one thing: it reports when a single task on the main thread runs for longer than 50 milliseconds. You observe it like any other performance entry.</p>
+
+    <div class="code-block">
+      <div class="code-label">longtasks.js</div>
+      <pre><span class="code-kw">const</span> <span class="code-var">observer</span> = <span class="code-kw">new</span> <span class="code-fn">PerformanceObserver</span>((list) =&gt; {
+  <span class="code-kw">for</span> (<span class="code-kw">const</span> <span class="code-var">entry</span> <span class="code-kw">of</span> list.<span class="code-fn">getEntries</span>()) {
+    <span class="code-fn">console</span>.<span class="code-fn">log</span>(entry.<span class="code-var">name</span>, entry.<span class="code-var">duration</span>, entry.<span class="code-var">attribution</span>);
+  }
+});
+
+observer.<span class="code-fn">observe</span>({ <span class="code-var">type</span>: <span class="code-str">'longtask'</span>, <span class="code-var">buffered</span>: <span class="code-kw">true</span> });</pre>
+    </div>
+
+    <p>The first time I ran this I was genuinely excited about that third property. <code>attribution</code> sounds like it is going to tell you who is responsible. It is right there in the name.</p>
+    <p>Here is what it actually contains. The <code>attribution</code> array holds <code>TaskAttributionTiming</code> objects, and those objects describe the <strong>container</strong> the task ran in - the document, an iframe, an embed. Not the script. The container. So for the overwhelmingly common case where your slow code is running in your own top-level page, every single entry reports the same thing:</p>
+
+    <div class="code-block">
+      <div class="code-label">console output</div>
+      <pre><span class="code-cmt">// name: "self", containerType: "window", containerSrc: "", containerId: ""</span>
+self  <span class="code-num">341.5</span>  [TaskAttributionTiming]</pre>
+    </div>
+
+    <p>That is the ceiling of what the API can tell you. It is genuinely useful if your performance problem is a third-party iframe, because then <code>containerSrc</code> names the culprit and you are done. For everything else - which is to say, for almost every real performance investigation I have ever run - it is a dead end.</p>
+    <p>People built elaborate workarounds. Wrapping event handlers in manual <code>performance.mark()</code> calls. Monkey-patching <code>addEventListener</code> to time every callback. Correlating long task timestamps against a separately-collected custom trace and hoping the clocks lined up. I have written versions of all three. They are all fragile, they all add overhead, and they all miss the code you did not think to instrument, which is invariably the code that turns out to be slow.</p>
+    <p>Here is the shape of the second one, so you can appreciate why nobody enjoyed maintaining it:</p>
+
+    <div class="code-block">
+      <div class="code-label">the-old-way.js</div>
+      <pre><span class="code-kw">const</span> <span class="code-var">original</span> = EventTarget.<span class="code-var">prototype</span>.<span class="code-var">addEventListener</span>;
+
+EventTarget.<span class="code-var">prototype</span>.<span class="code-var">addEventListener</span> = <span class="code-kw">function</span> (type, handler, opts) {
+  <span class="code-kw">const</span> <span class="code-var">wrapped</span> = <span class="code-kw">function</span> (...args) {
+    <span class="code-kw">const</span> <span class="code-var">t0</span> = <span class="code-fn">performance</span>.<span class="code-fn">now</span>();
+    <span class="code-kw">try</span> { <span class="code-kw">return</span> handler.<span class="code-fn">apply</span>(<span class="code-kw">this</span>, args); }
+    <span class="code-kw">finally</span> { <span class="code-fn">record</span>(type, <span class="code-fn">performance</span>.<span class="code-fn">now</span>() - t0); }
+  };
+  <span class="code-kw">return</span> original.<span class="code-fn">call</span>(<span class="code-kw">this</span>, type, wrapped, opts);
+};</pre>
+    </div>
+
+    <p>It works, sort of. It also breaks <code>removeEventListener</code> unless you maintain a map from every original handler to its wrapper, misses anything registered before your patch ran, adds a closure to every listener on the page, and tells you nothing at all about promise continuations or animation frame callbacks, because those never go through <code>addEventListener</code>. Every team I know that tried this eventually deleted it, usually after it caused a bug considerably more expensive than the one it was meant to help diagnose.</p>
+  </section>
+
+  <section>
+    <div class="section-num">03 &middot; The Deeper Problem</div>
+    <h2>Fifty Milliseconds Of The Wrong Thing</h2>
+    <p>The missing attribution is the complaint everyone has. But there is a second problem with Long Tasks that is more interesting, and I think less widely understood, because it is not a gap in the data. It is a flaw in the unit.</p>
+    <p>Long Tasks measures <strong>tasks</strong>. Users do not perceive tasks. Users perceive <strong>frames</strong>.</p>
+    <p>Consider a click handler that does its work in six separate chunks. Maybe it is a React update that yields between units, maybe it is a few promise continuations, maybe it is a handler that schedules follow-up work in <code>requestAnimationFrame</code>. Each chunk runs for 30 milliseconds. None of them crosses the 50 millisecond line. Long Tasks reports <em>nothing at all</em>.</p>
+    <p>Meanwhile the browser could not paint for 180 milliseconds, because the six chunks all landed before the same rendering opportunity. The user clicked, the interface sat there, and your monitoring is a clean sheet.</p>
+
+    <div class="callout">
+      <div class="callout-label">The core mismatch</div>
+      <p>A task is a unit of work the scheduler cares about. A frame is a unit of responsiveness the user cares about. Long Tasks measures the first and quietly hopes it is a good proxy for the second. Often it is. When your code yields, it is not.</p>
+    </div>
+
+    <p>This gets worse the more modern your stack is, which is the part I find genuinely funny. Concurrent rendering, time slicing, scheduler yield points - every technique we adopted specifically to break up long tasks also breaks up the <em>reporting</em> of long tasks. The framework chops a 200 millisecond block into sub-threshold pieces. The jank does not go away, because the frame still cannot paint. Only the telemetry improves.</p>
+    <p>I want to be precise here rather than sensational, because this is the kind of claim that deserves pushback: yielding genuinely does help responsiveness a lot of the time, since it creates openings for the browser to handle input between chunks. The point is narrower. Yielding reliably reduces your long task <em>count</em>, and it only sometimes reduces user-perceived jank. Those two things drifting apart is exactly the situation where your dashboard goes green while your users do not.</p>
+    <p>There is also the render phase itself. Style recalculation, layout, paint and compositing all happen after your JavaScript hands control back. Long Tasks does not include that work in its entries. So a handler that sets one class name and triggers an enormous layout looks cheap by task duration and feels terrible in practice.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 &middot; The Replacement</div>
+    <h2>Long Animation Frames Changes The Unit</h2>
+    <p>The Long Animation Frames API - LoAF, and yes everyone pronounces it "loaf" - shipped in Chrome 123. It reframes the measurement around the thing that actually matters. Instead of asking "did any single task run long?", it asks <strong>"did any rendering update take too long to complete?"</strong></p>
+    <p>A long animation frame covers everything from the moment the browser starts running work for a frame, through all the scripts that execute, through style and layout, to the point where rendering finishes. If that whole span exceeds 50 milliseconds, you get an entry. Those six 30 millisecond chunks from the previous section? One LoAF entry, correctly reporting the full span the user sat through.</p>
+    <p>It is worth being precise about the name, because "animation frame" makes it sound like this only applies during animations. It does not. The API covers any rendering update the browser performs, which very much includes the frame produced after a click handler mutates the DOM. If the main thread was busy in the run-up to a rendering opportunity, that is a candidate frame, whether or not anything on screen was moving.</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">2017</div><div class="stat-label">Long Tasks shipped</div></div>
+      <div class="stat-item"><div class="stat-num">123</div><div class="stat-label">Chrome version for LoAF</div></div>
+      <div class="stat-item"><div class="stat-num">50ms</div><div class="stat-label">Threshold for both</div></div>
+      <div class="stat-item"><div class="stat-num">9</div><div class="stat-label">Fields per script entry</div></div>
+    </div>
+
+    <p>The entry shape is where it gets good. A <code>PerformanceLongAnimationFrameTiming</code> gives you the usual <code>startTime</code> and <code>duration</code>, and then several fields that break the frame into phases:</p>
+
+    <ul class="bullet-list">
+      <li><span><code>renderStart</code> - when the browser stopped running your scripts and started the rendering work for this frame.</span></li>
+      <li><span><code>styleAndLayoutStart</code> - when style recalculation and layout began, which lets you separate "my JavaScript was slow" from "my JavaScript caused an expensive layout".</span></li>
+      <li><span><code>blockingDuration</code> - how much of the frame genuinely blocked the main thread from responding to input.</span></li>
+      <li><span><code>firstUIEventTimestamp</code> - when the first user interaction arrived during this frame, which is how you connect a slow frame back to the click that was waiting on it.</span></li>
+      <li><span><code>scripts</code> - an array, and this is the one that changes everything.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">05 &middot; The Payoff</div>
+    <h2>The scripts Array Is The Whole Point</h2>
+    <p>Every entry in <code>scripts</code> is a <code>PerformanceScriptTiming</code>, and it answers the question Long Tasks spent seven years refusing to answer.</p>
+
+    <div class="code-block">
+      <div class="code-label">loaf-observer.js</div>
+      <pre><span class="code-kw">const</span> <span class="code-var">observer</span> = <span class="code-kw">new</span> <span class="code-fn">PerformanceObserver</span>((list) =&gt; {
+  <span class="code-kw">for</span> (<span class="code-kw">const</span> <span class="code-var">frame</span> <span class="code-kw">of</span> list.<span class="code-fn">getEntries</span>()) {
+    <span class="code-kw">for</span> (<span class="code-kw">const</span> <span class="code-var">script</span> <span class="code-kw">of</span> frame.<span class="code-var">scripts</span>) {
+      <span class="code-fn">console</span>.<span class="code-fn">log</span>({
+        <span class="code-var">invoker</span>: script.<span class="code-var">invoker</span>,
+        <span class="code-var">invokerType</span>: script.<span class="code-var">invokerType</span>,
+        <span class="code-var">sourceURL</span>: script.<span class="code-var">sourceURL</span>,
+        <span class="code-var">fn</span>: script.<span class="code-var">sourceFunctionName</span>,
+        <span class="code-var">charPos</span>: script.<span class="code-var">sourceCharPosition</span>,
+        <span class="code-var">forcedLayout</span>: script.<span class="code-var">forcedStyleAndLayoutDuration</span>,
+      });
+    }
+  }
+});
+
+observer.<span class="code-fn">observe</span>({ <span class="code-var">type</span>: <span class="code-str">'long-animation-frame'</span>, <span class="code-var">buffered</span>: <span class="code-kw">true</span> });</pre>
+    </div>
+
+    <p>Run that on a page with a genuinely slow handler and you get something you can act on immediately - a function name, a file, and an offset into that file.</p>
+
+    <div class="code-block">
+      <div class="code-label">console output</div>
+      <pre>{
+  <span class="code-var">invoker</span>: <span class="code-str">'BUTTON#apply-filters.onclick'</span>,
+  <span class="code-var">invokerType</span>: <span class="code-str">'event-listener'</span>,
+  <span class="code-var">sourceURL</span>: <span class="code-str">'https://example.com/assets/filters.9f2a1c.js'</span>,
+  <span class="code-var">fn</span>: <span class="code-str">'recomputeVisibleRows'</span>,
+  <span class="code-var">charPos</span>: <span class="code-num">18422</span>,
+  <span class="code-var">forcedLayout</span>: <span class="code-num">83.5</span>
+}</pre>
+    </div>
+
+    <p>Compare that against <span class="inline">self 341.5</span> from section two. Same page, same slow interaction, same 50 millisecond threshold, two completely different situations to be in on a Friday afternoon. One of them ends the investigation. The other one starts it.</p>
+    <p>Two of those fields deserve special attention.</p>
+    <p><code>invokerType</code> tells you <em>how</em> the browser came to run this code, and the values are more useful than they first appear: <span class="inline">event-listener</span>, <span class="inline">user-callback</span>, <span class="inline">resolve-promise</span>, <span class="inline">reject-promise</span>, <span class="inline">classic-script</span>, <span class="inline">module-script</span>. The distinction between an event listener and a promise continuation is exactly the distinction that used to require monkey-patching to recover. A frame dominated by <code>resolve-promise</code> entries is telling you that your slowness is in async continuations piling up, which is a completely different fix from a slow click handler.</p>
+
+    <div class="callout">
+      <div class="callout-label">The field I did not expect to care about</div>
+      <p><code>forcedStyleAndLayoutDuration</code> reports how long <em>this specific script</em> spent inside forced synchronous layout. Layout thrashing has always been the classic frontend performance bug, and it has always been miserable to attribute in production. Now it is a number on a per-script object.</p>
+    </div>
+
+    <p>That last one genuinely changed how I triage. Layout thrashing - reading <code>offsetHeight</code> in a loop that also writes styles - is easy to demonstrate in a blog post and startlingly hard to find in a large application, because the read and the write are usually in different modules written by different people two years apart. A field that says "this function burned 80 milliseconds forcing layout" collapses a day of bisecting into a single lookup.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 &middot; Reading The Data</div>
+    <h2>Anatomy Of A Slow Frame</h2>
+    <p>The phase timestamps only click once you lay them out in order. A frame runs through these stages, and the gaps between the markers are what you actually diagnose.</p>
+
+    <div class="arch-title">One long animation frame, start to finish</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node">startTime</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">scripts run</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">renderStart</div>
+        <div class="flow-bend"></div>
+        <div class="flow-node">styleAndLayoutStart</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">frame painted</div>
+      </div>
+    </div>
+
+    <p>Which turns into a diagnosis table. Given an entry, the interesting quantities are differences, not the raw numbers:</p>
+
+    <table>
+      <thead>
+        <tr><th>Measure</th><th>How to compute it</th><th>What a large value means</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Script time</td><td><code>renderStart - startTime</code></td><td>Your JavaScript is the bottleneck. Go read the <code>scripts</code> array.</td></tr>
+        <tr><td>Pre-layout render</td><td><code>styleAndLayoutStart - renderStart</code></td><td>Time in rAF callbacks and <code>ResizeObserver</code> handlers that run at render time.</td></tr>
+        <tr><td>Style and layout</td><td><code>startTime + duration - styleAndLayoutStart</code></td><td>Expensive selectors, or a DOM change that invalidated far more than you expected.</td></tr>
+        <tr><td>Input delay</td><td><code>firstUIEventTimestamp - startTime</code></td><td>How long a real interaction sat waiting for this frame to finish.</td></tr>
+      </tbody>
+    </table>
+
+    <p>The first row versus the third row is the split that matters most in practice, and it is the one Long Tasks could never give you. "The frame took 200 milliseconds" is not actionable. "The frame took 200 milliseconds and 150 of them were style and layout, after a script that touched one class name on a container" is a bug report with a fix attached.</p>
+    <p>One caveat on arithmetic. Treat these as a timeline you inspect, not as quantities that must sum perfectly. Frames have phases that overlap and edge cases at the boundaries, and if you build alerting that asserts the parts add up exactly to <code>duration</code>, you will be chasing phantom discrepancies. Use the differences to point at a suspect, then confirm in a trace.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 &middot; The Subtle Field</div>
+    <h2>blockingDuration Is Not duration</h2>
+    <p>This one trips people up, and I got it wrong myself at first, so it is worth being explicit.</p>
+    <p><code>duration</code> is how long the frame took. <code>blockingDuration</code> is how much of that time genuinely prevented the browser from responding to input. They are different numbers and the second is usually much smaller.</p>
+    <p>The reason is the same reasoning behind Total Blocking Time. A task that runs for 60 milliseconds is not 60 milliseconds of unresponsiveness, because the browser can pick up input between tasks, and short tasks are considered acceptable. So the accounting forgives the first 50 milliseconds of each long task and counts only the excess. A single 60 millisecond task contributes 10 milliseconds of blocking. A 300 millisecond task contributes 250.</p>
+    <p>Put numbers on it. Say a frame runs 220 milliseconds in total: a 70 millisecond script, a 40 millisecond script, then 110 milliseconds of style and layout. The 40 millisecond piece is under the bar and forgiven outright. The 70 millisecond piece contributes 20. Sort your dashboard by <code>duration</code> and this frame looks like an emergency. Sort by <code>blockingDuration</code> and it drops down the list - correctly - below a frame that blocked solidly for 250 milliseconds and made somebody give up on a form.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Do not alert on duration</div>
+      <p>A frame with a large <code>duration</code> but a near-zero <code>blockingDuration</code> is often a frame that did a lot of work politely, in chunks, with room for input in between. Alerting on <code>duration</code> will bury you in entries that no user ever felt. <code>blockingDuration</code> is the field that correlates with the complaint in your support queue.</p>
+    </div>
+
+    <p>This is also the bridge to Interaction to Next Paint. INP tells you that an interaction was slow and gives you a number. It does not tell you why. LoAF tells you which frame was slow and which script inside it was responsible. Used together you get a complete story: INP identifies the bad interaction, and the LoAF entry overlapping it names the function.</p>
+    <p>If you use the <code>web-vitals</code> library, this is already wired up for you - the attribution build uses LoAF under the hood to enrich INP reports. That is the path I would recommend for most teams over hand-rolling an observer, because the library has already handled the timing correlation edge cases that are genuinely fiddly to get right.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 &middot; Production</div>
+    <h2>Wiring It Into Real Monitoring</h2>
+    <p>Collecting LoAF from real users needs a bit more care than the console example, mostly because the raw data is verbose and the interesting entries are rare.</p>
+    <p>The single most important option is <code>durationThreshold</code>. The default is 50 milliseconds, which on a busy page produces a firehose. Raise it.</p>
+
+    <div class="code-block">
+      <div class="code-label">rum/loaf.ts</div>
+      <pre><span class="code-kw">const</span> <span class="code-var">observer</span> = <span class="code-kw">new</span> <span class="code-fn">PerformanceObserver</span>((list) =&gt; {
+  <span class="code-kw">for</span> (<span class="code-kw">const</span> <span class="code-var">frame</span> <span class="code-kw">of</span> list.<span class="code-fn">getEntries</span>()) {
+    <span class="code-cmt">// Only the frames a user could actually feel.</span>
+    <span class="code-kw">if</span> (frame.<span class="code-var">blockingDuration</span> &lt; <span class="code-num">50</span>) <span class="code-kw">continue</span>;
+
+    <span class="code-cmt">// The worst single script explains most frames. Send that one.</span>
+    <span class="code-kw">const</span> <span class="code-var">worst</span> = frame.<span class="code-var">scripts</span>
+      .<span class="code-fn">slice</span>()
+      .<span class="code-fn">sort</span>((a, b) =&gt; b.<span class="code-var">duration</span> - a.<span class="code-var">duration</span>)[<span class="code-num">0</span>];
+
+    <span class="code-fn">report</span>({
+      <span class="code-var">blocking</span>: <span class="code-fn">Math</span>.<span class="code-fn">round</span>(frame.<span class="code-var">blockingDuration</span>),
+      <span class="code-var">script</span>: frame.<span class="code-var">duration</span> - (frame.<span class="code-var">renderStart</span> - frame.<span class="code-var">startTime</span>),
+      <span class="code-var">fn</span>: worst?.<span class="code-var">sourceFunctionName</span> ?? <span class="code-str">'unknown'</span>,
+      <span class="code-var">src</span>: worst?.<span class="code-var">sourceURL</span> ?? <span class="code-str">''</span>,
+      <span class="code-var">kind</span>: worst?.<span class="code-var">invokerType</span> ?? <span class="code-str">''</span>,
+    });
+  }
+});
+
+observer.<span class="code-fn">observe</span>({
+  <span class="code-var">type</span>: <span class="code-str">'long-animation-frame'</span>,
+  <span class="code-var">buffered</span>: <span class="code-kw">true</span>,
+  <span class="code-var">durationThreshold</span>: <span class="code-num">150</span>,
+});</pre>
+    </div>
+
+    <p>A few things I would do differently from the naive version:</p>
+    <ul class="bullet-list">
+      <li><span>Filter on <code>blockingDuration</code>, not <code>duration</code>, for the reason in the previous section.</span></li>
+      <li><span>Do not ship the whole <code>scripts</code> array. On a heavy frame it can hold dozens of entries and your payload balloons. The slowest one explains most of the frame.</span></li>
+      <li><span>Sample. You do not need this from every session. A small percentage of users produces enough signal, and the whole point is to find systemic problems, not individual ones.</span></li>
+      <li><span>Watch your cardinality. <code>sourceFunctionName</code> plus <code>sourceURL</code> is a nice tidy key. <code>sourceCharPosition</code> is not - it changes on every deploy, and if you make it part of a metric label your observability bill will teach you a lesson.</span></li>
+      <li><span>Feature-detect. <code>PerformanceObserver.supportedEntryTypes.includes('long-animation-frame')</code> before you construct anything.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">09 &middot; Honest Limits</div>
+    <h2>What LoAF Will Not Do For You</h2>
+    <p>I have been enthusiastic for seven sections, so here is the other side. These are the things I wish someone had told me before I started building on it.</p>
+    <p><strong>It is a Chromium feature.</strong> At the time of writing it is not available in Safari or Firefox. Check the current support tables before you read anything here as settled, but plan on this being true. The practical consequence is that LoAF is a <em>diagnostic</em> tool, not a universal metric. You cannot make it the number on the executive dashboard, because it will be silent for a meaningful share of your users and that silence is not the same as speed.</p>
+    <p><strong>Cross-origin scripts go dark.</strong> If a script comes from a different origin and the response does not carry a <code>Timing-Allow-Origin</code> header, you do not get its URL or function name. Which means the third-party tag manager that is actually eating your main thread shows up as an anonymous blob. There is a real irony in the attribution API losing attribution for exactly the code you have least control over.</p>
+    <p><strong>Every document reports separately.</strong> An observer sees the long frames of the document it was created in. Work inside an iframe is reported to an observer inside that iframe, not to yours. So if your page embeds third-party widgets in frames, you would need a collector running in each one, which is generally not possible for code you do not own. This is the one place where old Long Tasks attribution is still ahead: <code>containerSrc</code> at least named the frame.</p>
+    <p><strong>Your function names are only as good as your build.</strong> <code>sourceFunctionName</code> reports what is in the shipped bundle. If that is minified, you get <code>t</code>. You need source maps in the loop somewhere, whether that is your RUM vendor resolving them server-side or a step in your own pipeline. Worth noting that shipping source maps carelessly has its own consequences, which I have written about separately.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">It names the function, not the reason</div>
+      <p>LoAF tells you <em>which</em> code was slow. It does not tell you <em>why</em> that code was slow. You still need a profiler for that. What changes is that you now start profiling with a specific function in mind, instead of recording a five second trace and squinting at a flame chart.</p>
+    </div>
+
+    <p><strong>And it is still a 50 millisecond threshold API.</strong> LoAF fixes the unit and fixes attribution. It does not lower the bar for what counts as slow. Death by a thousand 40 millisecond frames remains invisible, and if your problem is a steady drizzle of mediocre frames rather than occasional terrible ones, this will not surface it.</p>
+  </section>
+
+  <section>
+    <div class="section-num">10 &middot; Practice</div>
+    <h2>What I Actually Do Now</h2>
+    <p>The workflow that came out of all this is short, and I have stopped deviating from it.</p>
+    <p>INP is the alarm. It is cross-browser, it is a Core Web Vital, and it is the number that goes on the dashboard. When it degrades, LoAF is the first thing I open, because it is the only source that gets me from "interactions are slow" to a function name without a bisect.</p>
+    <p>From the entry, the first split is always <code>renderStart - startTime</code> against the rest. Script-dominated and layout-dominated frames have completely different fixes and it takes one subtraction to tell them apart. Then <code>forcedStyleAndLayoutDuration</code> on the individual scripts, because layout thrashing is common, expensive, and the single thing I am most likely to find.</p>
+
+    <div class="highlight-box">
+      <strong>The one-line version</strong>
+      Long Tasks answers "was something slow". LoAF answers "what was slow, in which phase, and did the user feel it". Keep INP as the metric you alert on, and use LoAF as the thing you open the moment it moves.
+    </div>
+
+    <p>I said at the top that our dashboards were green while users were unhappy, and I want to close the loop on that honestly, because the resolution was less cinematic than the setup. There was no single villain. There was a handler doing a synchronous layout read it did not need, a scroll listener that had quietly stopped being passive during a refactor, and a chunk of work that had been split into polite little pieces which all landed in the same frame anyway.</p>
+    <p>Long Tasks had recorded the last of those as nothing at all. That is the part that stays with me. Not that the old API was imprecise, but that the specific optimisation we had applied - break up the long task, yield more often - had made the telemetry look better while the user experience stayed exactly where it was. We had optimised the measurement.</p>
+    <p>Measure the frame. It is the thing the user is actually looking at.</p>
+  </section>
+
+  <div class="footnote">
+    Browser support for Long Animation Frames is Chromium-only at the time of writing - verify current availability before depending on it. Timings quoted in this article are illustrative and drawn from sample entries, not from a specific production dataset. The <span class="inline">web-vitals</span> library's attribution build is the recommended path for wiring LoAF into INP reporting rather than hand-rolling correlation.
+  </div>
+
+</div><!-- /content-wrap -->
+</body>
+</html>

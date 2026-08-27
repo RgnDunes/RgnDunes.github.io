@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "long-animation-frames-not-long-tasks",
+    title:
+      "Long Tasks Are Not Why Your Page Feels Slow. Chrome Shipped An API That Finally Tells You What Is.",
+    description:
+      "The Long Tasks API tells you that something blocked the main thread for 340ms. It will not tell you which script, which handler, or which line. Long Animation Frames does - and it measures the unit users actually perceive, which is the frame, not the task.",
+    contentPath: "/blog/long-animation-frames-not-long-tasks_article.html",
+    publishedAt: "2026-08-27",
+    tags: ["Performance", "Browser APIs", "Observability", "INP", "Core Web Vitals"],
+    readingTime: "~19 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "your-ci-cache-is-a-second-package-manager-treat-it-like-one",
     title: "Your CI Cache Is a Second Package Manager. Treat It Like One.",
     description: "A CI cache can cut minutes from a build, or quietly make your release process non-reproducible. The difference is whether you treat it as disposable acceleration or hidden infrastructure.",
