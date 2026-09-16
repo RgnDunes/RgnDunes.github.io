@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Adding &quot;exports&quot; To Your package.json Is A Breaking Change. Stop Shipping It As A Patch.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="Adding an exports field to package.json silently blocks every deep import your consumers use, including package.json itself. Here is how the field really resolves, the TypeScript ordering bug that fails silently, and how to roll it out safely." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Adding &quot;exports&quot; To Your package.json Is A Breaking Change. Stop Shipping It As A Patch." />
+<meta property="og:description" content="Adding an exports field to package.json silently blocks every deep import your consumers use, including package.json itself. Here is how the field really resolves, the TypeScript ordering bug that fails silently, and how to roll it out safely." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/package-json-exports-is-a-breaking-change" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Adding &quot;exports&quot; To Your package.json Is A Breaking Change. Stop Shipping It As A Patch." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Frontend Infrastructure &nbsp;&middot;&nbsp; Package Design</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&h=630&fit=crop&q=80" alt="Long warehouse aisles stacked with packages, only some of which ever reach the loading dock" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Deep Dive &middot; Package Design</div>
+  <h1>Adding "exports" To Your package.json Is A Breaking Change. <em>Stop Shipping It As A Patch.</em></h1>
+  <p class="hero-sub">Six lines of JSON can make every deep import your consumers rely on throw at runtime. The Node docs say so in bold. Here is what the field actually does, the ordering bugs that TypeScript will not warn you about, and how I would roll it out without breaking anybody.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>September 2026</span>
+    <span class="byline-dot"></span>
+    <span>~15 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">npm</span>
+    <span class="tag">Node.js</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 &middot; The Innocent PR</div>
+    <h2>The Smallest Diff That Can Break A Build</h2>
+    <p>Here is a pull request that gets approved in about forty seconds in most repositories I have worked in. Somebody is tidying up a shared package, they read that modern packages should declare their entry points properly, and they add this:</p>
+
+    <div class="code-block">
+      <div class="code-label">package.json</div>
+      <pre>{
+  <span class="code-str">"name"</span>: <span class="code-str">"@acme/ui"</span>,
+  <span class="code-str">"version"</span>: <span class="code-str">"3.4.2"</span>,
+  <span class="code-str">"main"</span>: <span class="code-str">"./dist/index.js"</span>,
+<span class="code-cmt">+ "exports": {</span>
+<span class="code-cmt">+   ".": "./dist/index.js"</span>
+<span class="code-cmt">+ }</span>
+}</pre>
+    </div>
+
+    <p>It looks like metadata. It looks like the <code>main</code> field wearing a nicer shirt. The version goes to <code>3.4.3</code>, CI is green because the package's own tests import it by its root name, and it ships.</p>
+    <p>Then somewhere else, a consumer that has been doing <code>require('@acme/ui/dist/utils/format')</code> for two years picks up the patch through a caret range and gets this:</p>
+
+    <div class="code-block">
+      <div class="code-label">terminal</div>
+      <pre>Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath <span class="code-str">'./dist/utils/format'</span>
+is not defined by <span class="code-str">"exports"</span> in node_modules/@acme/ui/package.json</pre>
+    </div>
+
+    <p>That is not a hypothetical error message. I reproduced it on Node 26 while writing this, with a package exactly that shape. The deep import was never officially supported, sure. Nobody promised it would work. But it <em>did</em> work, people depended on it, and semver is about what you break, not about what you meant.</p>
+
+    <div class="pull-quote">
+      <p>The exports field is not metadata. It is an access control list for your package, and adding one means deny by default.</p>
+    </div>
+
+    <p>I have spent a fair amount of the last few years on frontend infrastructure: monorepos, internal packages, the build and tooling glue in between. This field sits right at the centre of that work, and I think it is one of the most under-respected six lines in the JavaScript ecosystem. Not because it is bad. It is genuinely good. It is just not a cosmetic change, and treating it like one is how you end up with a patch release that breaks builds.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 &middot; What It Actually Does</div>
+    <h2>main Was A Suggestion. exports Is A Wall.</h2>
+    <p>Before <code>exports</code>, a package was basically a folder. <code>main</code> told Node which file to load when someone imported the bare package name, and after that, every file inside the folder was reachable by path. <code>lodash/fp/map</code>, <code>some-lib/dist/internal/thing.js</code>, <code>whatever/package.json</code>. If the file existed on disk, you could import it.</p>
+    <p>The <code>exports</code> field flips that model. Once it exists, it is the <strong>complete list</strong> of what the outside world may import. Anything not listed is unreachable through the package name, even though the file is sitting right there in <code>node_modules</code>. Two more details that surprise people:</p>
+
+    <ul class="bullet-list">
+      <li><span><strong>It overrides <code>main</code>.</strong> When both are present, Node uses <code>exports</code>. <code>main</code> only matters to older tools that do not understand the newer field.</span></li>
+      <li><span><strong>It blocks <code>package.json</code> itself.</strong> <code>require('your-pkg/package.json')</code> throws unless you export it explicitly, and a surprising number of tools read other packages' manifests that way to check versions or peer dependencies.</span></li>
+      <li><span><strong>It is enforced at resolution time, not install time.</strong> Nothing warns you during <code>npm install</code>. The failure appears the first time the import runs, which might be in a test, a build, or production.</span></li>
+    </ul>
+
+    <p>The Node documentation is unusually direct about this. It does not bury it in a footnote:</p>
+
+    <blockquote>
+      <p>Existing packages introducing the "exports" field will prevent consumers of the package from using any entry points that are not defined, including the package.json (e.g. require('your-package/package.json')). This will likely be a breaking change.</p>
+    </blockquote>
+
+    <p>The bold in the original is Node's, not mine. So the most honest answer to "should adding exports be a major version?" is that the people who designed the field already told you it probably should be.</p>
+
+    <h3>Why the wall is a good thing</h3>
+    <p>I want to be clear that I am not arguing against the field. I use it on every package I set up now. The wall is the point. Without it, every file in your <code>dist</code> folder is public API whether you like it or not, and you cannot rename an internal module without risking someone's build. With it, you get to decide what is public, and refactoring the inside of a package becomes safe again.</p>
+    <p>The problem is purely the transition. Going from "everything is public" to "only this is public" is, by definition, removing things from your public surface. That is what a major version is for.</p>
+  </section>
+
+  <section>
+    <div class="section-num">03 &middot; Conditions</div>
+    <h2>The Object Order Is The Algorithm</h2>
+    <p>The second half of <code>exports</code> is conditional exports: the ability to point the same import at different files depending on who is asking. A typical dual package looks like this:</p>
+
+    <div class="code-block">
+      <div class="code-label">package.json</div>
+      <pre><span class="code-str">"exports"</span>: {
+  <span class="code-str">"."</span>: {
+    <span class="code-str">"types"</span>: <span class="code-str">"./dist/index.d.ts"</span>,
+    <span class="code-str">"import"</span>: <span class="code-str">"./dist/index.mjs"</span>,
+    <span class="code-str">"require"</span>: <span class="code-str">"./dist/index.cjs"</span>,
+    <span class="code-str">"default"</span>: <span class="code-str">"./dist/index.mjs"</span>
+  }
+}</pre>
+    </div>
+
+    <p>Here is the thing that catches almost everyone the first time: <strong>there is no priority system</strong>. The resolver walks the keys in the order they appear in the JSON object and takes the first one whose condition it supports. JSON objects are technically unordered in the spec, but Node reads them in source order and that order is load-bearing.</p>
+    <p>So this looks harmless:</p>
+
+    <div class="code-block">
+      <div class="code-label">package.json (broken)</div>
+      <pre><span class="code-str">"exports"</span>: {
+  <span class="code-str">"."</span>: {
+    <span class="code-str">"default"</span>: <span class="code-str">"./cjs.js"</span>,
+    <span class="code-str">"import"</span>: <span class="code-str">"./esm.mjs"</span>
+  }
+}</pre>
+    </div>
+
+    <p>And it is completely wrong. <code>default</code> matches everything, so the <code>import</code> branch is dead code. I tested it: an ES module doing <code>import x from "order"</code> gets the CommonJS file every single time. No warning, no error. Your ESM build is simply never used, and you find out when someone asks why tree shaking stopped working (which, if you have read my <a href="/blog/tree-shaking-is-a-lie">tree shaking piece</a>, you know is already fragile enough).</p>
+
+    <div class="callout">
+      <div class="callout-label">Rule of thumb</div>
+      <p>Most specific condition first, <code>default</code> always last. If a condition key appears after <code>default</code>, it can never match.</p>
+    </div>
+
+    <h3>Conditions are not only import and require</h3>
+    <p>Node itself understands <code>node</code>, <code>import</code>, <code>require</code>, <code>module-sync</code> and <code>default</code>. Bundlers and tools add their own: <code>browser</code>, <code>development</code>, <code>production</code>, <code>types</code>, and a few more depending on which tool you ask. Conditions can also nest, so you can have a <code>browser</code> branch that itself splits on <code>import</code> and <code>require</code>.</p>
+    <p>This is powerful and I have seen it turn into an unreadable decision tree very quickly. My opinion: if your conditions object needs more than two levels of nesting, the package is trying to be too many things, and you should question the build matrix before you question the JSON.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 &middot; The TypeScript Trap</div>
+    <h2>"types" Goes First, And TypeScript Will Not Tell You Why</h2>
+    <p>This is the part I find most interesting, because the failure mode is silent and the folklore around it is slightly wrong.</p>
+    <p>You will read everywhere that the <code>types</code> condition must come first. That is good advice. But when I actually tested it with TypeScript 6.0, putting <code>types</code> last did <em>not</em> break things in the simple case. With only a <code>.js</code> file behind the <code>import</code> condition, TypeScript found nothing it could use there and carried on to the <code>types</code> entry. Everything type-checked correctly.</p>
+    <p>So why does the rule exist? Because of what happens when there <em>is</em> something TypeScript can use behind the earlier condition. I added a stale declaration file next to the JavaScript, the kind of leftover you get when a build output folder is not cleaned between runs:</p>
+
+    <div class="code-block">
+      <div class="code-label">package layout</div>
+      <pre>dist/
+  esm/
+    index.js
+    index.d.ts        <span class="code-cmt">// old: export function hello(): any;</span>
+  types/
+    index.d.ts        <span class="code-cmt">// current: export function hello(): string;</span></pre>
+    </div>
+
+    <p>With <code>"import"</code> listed before <code>"types"</code>, TypeScript resolved <code>./dist/esm/index.js</code>, looked for a sibling declaration file, found the stale one, and used it. <code>hello()</code> came back as <code>any</code>. A line that should have been a type error - assigning that string to a <code>number</code> - compiled without a complaint.</p>
+    <p>Swap the order so <code>types</code> comes first, and the same code correctly fails with <code>TS2322: Type 'string' is not assignable to type 'number'</code>.</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">0</div><div class="stat-label">Warnings with types last</div></div>
+      <div class="stat-item"><div class="stat-num">1</div><div class="stat-label">Stale .d.ts needed to break it</div></div>
+      <div class="stat-item"><div class="stat-num">6.0</div><div class="stat-label">TypeScript version tested</div></div>
+      <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">Resolution modes, same result</div></div>
+    </div>
+
+    <p>I got the same behaviour under both <code>bundler</code> and <code>nodenext</code> resolution. The dangerous part is not a red squiggle. The dangerous part is the <em>absence</em> of one, in exactly the place you were relying on types to catch a mistake. If you want to see what TypeScript is actually doing, <code>tsc --traceResolution</code> prints every condition it matched, and it is the first thing I reach for when types look suspiciously loose.</p>
+
+    <div class="highlight-box"><strong>The real reason "types" goes first</strong>Not because TypeScript cannot find types otherwise, but because any declaration file sitting next to an earlier target will win, and it may not be the one you meant to ship.</div>
+  </section>
+
+  <section>
+    <div class="section-num">05 &middot; Old Resolution Modes</div>
+    <h2>The Same Import, Two Different Answers</h2>
+    <p>Here is the other TypeScript wrinkle, and it is one that bites monorepos in particular. The old <code>moduleResolution: "node"</code> setting, now called <code>node10</code>, predates <code>exports</code> and ignores it entirely. It looks at <code>main</code>, <code>types</code> and the file system, like it is 2019.</p>
+    <p>So I ran the same package against both settings. A package that only declares its types inside <code>exports</code>:</p>
+
+    <table>
+      <thead>
+        <tr><th>Import</th><th>node10</th><th>bundler / nodenext</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>from "tl"</code></td><td>TS2307: cannot find module</td><td>Resolves correctly</td></tr>
+        <tr><td><code>from "tl/dist/types/index"</code></td><td>Resolves (deep import)</td><td>TS2307: cannot find module</td></tr>
+      </tbody>
+    </table>
+
+    <p>Read that table twice. The import that works under one setting is exactly the import that fails under the other. If a workspace has packages on different <code>tsconfig</code> settings (which, in any monorepo old enough to have history, some of them will be), you can have one app happily compiling against a deep path that another app is not allowed to see.</p>
+    <p>To TypeScript's credit, the <code>node10</code> error message is now genuinely helpful. It says there are types at the path you would expect, but they cannot be resolved under your current setting, and suggests switching. And TypeScript 6.0 goes further: using <code>node10</code> at all now errors with <code>TS5107</code>, a deprecation warning saying it will stop working in TypeScript 7.0, unless you set <code>ignoreDeprecations</code>.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">If you still use node10</div>
+      <p>Treat the deprecation as a forcing function. Moving to <code>bundler</code> or <code>nodenext</code> will surface every deep import your code relies on, which is precisely the list you need before anybody adds <code>exports</code> to those dependencies.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">06 &middot; Dual Packages</div>
+    <h2>Two Copies Of Your Class, And instanceof Lies</h2>
+    <p>Conditional exports make it very easy to ship a package that has both an ESM build and a CommonJS build. That feels like the responsible thing to do. It also creates something the Node docs call the <strong>dual package hazard</strong>, and it is worth seeing it once with your own eyes.</p>
+
+    <div class="code-block">
+      <div class="code-label">hazard.mjs</div>
+      <pre><span class="code-kw">import</span> { createRequire } <span class="code-kw">from</span> <span class="code-str">"module"</span>;
+<span class="code-kw">import</span> { Err } <span class="code-kw">from</span> <span class="code-str">"dual"</span>;              <span class="code-cmt">// resolves to esm.mjs</span>
+
+<span class="code-kw">const</span> <span class="code-var">cjs</span> = <span class="code-fn">createRequire</span>(<span class="code-kw">import</span>.meta.url)(<span class="code-str">"dual"</span>); <span class="code-cmt">// resolves to cjs.cjs</span>
+
+console.<span class="code-fn">log</span>(Err === cjs.Err);                 <span class="code-cmt">// false</span>
+console.<span class="code-fn">log</span>(<span class="code-kw">new</span> cjs.<span class="code-fn">Err</span>() <span class="code-kw">instanceof</span> Err);  <span class="code-cmt">// false</span></pre>
+    </div>
+
+    <p>Both lines print <code>false</code>. Same package name, same version, two completely separate module instances. Any module-level state exists twice: caches, registries, singletons, React contexts, the lot. An error thrown by one copy is not an instance of the other copy's error class, so your carefully typed <code>catch</code> branch just does not run.</p>
+    <p>In a single app you control, this is rare. In a real dependency graph it is not, because you do not choose how your dependencies load their dependencies. One library written in CommonJS calls <code>require("dual")</code>, your code does <code>import</code>, and now there are two.</p>
+
+    <h3>require(esm) changes the calculation</h3>
+    <p>The reason dual packages existed in the first place was that CommonJS could not <code>require()</code> an ES module. That is no longer true. Node unflagged <code>require(esm)</code> in the 22 line and backported it to 20, and on the Node 26 I tested with it simply works: <code>require()</code> on a synchronous ES module returns its namespace object.</p>
+    <p>Two practical consequences that I think more package authors should know about:</p>
+    <ul class="bullet-list">
+      <li><span><strong>ESM-only is far more viable than it was.</strong> If you only support maintained Node versions, a single ESM build with no top-level await avoids the hazard completely, because there is only one copy to load.</span></li>
+      <li><span><strong>The <code>module-sync</code> condition exists for exactly this.</strong> It matches whether the package is loaded with <code>import</code> or <code>require()</code>, so both paths can share one ESM file. A module with top-level await in its graph will throw <code>ERR_REQUIRE_ASYNC_MODULE</code> when required, so this only works for synchronous code.</span></li>
+      <li><span><strong>The namespace shape catches people.</strong> <code>require()</code> gives you the module namespace, so a default export comes back under <code>.default</code> rather than as the value itself. Consumers doing <code>const fn = require("pkg")</code> will need to adjust.</span></li>
+    </ul>
+    <p>My honest opinion: for a new internal package in a monorepo, I would ship ESM only and not look back. For a public package with a long tail of consumers on old tooling, dual builds are still a reasonable call. Just know you are buying the hazard with them.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 &middot; Patterns</div>
+    <h2>Subpath Patterns, null, And The imports Field</h2>
+    <p>Once people discover the wall, the first reaction is often to punch a giant hole back through it. You can export everything with a wildcard, and you can also do the precise opposite and block parts of a wildcard with <code>null</code>:</p>
+
+    <div class="code-block">
+      <div class="code-label">package.json</div>
+      <pre><span class="code-str">"exports"</span>: {
+  <span class="code-str">"."</span>: <span class="code-str">"./dist/index.js"</span>,
+  <span class="code-str">"./*"</span>: <span class="code-str">"./dist/*.js"</span>,
+  <span class="code-str">"./internal/*"</span>: <span class="code-kw">null</span>,
+  <span class="code-str">"./package.json"</span>: <span class="code-str">"./package.json"</span>
+}</pre>
+    </div>
+
+    <p>With that shape, <code>pkg/button</code> resolves to <code>dist/button.js</code>, while <code>pkg/internal/x</code> throws <code>ERR_PACKAGE_PATH_NOT_EXPORTED</code> even though the wildcard would otherwise match it. I checked both. The <code>*</code> is a plain string substitution, not a glob, so it can include slashes, which is convenient and occasionally more permissive than people expect.</p>
+    <p>Note the last line. I add <code>"./package.json": "./package.json"</code> to basically every package now. It costs nothing and it removes one of the most common ways the field breaks unrelated tooling.</p>
+
+    <h3>The half nobody uses: imports</h3>
+    <p>There is a sibling field, <code>imports</code>, that I think deserves a lot more attention than it gets. It defines <strong>private</strong> aliases that only work inside the package itself, and every key has to start with <code>#</code>:</p>
+
+    <div class="code-block">
+      <div class="code-label">package.json</div>
+      <pre><span class="code-str">"imports"</span>: {
+  <span class="code-str">"#utils/*"</span>: <span class="code-str">"./src/utils/*.js"</span>
+}</pre>
+    </div>
+
+    <p>Inside the package, <code>require("#utils/fmt")</code> works. From outside, the same file is still blocked by <code>exports</code>. It is path aliasing that the runtime understands natively, which means no <code>tsconfig</code> paths plugin, no bundler alias config, and no mismatch between the three of them. If you have ever debugged an import that works in the editor, works in tests and fails in production because the aliases were configured in two out of three places, this is the fix.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 &middot; Rolling It Out</div>
+    <h2>How I Would Add exports Without Breaking Anyone</h2>
+    <p>None of this means you should avoid the field. It means you should introduce it the way you would introduce any change to a public API. Here is the process I would follow, and the one I push for in reviews.</p>
+
+    <div class="arch-title">Introducing exports safely</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node">Grep deep imports</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Export them</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Run publint</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node">Ship as a major</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">Tighten later</div>
+      </div>
+    </div>
+
+    <ul class="bullet-list">
+      <li><span><strong>Find the deep imports that actually exist.</strong> In a monorepo this is a grep away: search every consumer for <code>from "@scope/pkg/</code> and <code>require("@scope/pkg/</code>. For a public package, search GitHub code search. You are building the list of paths people really use, not the list you wish they used.</span></li>
+      <li><span><strong>Export those paths on purpose, at first.</strong> The first version of <code>exports</code> does not need to be the ideal API. It needs to include every path in use, plus <code>./package.json</code>. You can deprecate the ugly ones later, on your schedule.</span></li>
+      <li><span><strong>Verify with a real resolver, not your eyes.</strong> Tools like <code>publint</code> and "Are the Types Wrong?" (<code>@arethetypeswrong/cli</code>) check condition ordering, missing files and type resolution across modes. They catch the class of problems from the TypeScript section before your consumers do.</span></li>
+      <li><span><strong>Bump the major version.</strong> Even if your list is complete, you cannot see every consumer. The Node docs call it likely breaking. Believe them.</span></li>
+      <li><span><strong>Tighten in a later major.</strong> Once the field is in and people have moved to the paths you support, removing the compatibility exports is a normal, well-signposted breaking change.</span></li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-label">For internal monorepo packages</div>
+      <p>The version number matters less when everything builds together, but the grep does not. Run it before merging, and add <code>publint</code> to the package's CI so a reordered conditions object fails a check instead of silently shipping.</p>
+    </div>
+
+    <p>This is one of those places where frontend infrastructure work is mostly about taste. The field itself is simple. The hard part is noticing that a six line diff to a manifest is a contract change, and having the process in place so nobody has to remember that under deadline pressure. It connects directly to what I wrote about <a href="/blog/npm-workspaces-isolation">the lack of isolation in npm workspaces</a>: hoisting lets code import things it never declared, and <code>exports</code> is one of the few tools that pushes back on that.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 &middot; The Takeaway</div>
+    <h2>Treat Your Manifest Like Code</h2>
+    <p>If you remember nothing else from this, remember the short version:</p>
+    <ul class="bullet-list">
+      <li><span>Adding <code>exports</code> removes every path you did not list, including <code>package.json</code>. That is a breaking change.</span></li>
+      <li><span>Conditions are matched in object order. <code>types</code> first, <code>default</code> last.</span></li>
+      <li><span>Putting <code>types</code> late does not always fail. It fails silently when a stray declaration file wins, which is worse.</span></li>
+      <li><span>Dual ESM and CommonJS builds mean two copies of your module. With <code>require(esm)</code> in current Node, ESM-only is a real option again.</span></li>
+      <li><span>Use <code>imports</code> with <code>#</code> aliases for internal paths, and let the runtime enforce privacy for you.</span></li>
+    </ul>
+    <p>I like <code>exports</code> a lot. It is the first time npm packages have had a real, enforced boundary between public and private, and it makes packages easier to maintain over years rather than months. But good boundaries are introduced deliberately. The worst way to adopt the field is the most common one: as a quiet tidy-up, in a patch release, approved in forty seconds.</p>
+
+    <div class="pull-quote">
+      <p>Your package.json is not config. For everyone who depends on you, it is the API.</p>
+    </div>
+
+    <div class="footnote">Every behaviour described here was reproduced locally on Node 26 and TypeScript 6.0 with minimal test packages while writing this article. Resolution details can vary across bundlers and older runtime versions, so check your own toolchain with <code>--traceResolution</code> or <code>publint</code> before relying on any single claim.</div>
+  </section>
+
+</div>
+
+</body>
+</html>

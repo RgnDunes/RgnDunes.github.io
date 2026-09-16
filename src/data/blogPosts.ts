@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "package-json-exports-is-a-breaking-change",
+    title:
+      'Adding "exports" To Your package.json Is A Breaking Change. Stop Shipping It As A Patch.',
+    description:
+      "Six lines of JSON can make every deep import your consumers rely on throw at runtime, including require('pkg/package.json'). How the exports field really resolves, the TypeScript condition-order bug that fails silently, the dual package hazard, and how to roll it out without breaking anyone.",
+    contentPath: "/blog/package-json-exports-is-a-breaking-change_article.html",
+    publishedAt: "2026-09-16",
+    tags: ["npm", "Node.js", "TypeScript", "Frontend Infrastructure", "Package Design"],
+    readingTime: "~15 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "long-animation-frames-not-long-tasks",
     title:
       "Long Tasks Are Not Why Your Page Feels Slow. Chrome Shipped An API That Finally Tells You What Is.",
