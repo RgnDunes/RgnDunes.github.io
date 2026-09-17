@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VITE_ And NEXT_PUBLIC_ Are Not Naming Conventions. They Are Publish Buttons.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="Renaming OPENAI_API_KEY to VITE_OPENAI_API_KEY does not fix a bug, it publishes a secret. What client env prefixes really do at build time, the dynamic lookup that inlines every prefixed variable, the define config that leaked a whole shell environment, and how to make CI catch it." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="VITE_ And NEXT_PUBLIC_ Are Not Naming Conventions. They Are Publish Buttons." />
+<meta property="og:description" content="Renaming OPENAI_API_KEY to VITE_OPENAI_API_KEY does not fix a bug, it publishes a secret. What client env prefixes really do at build time, the dynamic lookup that inlines every prefixed variable, the define config that leaked a whole shell environment, and how to make CI catch it." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/client-env-prefix-is-a-publish-button" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="VITE_ And NEXT_PUBLIC_ Are Not Naming Conventions. They Are Publish Buttons." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Frontend Infrastructure &nbsp;&middot;&nbsp; Build Security</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=1200&h=630&fit=crop&q=80" alt="A padlock resting on a backlit laptop keyboard" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Deep Dive &middot; Build Security</div>
+  <h1>VITE_ And NEXT_PUBLIC_ Are Not Naming Conventions. <em>They Are Publish Buttons.</em></h1>
+  <p class="hero-sub">Renaming a variable so it stops being undefined feels like a fix. It is a decision to paste that value into a public JavaScript file. I built Vite and Next.js apps with fake credentials to see exactly what gets published, and one config pattern leaked far more than the .env file.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>September 2026</span>
+    <span class="byline-dot"></span>
+    <span>~14 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">Vite</span>
+    <span class="tag">Next.js</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 &middot; The One-Line Fix</div>
+    <h2>The Variable Worked Locally, So It Shipped</h2>
+    <p>Picture a small internal tool. Someone wires in an LLM feature, writes <code>import.meta.env.OPENAI_API_KEY</code>, and gets <code>undefined</code>. They search for the error, find a Stack Overflow answer that says "Vite only exposes variables prefixed with <code>VITE_</code>", rename the variable, and everything works. The PR is one line in <code>.env</code> and one line in a component. It gets approved.</p>
+    <p>That rename did not fix a bug. It published a secret. The API key is now a string literal inside a JavaScript file that anyone can download, and the fact that it "worked" is exactly the problem.</p>
+    <p>I wanted to see this with my own eyes rather than repeat what the docs say, so I set up a throwaway Vite 8.3 project on Node 26 with a <code>.env</code> file full of fake credentials and built it a few different ways. Here is the first build. The source reads one prefixed variable and one unprefixed one:</p>
+
+    <div class="code-block">
+      <div class="code-label">src/main.js</div>
+      <pre><span class="code-var">console</span>.<span class="code-fn">log</span>(<span class="code-kw">import</span>.meta.env.<span class="code-var">VITE_API_URL</span>, <span class="code-kw">import</span>.meta.env.<span class="code-var">DATABASE_URL</span>)</pre>
+    </div>
+
+    <p>And here is the relevant slice of the production bundle:</p>
+
+    <div class="code-block">
+      <div class="code-label">dist/assets/index-*.js</div>
+      <pre><span class="code-var">console</span>.<span class="code-fn">log</span>(<span class="code-str">`https://api.example.com`</span>, <span class="code-kw">void</span> <span class="code-num">0</span>)</pre>
+    </div>
+
+    <p>No lookup. No runtime config. The value is pasted into the file as a string, and the unprefixed variable became <code>void 0</code>. That is the whole mechanism, and once you see it written out like this, the prefix stops looking like a naming convention.</p>
+
+    <div class="pull-quote">
+      <p>VITE_ and NEXT_PUBLIC_ are not naming conventions. They are publish buttons, and you press them in a .env file.</p>
+    </div>
+
+    <p>I spend most of my time these days on frontend infrastructure, and a lot of that work is about the boundary between build time and runtime. This boundary is the one people get wrong most confidently, because the tooling makes a dangerous action feel like a configuration detail.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 &middot; What The Prefix Does</div>
+    <h2>It Is Find-And-Replace, Not An Environment</h2>
+    <p>The word "environment variable" carries baggage from the server. On a Node server, <code>process.env.DATABASE_URL</code> is read when the code runs, from the process that is running it. Change the variable, restart, new value. The secret lives in memory on a machine you control.</p>
+    <p>A browser has no such thing. There is no process environment for your JavaScript to read. So bundlers fake it: at build time, they take expressions like <code>import.meta.env.VITE_API_URL</code> and replace them with the literal value from the build machine. By the time the file reaches a user, there is nothing "environment" about it. It is a constant.</p>
+    <p>The prefix is the allowlist for that replacement. Vite's own documentation is blunt about it: <code>VITE_*</code> variables should not contain sensitive information, because they end up in the client bundle. Next.js does the same thing with <code>NEXT_PUBLIC_</code>, and Create React App did it with <code>REACT_APP_</code> for years before that.</p>
+
+    <ul class="bullet-list">
+      <li><span><strong>Build time, not runtime.</strong> Change the value on your host after deploying and nothing happens. The old value is baked into the files already on the CDN.</span></li>
+      <li><span><strong>Per build, not per environment.</strong> If you want the same artefact promoted from staging to production, prefixed variables fight you, because staging values are frozen inside it.</span></li>
+      <li><span><strong>Public, not "client-side".</strong> "Exposed to the client" sounds like it means your client. It means every client, including the one running <code>curl</code> on your JS chunks.</span></li>
+    </ul>
+
+    <p>I think "exposed" is the most misleading word in this whole area. It sounds like a scope. It is actually a disclosure.</p>
+
+    <div class="callout">
+      <div class="callout-label">Mental model</div>
+      <p>Anything a prefixed variable holds, treat as if you had typed it into a <code>&lt;script&gt;</code> tag on your homepage. If that sentence makes you uncomfortable about a particular value, it does not belong behind the prefix.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 &middot; The Whole-Object Trap</div>
+    <h2>One Dynamic Lookup Ships Every Prefixed Variable</h2>
+    <p>The first build only inlined the variable I actually read. I checked: a third prefixed variable, <code>VITE_UNUSED_TOKEN</code>, did not appear anywhere in the output. So far so tidy, and it is tempting to conclude that only the values you reference get published.</p>
+    <p>Then I changed one line. Instead of reading a property directly, I read it through a variable, the kind of thing people write inside a small config helper:</p>
+
+    <div class="code-block">
+      <div class="code-label">src/main.js</div>
+      <pre><span class="code-kw">const</span> <span class="code-var">k</span> = <span class="code-str">'VITE_'</span> + <span class="code-str">'API_URL'</span>
+<span class="code-var">console</span>.<span class="code-fn">log</span>(<span class="code-kw">import</span>.meta.env[<span class="code-var">k</span>])</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label">dist/assets/index-*.js</div>
+      <pre><span class="code-var">console</span>.<span class="code-fn">log</span>({<span class="code-var">BASE_URL</span>:<span class="code-str">`/`</span>,<span class="code-var">DEV</span>:!<span class="code-num">1</span>,<span class="code-var">MODE</span>:<span class="code-str">`production`</span>,<span class="code-var">PROD</span>:!<span class="code-num">0</span>,<span class="code-var">SSR</span>:!<span class="code-num">1</span>,
+  <span class="code-var">VITE_API_URL</span>:<span class="code-str">`https://api.example.com`</span>,
+  <span class="code-var">VITE_STRIPE_SECRET_KEY</span>:<span class="code-str">`sk_live_FAKE_1234567890`</span>,
+  <span class="code-var">VITE_UNUSED_TOKEN</span>:<span class="code-str">`unused_FAKE_abc`</span>}.<span class="code-var">VITE_API_URL</span>)</pre>
+    </div>
+
+    <p>Vite cannot know which key you will ask for, so it does the only safe thing for correctness: it inlines the entire object. Every prefixed variable goes in, including the one nobody uses. Logging <code>import.meta.env</code> whole, or passing it into a function, produces the same object literal.</p>
+    <p>This matters because "we only reference the public ones" is a common defence when someone spots a sensitive-looking prefixed variable in a <code>.env</code> file. It is only true until one file does a dynamic lookup, and nothing in the build output will tell you that happened.</p>
+
+    <table>
+      <thead>
+        <tr><th>Access pattern (Vite 8.3)</th><th>What lands in the bundle</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>import.meta.env.VITE_X</code></td><td>Only the value of <code>VITE_X</code></td></tr>
+        <tr><td><code>import.meta.env.DATABASE_URL</code></td><td><code>void 0</code>, nothing leaked</td></tr>
+        <tr><td><code>import.meta.env[key]</code></td><td>Every <code>VITE_</code> variable, used or not</td></tr>
+        <tr><td><code>console.log(import.meta.env)</code></td><td>Every <code>VITE_</code> variable, used or not</td></tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box"><strong>The practical rule</strong>The set of prefixed variables in your .env files is your published set. Not the set you reference. Review the file, not the call sites.</div>
+  </section>
+
+  <section>
+    <div class="section-num">04 &middot; The Escape Hatch</div>
+    <h2>Vite Blocks The Obvious Mistake And Warns On The Worse One</h2>
+    <p>People hit the prefix wall and look for a way around it. The first idea is usually to set the prefix to nothing. Vite refuses outright. With <code>envPrefix: ''</code> the build fails:</p>
+
+    <div class="code-block">
+      <div class="code-label">terminal</div>
+      <pre>error during build:
+Error: envPrefix option contains value <span class="code-str">''</span>, which could lead unexpected
+exposure of sensitive information.</pre>
+    </div>
+
+    <p>Good. The second idea is the one that usually comes from migrating a Create React App or webpack project, where code is full of <code>process.env.SOMETHING</code>. Someone adds a <code>define</code> so the old code keeps working:</p>
+
+    <div class="code-block">
+      <div class="code-label">vite.config.js</div>
+      <pre><span class="code-kw">import</span> { <span class="code-fn">defineConfig</span>, <span class="code-fn">loadEnv</span> } <span class="code-kw">from</span> <span class="code-str">'vite'</span>
+
+<span class="code-kw">export default</span> <span class="code-fn">defineConfig</span>(({ <span class="code-var">mode</span> }) => ({
+  <span class="code-var">define</span>: {
+    <span class="code-cmt">// "just make process.env work like before"</span>
+    <span class="code-str">'process.env'</span>: <span class="code-fn">loadEnv</span>(<span class="code-var">mode</span>, <span class="code-var">process</span>.<span class="code-fn">cwd</span>(), <span class="code-str">''</span>),
+  },
+}))</pre>
+    </div>
+
+    <p>This one is not blocked. Vite 8.3 printed a warning that I had passed "the entire <code>process.env</code> object to <code>define</code>, which can unintentionally expose all environment variables", and then built successfully with exit code 0. In a CI log with a few hundred lines of output, that warning is easy to scroll past.</p>
+    <p>What actually shipped was worse than I expected. <code>loadEnv</code> with an empty prefix does not just read your <code>.env</code> files. It also merges in the environment of the process running the build. When I scanned the bundle, it contained the fake <code>DATABASE_URL</code> and the fake Stripe key from <code>.env</code>, but also <code>PATH</code>, <code>HOME</code>, <code>USER</code>, <code>SSH_AUTH_SOCK</code> and dozens of other variables from my shell, including tokens set by other tools.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Why this is the dangerous one</div>
+      <p>In CI, the build process environment is where your deploy tokens, registry credentials and cloud keys live. A <code>define</code> that serialises the environment can publish those too, and they were never in any <code>.env</code> file for a reviewer to notice.</p>
+    </div>
+
+    <p>One nuance, to be fair to the pattern: when the code only reads <code>process.env.NODE_ENV</code> directly, the object is not serialised and nothing leaks. It is the same whole-object behaviour from the previous section. The config is a loaded gun that fires the first time someone writes <code>process.env[key]</code>. If you need compatibility, define individual keys, like <code>'process.env.API_URL': JSON.stringify(env.VITE_API_URL)</code>, and never the object.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05 &middot; Next.js</div>
+    <h2>NEXT_PUBLIC_ Has The Same Contract And Different Edges</h2>
+    <p>Next.js follows the same model with <code>NEXT_PUBLIC_</code>. Prefixed values are inlined into the JavaScript sent to the browser during <code>next build</code>, frozen at the value they had when the build ran. Variables without the prefix stay on the server: Server Components, Route Handlers, Server Actions and so on.</p>
+    <p>I ran the same kind of experiment on Next.js 16.3.5 with a Client Component, and the edges were not quite what I expected from older explanations of this, which say dynamic lookups are never inlined:</p>
+
+    <div class="code-block">
+      <div class="code-label">app/Client.js</div>
+      <pre><span class="code-str">'use client'</span>
+<span class="code-kw">export default function</span> <span class="code-fn">Client</span>() {
+  <span class="code-kw">const</span> <span class="code-var">name</span> = <span class="code-str">'NEXT_PUBLIC_DYNAMIC'</span>
+  <span class="code-kw">const</span> <span class="code-var">env</span> = <span class="code-var">process</span>.env
+  <span class="code-kw">return</span> &lt;<span class="code-var">p</span>&gt;
+    {<span class="code-var">process</span>.env.<span class="code-var">NEXT_PUBLIC_DIRECT</span>}  <span class="code-cmt">{/* inlined */}</span>
+    {<span class="code-var">process</span>.env[<span class="code-var">name</span>]}              <span class="code-cmt">{/* inlined: the key is a constant */}</span>
+    {<span class="code-var">env</span>.<span class="code-var">NEXT_PUBLIC_DESTRUCT</span>}          <span class="code-cmt">{/* inlined: the alias is followed */}</span>
+    {<span class="code-var">process</span>.env.<span class="code-var">SERVER_SECRET</span>}       <span class="code-cmt">{/* left as a runtime lookup */}</span>
+  &lt;/<span class="code-var">p</span>&gt;
+}</pre>
+    </div>
+
+    <p>The bundler folded the constant key and followed the alias, so all three prefixed values landed in the chunk as string literals. The unprefixed secret stayed as <code>e.default.env.SERVER_SECRET</code>, which is <code>undefined</code> in the browser. When I made the key genuinely runtime (read from <code>location.hash</code>) and also rendered <code>JSON.stringify(process.env)</code>, <em>no</em> values were inlined at all, and an unused <code>NEXT_PUBLIC_</code> variable never appeared in any build.</p>
+    <p>So a truly dynamic lookup fails closed in Next (you get <code>undefined</code>), while in Vite it fails open (you get every prefixed variable). Same idea, opposite failure mode. If your team works in both, that asymmetry is the sort of thing that turns into a confusing bug in one repo and a leak in the other. And "is this lookup dynamic enough?" depends on your bundler's constant folding, which is exactly why I would not build anything on it.</p>
+    <p>The Next-specific trap I would watch for is different anyway. It is not the prefix. It is a Client Component importing a module that reads an unprefixed secret. The secret will not be inlined, so it shows up as <code>undefined</code> in the browser, and the "fix" someone reaches for is, again, renaming it to <code>NEXT_PUBLIC_</code>. Same one-line PR as section one, different framework.</p>
+    <p>The correct fix in both cases is structural, not a rename: keep the code that needs the secret on the server. That is also why I like the <code>server-only</code> package in Next apps. Importing it at the top of a module that touches credentials turns "this accidentally ended up in a client bundle" into a build error.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 &middot; Public By Design</div>
+    <h2>Not Every Key In The Bundle Is A Leak</h2>
+    <p>I want to be careful here, because the opposite overreaction is also common. Someone runs a scanner, finds "API key" strings in a production bundle, and files a critical security bug. Plenty of keys are designed to be public. What separates them is whether the key <em>grants authority by itself</em> or only identifies your project while something else enforces the rules.</p>
+
+    <table>
+      <thead>
+        <tr><th>Credential</th><th>Safe in the browser?</th><th>What actually protects you</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Stripe publishable key (<code>pk_</code>)</td><td>Yes</td><td>It can only create tokens and client-side objects</td></tr>
+        <tr><td>Stripe secret key (<code>sk_</code>)</td><td>Never</td><td>Nothing. It is full API access</td></tr>
+        <tr><td>Firebase web config <code>apiKey</code></td><td>Yes</td><td>Security Rules and App Check, not the key</td></tr>
+        <tr><td>Supabase anon / publishable key</td><td>Yes</td><td>Row Level Security, which must be on</td></tr>
+        <tr><td>Supabase <code>service_role</code> key</td><td>Never</td><td>Nothing. It bypasses Row Level Security</td></tr>
+        <tr><td>Google Maps browser key</td><td>Yes, if restricted</td><td>HTTP referrer and API restrictions on the key</td></tr>
+        <tr><td>OpenAI / Anthropic API key</td><td>Never</td><td>Nothing. It bills your account</td></tr>
+      </tbody>
+    </table>
+
+    <p>The LLM row deserves its own mention because it is the one I see asked about most right now. Both the official OpenAI and Anthropic JavaScript SDKs refuse to run in a browser unless you pass an option literally named <code>dangerouslyAllowBrowser</code>. That flag is the SDK authors telling you the same thing this article is: a key in the browser belongs to whoever opens DevTools.</p>
+
+    <div class="pull-quote">
+      <p>A public key identifies your project. A secret key is your project. Only one of them belongs in a bundle.</p>
+    </div>
+
+    <p>So the useful question in review is not "is there a key in the bundle?". It is "if a stranger copied this value, what could they do without anything else?". If the answer is "nothing our rules do not already allow", it is fine behind a prefix. If the answer involves your bill, your database, or your users' data, it is not.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 &middot; Already Shipped</div>
+    <h2>Deleting The Variable Does Not Un-Publish It</h2>
+    <p>If you find a real secret in a deployed bundle, the instinct is to remove the prefix, redeploy, and move on. That closes the door for future visitors and does nothing about the copies that already exist.</p>
+
+    <ul class="bullet-list">
+      <li><span><strong>Hashed filenames stay around.</strong> Many static hosts and CDNs keep previous assets reachable so that users with an old tab open do not get broken chunks. The old file with the old key may still be one URL away.</span></li>
+      <li><span><strong>Caches do not care about your redeploy.</strong> Browser caches, proxy caches and service workers can all hold the old bundle.</span></li>
+      <li><span><strong>Crawlers and archives exist.</strong> Public sites get crawled. Assume a snapshot of that JS file is somewhere you cannot reach.</span></li>
+      <li><span><strong>Git history is its own leak.</strong> If the <code>.env</code> file was committed, the secret is in history regardless of what the bundle says now.</span></li>
+    </ul>
+
+    <p>So the order is: rotate first, then clean up. Revoke the credential with the provider and issue a new one, check the provider's usage logs for anything you do not recognise, and only then worry about purging caches and rewriting history. A rotated key sitting in an old bundle is harmless. A live key in a "fixed" deployment is not.</p>
+
+    <div class="callout">
+      <div class="callout-label">Related</div>
+      <p>This is the same shape of problem as shipping production source maps, which I wrote about in <a href="/blog/source-maps-security-vulnerability">Your Production Source Maps Are Leaking Your Entire Codebase</a>. The build output is public. Anything that goes into it is published, whether you meant it as documentation or not.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">08 &middot; Guardrails</div>
+    <h2>Make The Build Fail Instead Of Trusting Review</h2>
+    <p>Code review did not catch the one-line PR in section one, and I do not think it is reasonable to expect it to. The diff looked like config. The guardrail that works is a check on the thing that actually gets published: the build output.</p>
+    <p>Here is a small script I tested against the leaky and clean builds from this article. It loads everything Vite can see, fails if any unprefixed value appears in <code>dist</code>, and separately fails if a prefixed variable looks like a known server credential format:</p>
+
+    <div class="code-block">
+      <div class="code-label">scripts/check-bundle-secrets.mjs</div>
+      <pre><span class="code-kw">import</span> { <span class="code-var">readdirSync</span>, <span class="code-var">readFileSync</span>, <span class="code-var">statSync</span> } <span class="code-kw">from</span> <span class="code-str">'node:fs'</span>
+<span class="code-kw">import</span> { <span class="code-var">join</span> } <span class="code-kw">from</span> <span class="code-str">'node:path'</span>
+<span class="code-kw">import</span> { <span class="code-fn">loadEnv</span> } <span class="code-kw">from</span> <span class="code-str">'vite'</span>
+
+<span class="code-kw">const</span> <span class="code-var">mode</span> = <span class="code-var">process</span>.argv[<span class="code-num">2</span>] ?? <span class="code-str">'production'</span>
+<span class="code-kw">const</span> <span class="code-var">outDir</span> = <span class="code-var">process</span>.argv[<span class="code-num">3</span>] ?? <span class="code-str">'dist'</span>
+
+<span class="code-cmt">// Every variable Vite can see, prefixed or not</span>
+<span class="code-kw">const</span> <span class="code-var">env</span> = <span class="code-fn">loadEnv</span>(<span class="code-var">mode</span>, <span class="code-var">process</span>.<span class="code-fn">cwd</span>(), <span class="code-str">''</span>)
+
+<span class="code-cmt">// Values that must never reach the browser: anything without the client prefix</span>
+<span class="code-kw">const</span> <span class="code-var">secrets</span> = <span class="code-var">Object</span>.<span class="code-fn">entries</span>(<span class="code-var">env</span>)
+  .<span class="code-fn">filter</span>(([<span class="code-var">key</span>, <span class="code-var">value</span>]) => !<span class="code-var">key</span>.<span class="code-fn">startsWith</span>(<span class="code-str">'VITE_'</span>) &amp;&amp; <span class="code-var">value</span>.length >= <span class="code-num">8</span>)
+
+<span class="code-cmt">// Prefixed values that still look like server credentials</span>
+<span class="code-kw">const</span> <span class="code-var">suspicious</span> = <span class="code-str">/^(sk_live_|sk_test_|sk-|ghp_|xox[bp]-|AKIA)/</span>
+
+<span class="code-kw">const</span> <span class="code-fn">files</span> = (<span class="code-var">dir</span>) => <span class="code-fn">readdirSync</span>(<span class="code-var">dir</span>).<span class="code-fn">flatMap</span>((<span class="code-var">name</span>) => {
+  <span class="code-kw">const</span> <span class="code-var">path</span> = <span class="code-fn">join</span>(<span class="code-var">dir</span>, <span class="code-var">name</span>)
+  <span class="code-kw">return</span> <span class="code-fn">statSync</span>(<span class="code-var">path</span>).<span class="code-fn">isDirectory</span>() ? <span class="code-fn">files</span>(<span class="code-var">path</span>) : [<span class="code-var">path</span>]
+})
+
+<span class="code-kw">let</span> <span class="code-var">failed</span> = <span class="code-kw">false</span>
+
+<span class="code-kw">for</span> (<span class="code-kw">const</span> [<span class="code-var">key</span>, <span class="code-var">value</span>] <span class="code-kw">of</span> <span class="code-var">Object</span>.<span class="code-fn">entries</span>(<span class="code-var">env</span>)) {
+  <span class="code-kw">if</span> (<span class="code-var">key</span>.<span class="code-fn">startsWith</span>(<span class="code-str">'VITE_'</span>) &amp;&amp; <span class="code-var">suspicious</span>.<span class="code-fn">test</span>(<span class="code-var">value</span>)) {
+    <span class="code-var">console</span>.<span class="code-fn">error</span>(<span class="code-str">`${key} looks like a server credential but is exposed to the client`</span>)
+    <span class="code-var">failed</span> = <span class="code-kw">true</span>
+  }
+}
+
+<span class="code-kw">for</span> (<span class="code-kw">const</span> <span class="code-var">file</span> <span class="code-kw">of</span> <span class="code-fn">files</span>(<span class="code-var">outDir</span>)) {
+  <span class="code-kw">const</span> <span class="code-var">text</span> = <span class="code-fn">readFileSync</span>(<span class="code-var">file</span>, <span class="code-str">'utf8'</span>)
+  <span class="code-kw">for</span> (<span class="code-kw">const</span> [<span class="code-var">key</span>, <span class="code-var">value</span>] <span class="code-kw">of</span> <span class="code-var">secrets</span>) {
+    <span class="code-kw">if</span> (<span class="code-var">text</span>.<span class="code-fn">includes</span>(<span class="code-var">value</span>)) {
+      <span class="code-var">console</span>.<span class="code-fn">error</span>(<span class="code-str">`${file}: contains the value of ${key}`</span>)
+      <span class="code-var">failed</span> = <span class="code-kw">true</span>
+    }
+  }
+}
+<span class="code-var">process</span>.<span class="code-fn">exit</span>(<span class="code-var">failed</span> ? <span class="code-num">1</span> : <span class="code-num">0</span>)</pre>
+    </div>
+
+    <p>On the <code>define</code> build it failed loudly, listing <code>DATABASE_URL</code> and a long tail of shell variables. On the clean build it exited 0. Two honest limitations: it only catches secrets whose values the build machine can see, and a short value can occasionally produce a false positive. Run it in CI straight after the build step, where the real credentials are present, and it catches the cases that matter.</p>
+    <p>The architectural guardrail is the one that removes the problem instead of detecting it. If the browser needs to call something that requires a secret, it calls your server, and your server holds the secret:</p>
+
+    <div class="arch-title">Where the secret should live</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node">Browser bundle</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">Your API route</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Third-party API</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node red">Browser bundle with sk_ key</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Third-party API</div>
+      </div>
+    </div>
+
+    <p>The extra hop feels like overhead for a prototype. It is also where rate limiting, auth checks and usage caps go, which you will want the moment the prototype has real users. For generic secret scanning beyond your own <code>.env</code>, tools like gitleaks and TruffleHog can scan directories and git history too, and they are worth adding alongside the bundle check.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 &middot; The Takeaway</div>
+    <h2>Review The Prefix Like A Deploy</h2>
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-num">1</div>
+        <div class="stat-label">Dynamic lookup to inline every VITE_ var</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Build errors for define: process.env</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">''</div>
+        <div class="stat-label">The only prefix Vite refuses</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">8.3</div>
+        <div class="stat-label">Vite version tested</div>
+      </div>
+    </div>
+
+    <p>If you keep one thing from this, keep the short version:</p>
+    <ul class="bullet-list">
+      <li><span>Prefixed variables are string literals in public files. The prefix is a publish decision, not a scope.</span></li>
+      <li><span>In Vite, one dynamic <code>import.meta.env[key]</code> publishes every prefixed variable, used or not.</span></li>
+      <li><span><code>define: { 'process.env': ... }</code> only warns, and with <code>loadEnv(mode, cwd, '')</code> it can serialise the whole build machine environment.</span></li>
+      <li><span>In Next.js, a truly runtime lookup inlines nothing. Same model, opposite failure mode.</span></li>
+      <li><span>Some keys are public by design. Ask what a stranger could do with the value alone.</span></li>
+      <li><span>If a real secret shipped, rotate it first. Redeploying does not un-publish anything.</span></li>
+    </ul>
+    <p>None of this is a flaw in Vite or Next. Build-time inlining is the right design for static assets, and both tools document it clearly. The problem is the word "environment", which makes a publish step sound like a lookup. When a PR adds a prefix to a variable, I now read it the way I would read a PR that adds a string to <code>index.html</code>, because that is what it is.</p>
+
+    <div class="pull-quote">
+      <p>If renaming a variable made the error go away, check what the rename published.</p>
+    </div>
+
+    <div class="footnote">The Vite behaviours here (direct and dynamic <code>import.meta.env</code> access, the <code>envPrefix: ''</code> error, the <code>define</code> warning and what it leaked, and the scan script) were reproduced locally with Vite 8.3.0 on Node 26 using fake credentials. The Next.js behaviour was reproduced with Next.js 16.3.5 and its default production build; constant folding of env lookups can differ between bundler versions, so verify against your own build output. Provider key guidance comes from each provider's own docs; check them for your exact product before deciding a key is safe to expose.</div>
+  </section>
+
+</div>
+
+</body>
+</html>

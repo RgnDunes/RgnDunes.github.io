@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "client-env-prefix-is-a-publish-button",
+    title:
+      "VITE_ And NEXT_PUBLIC_ Are Not Naming Conventions. They Are Publish Buttons.",
+    description:
+      "Renaming a variable so it stops being undefined pastes its value into a public JavaScript file. What client env prefixes really do at build time, the dynamic lookup that inlines every prefixed variable in Vite, the define config that leaked a whole shell environment, and a CI check that catches it.",
+    contentPath: "/blog/client-env-prefix-is-a-publish-button_article.html",
+    publishedAt: "2026-09-17",
+    tags: ["Vite", "Next.js", "Security", "Frontend Infrastructure", "Build Tools"],
+    readingTime: "~14 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "package-json-exports-is-a-breaking-change",
     title:
       'Adding "exports" To Your package.json Is A Breaking Change. Stop Shipping It As A Patch.',
