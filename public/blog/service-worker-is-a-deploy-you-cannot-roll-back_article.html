@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Service Worker Is A Deploy You Cannot Roll Back. Stop Shipping It Like A Script.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="Once a service worker is installed, the browser decides when your new release runs, and rollback cannot reach it. What the lifecycle really does, why reloading does not activate a new worker, how skipWaiting breaks lazy chunks in open tabs, and the kill switch to write before you need it." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Your Service Worker Is A Deploy You Cannot Roll Back. Stop Shipping It Like A Script." />
+<meta property="og:description" content="Once a service worker is installed, the browser decides when your new release runs, and rollback cannot reach it. What the lifecycle really does, why reloading does not activate a new worker, how skipWaiting breaks lazy chunks in open tabs, and the kill switch to write before you need it." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/service-worker-is-a-deploy-you-cannot-roll-back" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Your Service Worker Is A Deploy You Cannot Roll Back. Stop Shipping It Like A Script." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Frontend Infrastructure &nbsp;&middot;&nbsp; Release Engineering</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=630&fit=crop&q=80" alt="Server racks with glowing green status lights and tangled network cables" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Deep Dive &middot; Release Engineering</div>
+  <h1>Your Service Worker Is A Deploy You Cannot Roll Back. <em>Stop Shipping It Like A Script.</em></h1>
+  <p class="hero-sub">Once a service worker is installed, the browser keeps running your old release until it decides otherwise, and your rollback button has no say in that. I built a two-version app and drove it with Playwright to see exactly when users get the new code, when they do not, and what breaks when you force it.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>September 2026</span>
+    <span class="byline-dot"></span>
+    <span>~15 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">Service Workers</span>
+    <span class="tag">PWA</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 · The Reload That Did Nothing</div>
+    <h2>I Deployed v2. I Reloaded Twice. The Page Still Said v1.</h2>
+    <p>The test app was about as small as a web app can be. One HTML page with a heading that printed its version, one JavaScript file that registered <code>/sw.js</code>, and one lazily imported chunk. The service worker precached all three on install and served them cache-first. Nothing clever. It is roughly the shape of what most PWA plugins generate for you.</p>
+    <p>I opened it in Chromium, let the worker take control, then flipped the server to v2. New HTML, new hashed file names, old files deleted from the server, exactly like a normal deploy to a CDN. Then I reloaded.</p>
+    <p>v1. Reloaded again. Still v1. The server had not served a single v1 byte for a while, and the page was still happily running the old release. Only when I closed every tab for that origin and opened a fresh one did v2 appear.</p>
+    <p>If you have ever read a support ticket that says "the fix is not live for me" and replied "try a hard refresh", this is the mechanism behind it. And it is not a bug. It is the service worker lifecycle doing precisely what the spec says it should.</p>
+    <p>Here is the mental model I think most teams carry, and why it is wrong. We think of <code>sw.js</code> as one more script in the bundle. It is not. It is a small server that you install on your users' machines, which sits between your app and the network and answers requests on your behalf. Once it is installed, <strong>the browser decides when your new release takes over</strong>, not your deploy pipeline. Your CDN purge does not reach it. Your rollback does not reach it. Your feature flag might not reach it either, if the flag lives in a cached file.</p>
+
+    <div class="pull-quote">
+      <p>A service worker is not part of your bundle. It is a deploy target you do not control, sitting on every user's machine.</p>
+    </div>
+
+    <p>That framing changes how you should ship it. The rest of this piece is what I verified, what the lifecycle actually does, the "fix" that breaks open tabs, and the release discipline I would put in place before adding a service worker to any serious production app.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 · The Lifecycle</div>
+    <h2>Install, Wait, Activate: The Part Everyone Skims</h2>
+    <p>A service worker goes through a fixed sequence, and the interesting step is the one in the middle.</p>
+
+    <div class="arch-title">Service Worker Update Lifecycle</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node">Update check</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Bytes differ?</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">install</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node red">waiting (old worker still in charge)</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">all old clients closed</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">activate</div>
+      </div>
+    </div>
+
+    <ul class="bullet-list">
+      <li><span><strong>Update check.</strong> The browser fetches your service worker script again. Per the lifecycle docs, this happens on a navigation to an in-scope page, on functional events like <code>push</code> and <code>sync</code> (unless there was a check in the previous 24 hours), or when you call <code>registration.update()</code>.</span></li>
+      <li><span><strong>Byte comparison.</strong> If the new script is byte-for-byte identical to the installed one, nothing happens. If it differs, the new worker starts installing alongside the old one.</span></li>
+      <li><span><strong>Install.</strong> The new worker runs its <code>install</code> handler, usually precaching the new release's files.</span></li>
+      <li><span><strong>Waiting.</strong> Installed, but not in charge. The old worker keeps controlling every open page.</span></li>
+      <li><span><strong>Activate.</strong> Only when no page is controlled by the old worker any more does the new one take over, run <code>activate</code>, and usually delete the old caches.</span></li>
+    </ul>
+
+    <p>That waiting step is the whole story. It exists for a very good reason: a page that loaded with release N expects release N's assets and release N's fetch handling. Swapping the worker underneath it would mean the page's first half was served by one release and its second half by another. The browser refuses to do that to you by default.</p>
+
+    <h3>Why a reload does not count</h3>
+    <p>The part that surprises people is that a reload does not end the waiting phase, even with only one tab open. My repro showed it clearly: after the deploy, the reload triggered the update check, v2 installed and went straight into <code>waiting</code>, and the page came back as v1 again. A second reload changed nothing.</p>
+    <p>The web.dev lifecycle article explains why. During a navigation, the current page does not go away until the new response starts arriving, so there is always an overlap where the old page still exists. Because of that overlap, the old worker is always controlling a client during a refresh, so it never becomes idle, so the new one never activates.</p>
+
+    <div class="highlight-box">
+      <strong>The one fact to remember</strong>
+      A refreshed tab is never "closed" from the service worker's point of view. For a waiting worker to activate, every tab and window controlled by the old worker has to go away. On mobile, where people keep a PWA or a browser tab open for weeks, that can take a very long time.
+    </div>
+
+    <p>So when someone says "users get the new version on next visit", the honest version is: users get the new version on the next visit <em>after they have closed every tab of your site</em>, and even then they are looking at whatever the new worker precached, which might not be what you deployed five minutes ago if another deploy landed in between.</p>
+  </section>
+
+  <section>
+    <div class="section-num">03 · The Repro</div>
+    <h2>What I Actually Tested</h2>
+    <p>I did not want to write this from memory of blog posts, so I built the smallest thing that could show each behaviour and drove it with Playwright in headless Chromium. The server exposed a hidden endpoint to "deploy" a new version, which swapped the HTML, the hashed file names and the service worker, and made the old files return 404, like a real deploy that replaces the contents of a bucket.</p>
+
+    <div class="code-block">
+      <div class="code-label">sw.js · the v1 worker (simplified)</div>
+      <pre><span class="code-kw">const</span> <span class="code-var">V</span> = <span class="code-str">"v1"</span>;
+
+<span class="code-var">self</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"install"</span>, (<span class="code-var">e</span>) =&gt; {
+  <span class="code-var">e</span>.<span class="code-fn">waitUntil</span>(
+    <span class="code-var">caches</span>.<span class="code-fn">open</span>(<span class="code-str">"app-"</span> + <span class="code-var">V</span>).<span class="code-fn">then</span>((<span class="code-var">c</span>) =&gt;
+      <span class="code-var">c</span>.<span class="code-fn">addAll</span>([<span class="code-str">"/"</span>, <span class="code-str">"/app-v1.js"</span>, <span class="code-str">"/chunk-v1.js"</span>])
+    )
+  );
+});
+
+<span class="code-var">self</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"activate"</span>, (<span class="code-var">e</span>) =&gt; {
+  <span class="code-cmt">// Delete every cache that is not this release's</span>
+  <span class="code-var">e</span>.<span class="code-fn">waitUntil</span>((<span class="code-kw">async</span> () =&gt; {
+    <span class="code-kw">for</span> (<span class="code-kw">const</span> <span class="code-var">k</span> <span class="code-kw">of</span> <span class="code-kw">await</span> <span class="code-var">caches</span>.<span class="code-fn">keys</span>())
+      <span class="code-kw">if</span> (<span class="code-var">k</span> !== <span class="code-str">"app-"</span> + <span class="code-var">V</span>) <span class="code-kw">await</span> <span class="code-var">caches</span>.<span class="code-fn">delete</span>(<span class="code-var">k</span>);
+  })());
+});
+
+<span class="code-var">self</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"fetch"</span>, (<span class="code-var">e</span>) =&gt; {
+  <span class="code-var">e</span>.<span class="code-fn">respondWith</span>(
+    <span class="code-var">caches</span>.<span class="code-fn">match</span>(<span class="code-var">e</span>.<span class="code-var">request</span>).<span class="code-fn">then</span>((<span class="code-var">r</span>) =&gt; <span class="code-var">r</span> || <span class="code-fn">fetch</span>(<span class="code-var">e</span>.<span class="code-var">request</span>))
+  );
+});</pre>
+    </div>
+
+    <p>Three scenarios, each in a fresh browser profile:</p>
+    <table>
+      <thead>
+        <tr><th>Scenario</th><th>What I did</th><th>What happened</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Default lifecycle</td>
+          <td>Deploy v2, reload twice, then close all tabs and reopen</td>
+          <td>v1 after both reloads with v2 <code>waiting</code>. v2 only after every tab closed. Old cache deleted on activate.</td>
+        </tr>
+        <tr>
+          <td><code>skipWaiting</code> + <code>clients.claim</code></td>
+          <td>Deploy v2, trigger an update check, then lazy-load a chunk from the still-open v1 tab</td>
+          <td>v2 took over the open tab, deleted the v1 cache, and the lazy import failed: <code>Failed to fetch dynamically imported module</code>.</td>
+        </tr>
+        <tr>
+          <td>Kill switch</td>
+          <td>Deploy a worker that clears caches and unregisters itself</td>
+          <td>One reload later: no controller, no caches, no registration, fresh v2 from the network.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The first row is the "why is my fix not live" problem. The second row is what happens when you "fix" the first one the obvious way. The third row is the thing you need to have ready before either becomes an incident.</p>
+
+    <div class="callout">
+      <div class="callout-label">Scope of the test</div>
+      <p>This was Chromium only, via Playwright, on localhost. The lifecycle is specified behaviour and the other engines follow the same install / waiting / activate model, but I would still verify timing-sensitive details on Safari and Firefox before relying on them in a release plan.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">04 · The Obvious Fix</div>
+    <h2>skipWaiting Fixes Stale Tabs By Breaking Them</h2>
+    <p>Once a team discovers the waiting phase, the fix everyone finds is two lines:</p>
+
+    <div class="code-block">
+      <div class="code-label">sw.js · the tempting fix</div>
+      <pre><span class="code-var">self</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"install"</span>, () =&gt; <span class="code-var">self</span>.<span class="code-fn">skipWaiting</span>());
+<span class="code-var">self</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"activate"</span>, (<span class="code-var">e</span>) =&gt; <span class="code-var">e</span>.<span class="code-fn">waitUntil</span>(<span class="code-var">self</span>.<span class="code-var">clients</span>.<span class="code-fn">claim</span>()));</pre>
+    </div>
+
+    <p><code>skipWaiting()</code> tells the browser to activate the new worker as soon as it is installed, without waiting for old pages to close. <code>clients.claim()</code> makes the newly active worker take control of pages that are already open. Together, they mean the new release takes over every open tab almost immediately.</p>
+    <p>That sounds like exactly what you wanted. Here is what it does to a tab that loaded v1 and is still open, which in my repro took about two seconds to demonstrate:</p>
+
+    <ul class="bullet-list">
+      <li><span>The page is running v1 JavaScript, which knows about <code>/chunk-v1.js</code>.</span></li>
+      <li><span>The v2 worker activates, and its <code>activate</code> handler deletes the <code>app-v1</code> cache, because that is what every "clean up old caches" example tells you to do.</span></li>
+      <li><span>The user clicks something that lazily imports <code>/chunk-v1.js</code>.</span></li>
+      <li><span>The v2 worker checks its cache. Not there. It falls through to the network. The deploy removed that file. 404.</span></li>
+      <li><span>The dynamic import rejects. In a React app, that is a <code>ChunkLoadError</code> or a blank route, depending on your error boundaries.</span></li>
+    </ul>
+
+    <div class="pull-quote">
+      <p>skipWaiting does not make users get the new release. It makes old pages run under the new release's rules.</p>
+    </div>
+
+    <p>The web.dev lifecycle guide says this plainly: with <code>skipWaiting()</code>, your new worker is likely controlling pages that were loaded with an older version, and if that might break things, do not use it. Code splitting is precisely the thing that makes it break, because a code-split page keeps fetching its own release's files for as long as it is open.</p>
+
+    <h3>This is probably already in your config</h3>
+    <p>You may be doing this without ever writing <code>skipWaiting</code>. In <code>vite-plugin-pwa</code>, <code>registerType: 'autoUpdate'</code> forces Workbox's <code>clientsClaim</code> and <code>skipWaiting</code> to <code>true</code>, according to its own docs. Those docs are refreshingly honest about the cost: users can lose data in any open tab where they are filling in a form, and they recommend the prompt-based approach for apps with forms.</p>
+    <p>I think that warning undersells it slightly. Lost form data is the visible failure. The quieter one is a lazy route that fails to load for a user who kept a tab open over your lunchtime deploy, which shows up in your error tracker as a scattering of chunk errors that nobody can reproduce, because by the time anyone looks, their own tab is on the new release.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Not an argument against skipWaiting everywhere</div>
+      <p>If your app is a single bundle with no lazy chunks, or your server keeps old hashed assets around for a while after each deploy, the chunk failure mostly goes away. <code>skipWaiting</code> is a legitimate tool. It is just a decision about mixing releases, and it should be made on purpose, not copied from a snippet.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">05 · Why Rollback Does Not Work</div>
+    <h2>Your Rollback Button Talks To The Server. The Problem Is On The Client.</h2>
+    <p>Now take the scenario that actually hurts. You ship a service worker with a bug in its fetch handler. Maybe it caches an API response it should not, maybe it serves a stale <code>index.html</code> that points at chunks you have since deleted, maybe it swallows a redirect. You notice, and you roll back the deploy.</p>
+    <p>For users who never got the bad worker, fine. For users who did, think about what has to happen for the rollback to reach them:</p>
+
+    <ul class="bullet-list">
+      <li><span>They have to navigate to your site so the browser runs an update check. The bad worker is still answering that navigation, possibly with a cached, broken page.</span></li>
+      <li><span>The browser has to fetch <code>sw.js</code> and see that it changed. Your rolled-back file is different from the bad one, so this part works.</span></li>
+      <li><span>The rolled-back worker then installs and <em>waits</em>, because the bad worker is controlling their open tabs.</span></li>
+      <li><span>They have to close every tab for your origin. Then, and only then, does the good worker take over.</span></li>
+    </ul>
+
+    <p>Every step in that list is outside your control. There is no server-side action that ejects an installed worker from a user's browser immediately. The closest thing is the <code>Clear-Site-Data</code> header, which I will come back to, and even that only runs when the browser actually receives a response from your server.</p>
+
+    <h3>The cache-header trap is mostly gone, but not entirely</h3>
+    <p>A few years ago there was a nastier version of this. If your host served <code>sw.js</code> with a long <code>Cache-Control: max-age</code>, the update check itself could be answered from the HTTP cache, so browsers would not even notice a new worker. The web.dev lifecycle article notes that most browsers, including Chrome from version 68, now ignore caching headers when checking the registered worker script. That is the <code>updateViaCache</code> default, <code>'imports'</code>.</p>
+    <p>The catch is in that default's name. Scripts pulled in with <code>importScripts()</code> still respect HTTP caching headers. If your worker is a thin shell that imports <code>/sw-logic.js</code>, and that file has a long cache lifetime, the logic can stay stale even after you have fixed it. I still serve every service worker file with <code>Cache-Control: no-cache</code>, because it costs nothing and removes a whole category of "is it the cache?" debugging.</p>
+
+    <h3>Do not rename the worker to force an update</h3>
+    <p>The tempting workaround is to give the worker a hashed file name, <code>sw.4f2a.js</code>, like every other asset. The lifecycle docs have a heading for this, and it is essentially "don't". The reason follows directly from the repro: the page that registers the worker is itself served by the old worker. If that cached page says <code>register('/sw.4f2a.js')</code>, it will keep registering the old URL forever. The new URL is only ever referenced by HTML that the old worker never lets the user see. Keep one stable URL, and change its contents.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 · The Kill Switch</div>
+    <h2>Write The Kill Switch Before You Need It</h2>
+    <p>Every service worker deploy should come with an answer to one question: if this worker turns out to be bad, how do I get it off every machine it is on? The answer should be a file you have already written and tested, not something you are drafting during an incident.</p>
+    <p>This is the one I tested. It replaces the bad worker at the same URL, so the browser's normal update check finds it:</p>
+
+    <div class="code-block">
+      <div class="code-label">sw.js · kill switch</div>
+      <pre><span class="code-cmt">// Activate immediately - this is the one case where mixing releases is the point.</span>
+<span class="code-var">self</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"install"</span>, () =&gt; <span class="code-var">self</span>.<span class="code-fn">skipWaiting</span>());
+
+<span class="code-var">self</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"activate"</span>, (<span class="code-var">e</span>) =&gt; {
+  <span class="code-var">e</span>.<span class="code-fn">waitUntil</span>((<span class="code-kw">async</span> () =&gt; {
+    <span class="code-kw">for</span> (<span class="code-kw">const</span> <span class="code-var">key</span> <span class="code-kw">of</span> <span class="code-kw">await</span> <span class="code-var">caches</span>.<span class="code-fn">keys</span>()) <span class="code-kw">await</span> <span class="code-var">caches</span>.<span class="code-fn">delete</span>(<span class="code-var">key</span>);
+    <span class="code-kw">await</span> <span class="code-var">self</span>.<span class="code-var">registration</span>.<span class="code-fn">unregister</span>();
+    <span class="code-cmt">// Reload open tabs so they come back from the network, uncontrolled</span>
+    <span class="code-kw">const</span> <span class="code-var">tabs</span> = <span class="code-kw">await</span> <span class="code-var">self</span>.<span class="code-var">clients</span>.<span class="code-fn">matchAll</span>({ <span class="code-var">type</span>: <span class="code-str">"window"</span> });
+    <span class="code-kw">for</span> (<span class="code-kw">const</span> <span class="code-var">tab</span> <span class="code-kw">of</span> <span class="code-var">tabs</span>) <span class="code-var">tab</span>.<span class="code-fn">navigate</span>(<span class="code-var">tab</span>.<span class="code-var">url</span>);
+  })());
+});
+<span class="code-cmt">// No fetch handler: nothing is intercepted while this worker is alive.</span></pre>
+    </div>
+
+    <p>In the repro, one reload after deploying this was enough: the page came back as fresh v2 from the network, with no controller, no caches, and <code>getRegistration()</code> returning nothing. Note the irony. This is the one place where <code>skipWaiting()</code> is exactly right, because the whole point is to stop honouring the old release as fast as possible, and the tabs get navigated anyway.</p>
+    <p>Two details matter here. First, the kill switch has no <code>fetch</code> handler at all. A worker without a fetch handler does not intercept requests, so even during the short window before it unregisters, the network answers directly. Second, <code>client.navigate()</code> reloads tabs that might contain unsaved work. For an incident where the old worker is serving broken pages, that is the right trade. For a planned retirement, you might prefer to skip the navigation and let tabs pick up the change on their own.</p>
+
+    <h3>Clear-Site-Data as a second lever</h3>
+    <p>The <code>Clear-Site-Data</code> response header is the server-side version of the same idea. MDN documents that the <code>"storage"</code> directive removes DOM storage for the origin, including service worker registrations, by running <code>unregister()</code> on each one. It also clears <code>localStorage</code> and IndexedDB, so it is a blunt instrument. It can wipe drafts and offline data your users actually care about. MDN also flags that some parts of the feature have varying support, so check the compatibility table for the browsers you care about before treating it as your only plan.</p>
+    <p>I treat it as a backup, sent from one specific endpoint rather than from every response, and I keep the self-unregistering worker as the primary kill switch because I can test it end to end.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 · A Better Update Flow</div>
+    <h2>Let The User Decide When Releases Switch</h2>
+    <p>If the default lifecycle is too slow and <code>skipWaiting</code> on install is too dangerous, the middle ground is to install silently and switch on a signal. The user, or the app at a safe moment, decides when the new release takes over.</p>
+
+    <div class="code-block">
+      <div class="code-label">sw.js · wait for permission</div>
+      <pre><span class="code-var">self</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"message"</span>, (<span class="code-var">e</span>) =&gt; {
+  <span class="code-kw">if</span> (<span class="code-var">e</span>.<span class="code-var">data</span>?.<span class="code-var">type</span> === <span class="code-str">"SKIP_WAITING"</span>) <span class="code-var">self</span>.<span class="code-fn">skipWaiting</span>();
+});</pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label">register-sw.ts · in the app</div>
+      <pre><span class="code-kw">const</span> <span class="code-var">reg</span> = <span class="code-kw">await</span> <span class="code-var">navigator</span>.<span class="code-var">serviceWorker</span>.<span class="code-fn">register</span>(<span class="code-str">"/sw.js"</span>);
+
+<span class="code-kw">function</span> <span class="code-fn">offerUpdate</span>(<span class="code-var">worker</span>: <span class="code-var">ServiceWorker</span>) {
+  <span class="code-fn">showBanner</span>(<span class="code-str">"A new version is ready"</span>, () =&gt; {
+    <span class="code-var">worker</span>.<span class="code-fn">postMessage</span>({ <span class="code-var">type</span>: <span class="code-str">"SKIP_WAITING"</span> });
+  });
+}
+
+<span class="code-kw">if</span> (<span class="code-var">reg</span>.<span class="code-var">waiting</span>) <span class="code-fn">offerUpdate</span>(<span class="code-var">reg</span>.<span class="code-var">waiting</span>);
+<span class="code-var">reg</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"updatefound"</span>, () =&gt; {
+  <span class="code-kw">const</span> <span class="code-var">next</span> = <span class="code-var">reg</span>.<span class="code-var">installing</span>;
+  <span class="code-var">next</span>?.<span class="code-fn">addEventListener</span>(<span class="code-str">"statechange"</span>, () =&gt; {
+    <span class="code-kw">if</span> (<span class="code-var">next</span>.<span class="code-var">state</span> === <span class="code-str">"installed"</span> &amp;&amp; <span class="code-var">navigator</span>.<span class="code-var">serviceWorker</span>.<span class="code-var">controller</span>) <span class="code-fn">offerUpdate</span>(<span class="code-var">next</span>);
+  });
+});
+
+<span class="code-cmt">// Once the new worker takes over, reload so the page and worker are the same release</span>
+<span class="code-kw">let</span> <span class="code-var">reloading</span> = <span class="code-kw">false</span>;
+<span class="code-var">navigator</span>.<span class="code-var">serviceWorker</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"controllerchange"</span>, () =&gt; {
+  <span class="code-kw">if</span> (<span class="code-var">reloading</span>) <span class="code-kw">return</span>;
+  <span class="code-var">reloading</span> = <span class="code-kw">true</span>;
+  <span class="code-var">location</span>.<span class="code-fn">reload</span>();
+});</pre>
+    </div>
+
+    <p>The <code>controllerchange</code> reload is the important bit. It closes the gap that <code>skipWaiting</code> opens: the moment the new worker takes control, the page reloads and becomes a new-release page, so it never tries to fetch old chunks under the new worker's rules. The <code>navigator.serviceWorker.controller</code> check stops the banner from showing on the very first install, when there was no old release to replace.</p>
+    <p>If you use Workbox, <code>workbox-window</code> packages this pattern up, and <code>vite-plugin-pwa</code>'s default <code>'prompt'</code> mode is built on the same idea. I would take either over hand-rolling it. The point is not the specific library. It is that the switch between releases becomes an explicit event that you can reason about, rather than something that happens to an open tab at a random moment.</p>
+    <p>A banner is not the only trigger, either. Some apps switch on the next route change, since a route change is a natural moment where losing in-memory state is expected. That is a reasonable choice as long as it is a choice.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 · Belt And Braces</div>
+    <h2>Keep Old Chunks Around And Catch The Ones You Missed</h2>
+    <p>Even with a good update flow, you will have users on old releases for a while. Two cheap habits make that far less painful.</p>
+
+    <h3>Do not delete the previous release's assets on deploy</h3>
+    <p>Most of the chunk failures in this piece come from one assumption: that the moment you deploy v2, v1's hashed files can disappear. With a service worker in the picture, that is rarely true. Some tabs will still be v1 for hours or days. Hashed file names never collide, so keeping the last release or two of assets on your CDN costs you some storage and buys you a lot of quiet. If your deploy step syncs a bucket with a "delete files not in the new build" flag, that flag is worth a second look.</p>
+
+    <h3>Treat a chunk load failure as "I am stale"</h3>
+    <p>When a lazy import fails, the most likely explanation in a service-worker app is that this tab is running an old release. The recovery is to reload once, and only once:</p>
+
+    <div class="code-block">
+      <div class="code-label">lazy-with-reload.ts</div>
+      <pre><span class="code-kw">export function</span> <span class="code-fn">lazyWithReload</span>&lt;<span class="code-var">T</span>&gt;(<span class="code-var">load</span>: () =&gt; <span class="code-var">Promise</span>&lt;<span class="code-var">T</span>&gt;): () =&gt; <span class="code-var">Promise</span>&lt;<span class="code-var">T</span>&gt; {
+  <span class="code-kw">return async</span> () =&gt; {
+    <span class="code-kw">try</span> {
+      <span class="code-kw">const</span> <span class="code-var">mod</span> = <span class="code-kw">await</span> <span class="code-fn">load</span>();
+      <span class="code-var">sessionStorage</span>.<span class="code-fn">removeItem</span>(<span class="code-str">"chunk-reload"</span>);
+      <span class="code-kw">return</span> <span class="code-var">mod</span>;
+    } <span class="code-kw">catch</span> (<span class="code-var">err</span>) {
+      <span class="code-cmt">// Guard against a reload loop if the chunk is genuinely broken</span>
+      <span class="code-kw">if</span> (!<span class="code-var">sessionStorage</span>.<span class="code-fn">getItem</span>(<span class="code-str">"chunk-reload"</span>)) {
+        <span class="code-var">sessionStorage</span>.<span class="code-fn">setItem</span>(<span class="code-str">"chunk-reload"</span>, <span class="code-str">"1"</span>);
+        <span class="code-var">location</span>.<span class="code-fn">reload</span>();
+      }
+      <span class="code-kw">throw</span> <span class="code-var">err</span>;
+    }
+  };
+}</pre>
+    </div>
+
+    <p>Be clear about what this does and does not fix. It reloads the page, and on a default lifecycle the old worker may still be in charge after that reload, as the repro showed. What it fixes is the specific <code>skipWaiting</code> case, where the new worker is already active and the page is the only thing that is out of date. It is a safety net for mixed releases, not a replacement for a proper update flow. Vite also fires a <code>vite:preloadError</code> event on <code>window</code> when a preload fails, which is a convenient single place to hang the same logic.</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">1</div><div class="stat-label">Stable SW URL, forever</div></div>
+      <div class="stat-item"><div class="stat-num">0</div><div class="stat-label">Seconds of max-age on sw.js</div></div>
+      <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">Releases of assets kept</div></div>
+      <div class="stat-item"><div class="stat-num">1</div><div class="stat-label">Tested kill switch</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">09 · Release Discipline</div>
+    <h2>The Checklist I Would Put In Front Of Any Service Worker PR</h2>
+    <p>None of the behaviour above is exotic. It is the documented lifecycle. The failures come from treating the worker like any other file in the build. So I would review a service worker change the way I would review a database migration: as something that is hard to undo once it has run.</p>
+
+    <ul class="bullet-list">
+      <li><span><strong>Does it have to exist?</strong> If you want offline support or push, yes. If you added it for "performance", HTTP caching of hashed assets already does most of that without a program running in your users' browsers.</span></li>
+      <li><span><strong>Is the kill switch written and tested?</strong> A self-unregistering worker at the same URL, checked into the repo, with a runbook line saying how to deploy it.</span></li>
+      <li><span><strong>Is <code>skipWaiting</code> a decision?</strong> If it is on, either there are no lazy chunks, or old assets stay available, or the page reloads on <code>controllerchange</code>. Check your PWA plugin's defaults, not just your own code.</span></li>
+      <li><span><strong>Is <code>sw.js</code> served with <code>no-cache</code>?</strong> Including anything it pulls in with <code>importScripts()</code>.</span></li>
+      <li><span><strong>Is the URL stable?</strong> No hashes in the worker's own file name.</span></li>
+      <li><span><strong>What does it cache that is not a static asset?</strong> Cached HTML and cached API responses are where the scary incidents come from. Every non-hashed response in a cache needs a reason and an expiry.</span></li>
+      <li><span><strong>Can you see which release users are on?</strong> Send the worker's version with your error and analytics events. Otherwise "the fix is not live for me" is a guess.</span></li>
+    </ul>
+
+    <p>That last point deserves more attention than it gets. A service worker splits your user base across releases by design. If your telemetry cannot tell a v1 page under a v2 worker from a clean v2 session, you will spend incidents arguing about whether the fix is deployed when the real question is whether it has been <em>adopted</em>.</p>
+  </section>
+
+  <section>
+    <div class="section-num">10 · The Short Version</div>
+    <h2>Deployed Is Not The Same As Running</h2>
+    <p>If you keep one thing from this, keep the short version:</p>
+    <ul class="bullet-list">
+      <li><span>A service worker is a small server installed on users' machines. Your deploy updates the file. The browser decides when the new one runs.</span></li>
+      <li><span>A new worker waits until every tab controlled by the old one closes. Reloading does not count, and I reproduced that directly.</span></li>
+      <li><span><code>skipWaiting</code> plus <code>clients.claim</code> makes old pages run under new rules. With code splitting, that means failed lazy imports. <code>vite-plugin-pwa</code>'s <code>autoUpdate</code> turns both on.</span></li>
+      <li><span>Rolling back the server does not roll back the worker. Write and test a self-unregistering kill switch before you need it.</span></li>
+      <li><span>Prefer install-then-prompt with a reload on <code>controllerchange</code>. Keep old assets on the CDN for a release or two.</span></li>
+      <li><span>Keep the worker at one stable URL, served with <code>no-cache</code>.</span></li>
+    </ul>
+    <p>I like service workers. Offline support and push are real features that nothing else in the browser gives you. But the teams that get burned are almost always the ones who added one through a plugin checkbox and never asked what happens on the second deploy. The first deploy is easy. It is every deploy after that where the lifecycle matters.</p>
+
+    <div class="pull-quote">
+      <p>With a service worker, deployed and running are two different states, and the browser owns the gap between them.</p>
+    </div>
+
+    <div class="footnote">The lifecycle behaviours described here (a waiting worker surviving reloads, <code>skipWaiting</code> plus <code>clients.claim</code> breaking a lazy import in an open tab, and the self-unregistering kill switch) were reproduced locally with a minimal two-version app driven by Playwright 1.59.1 against headless Chromium 147 on Node 26. Update-check triggers, the <code>updateViaCache</code> default and the advice against renaming the worker come from the web.dev service worker lifecycle article. The <code>vite-plugin-pwa</code> <code>autoUpdate</code> behaviour is from the plugin's own documentation, and <code>Clear-Site-Data</code> behaviour is from MDN. Verify timing details on Safari and Firefox before relying on them.</div>
+  </section>
+
+</div>
+
+</body>
+</html>

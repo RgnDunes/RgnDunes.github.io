@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "service-worker-is-a-deploy-you-cannot-roll-back",
+    title:
+      "Your Service Worker Is A Deploy You Cannot Roll Back. Stop Shipping It Like A Script.",
+    description:
+      "Once a service worker is installed, the browser decides when your new release runs, and rollback cannot reach it. Why reloading does not activate a new worker, how skipWaiting breaks lazy chunks in open tabs, and the kill switch to write before you need it.",
+    contentPath: "/blog/service-worker-is-a-deploy-you-cannot-roll-back_article.html",
+    publishedAt: "2026-09-22",
+    tags: ["Service Workers", "PWA", "Frontend Infrastructure", "Release Engineering", "JavaScript"],
+    readingTime: "~15 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "client-env-prefix-is-a-publish-button",
     title:
       "VITE_ And NEXT_PUBLIC_ Are Not Naming Conventions. They Are Publish Buttons.",
