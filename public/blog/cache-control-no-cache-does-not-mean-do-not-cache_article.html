@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cache-Control: no-cache Does Not Mean Do Not Cache. And No Header At All Is Worse.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="no-cache stores the response and revalidates it every time. no-store is the one that refuses to store. And an index.html with no Cache-Control at all is still cached, for a period the browser works out from Last-Modified. I reproduced all of it in Chromium - here is what each directive actually does, and the two-rule setup I would use." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Cache-Control: no-cache Does Not Mean Do Not Cache. And No Header At All Is Worse." />
+<meta property="og:description" content="no-cache stores the response and revalidates it every time. no-store is the one that refuses to store. And an index.html with no Cache-Control at all is still cached, for a period the browser works out from Last-Modified." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/cache-control-no-cache-does-not-mean-do-not-cache" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Cache-Control: no-cache Does Not Mean Do Not Cache. And No Header At All Is Worse." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Frontend Infrastructure &nbsp;&middot;&nbsp; HTTP Caching</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=1200&h=630&fit=crop&q=80" alt="A vintage typewriter with a sheet of paper that reads Update" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Myth-busting &middot; HTTP Caching</div>
+  <h1>Cache-Control: no-cache Does Not Mean Do Not Cache. <em>And No Header At All Is Worse.</em></h1>
+  <p class="hero-sub">The directive name is a trap, and leaving the header off does not switch caching off - it hands the decision to the browser. I set up a small server with one caching policy per route, drove Chromium through it with Playwright, and counted what actually reached the server.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>September 2026</span>
+    <span class="byline-dot"></span>
+    <span>~16 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">HTTP Caching</span>
+    <span class="tag">Frontend Infrastructure</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 · The Deploy That Did Not Arrive</div>
+    <h2>I Shipped v2. The Browser Showed v1. The Server Never Heard A Thing.</h2>
+    <p>The test page was one line of HTML: an <code>&lt;h1&gt;</code> that said <code>v1</code>. The server sent it with an <code>ETag</code> and a <code>Last-Modified</code> date from ten days earlier, which is what you get from basically any static host when the file was last deployed ten days ago. No <code>Cache-Control</code> header at all. I had not configured one, so in my head it was "not cached".</p>
+    <p>I opened it in Chromium, navigated away, then flipped the server to <code>v2</code>. New content, new ETag, a fresh <code>Last-Modified</code>. A normal deploy. Then I navigated back to the URL, the same way a user clicks a bookmark or a link in Slack.</p>
+    <p><code>v1</code>. And the server log for that visit was empty. Not a 304. Not a conditional request. Nothing. The browser did not ask. It decided the page it already had was fresh and rendered it from disk.</p>
+    <p>A normal reload fixed it, which is exactly why this kind of bug is so annoying to chase. It shows up as "some users still see the old version", you reload, you see the new one, and you close the ticket as "cache, probably".</p>
+    <p>It is cache. But it is not random, and it is not the CDN's fault. It is the HTTP caching spec doing what it says, and most of us have never read the part that applies. There are two separate misunderstandings tangled up here:</p>
+    <ul class="bullet-list">
+      <li><span>Leaving out <code>Cache-Control</code> does not mean "do not cache". It means "browser, you work out how long to cache this".</span></li>
+      <li><span><code>Cache-Control: no-cache</code> does not mean "do not cache" either. It means "store it, but check with me before every use".</span></li>
+    </ul>
+
+    <div class="pull-quote">
+      <p>No header is not a policy. It is you letting the browser pick one for you.</p>
+    </div>
+
+    <p>The rest of this piece is what I measured, why each result happened, the one rule I would put on every deploy, and the handful of directives I keep seeing copy-pasted without anyone knowing what they do.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 · Heuristic Freshness</div>
+    <h2>The Browser Did Maths On Your Last-Modified Date</h2>
+    <p>HTTP caching works on one question: <strong>is this stored response still fresh?</strong> If it is fresh, the cache can use it without talking to the server. If it is stale, the cache has to revalidate it first, which usually means a conditional request that comes back as a cheap <code>304 Not Modified</code>.</p>
+    <p>Freshness normally comes from you. <code>max-age=600</code> means fresh for 600 seconds. An <code>Expires</code> date means fresh until then. But when a response has neither, RFC 9111 (the current HTTP caching spec) lets caches pick a freshness lifetime themselves. Section 4.2.2 calls it <strong>heuristic freshness</strong>, and it suggests a typical approach: if there is a <code>Last-Modified</code> header, use <em>10% of the time since it was last modified</em>.</p>
+    <p>Chromium implements that 10% rule. So the maths on my test page was simple:</p>
+
+    <div class="code-block">
+      <div class="code-label">heuristic freshness</div>
+<pre><span class="code-cmt"># response headers, no Cache-Control, no Expires</span>
+Date:          <span class="code-str">Thu, 24 Sep 2026 06:00:00 GMT</span>
+Last-Modified: <span class="code-str">Mon, 14 Sep 2026 06:00:00 GMT</span>   <span class="code-cmt"># 10 days earlier</span>
+
+<span class="code-var">age_of_file</span>  = Date - Last-Modified   = <span class="code-num">10</span> days
+<span class="code-var">freshness</span>    = <span class="code-num">10%</span> of age_of_file   = <span class="code-num">1</span> day
+
+<span class="code-cmt"># for the next ~24 hours the browser may reuse this</span>
+<span class="code-cmt"># without sending a single byte to your server</span></pre>
+    </div>
+
+    <p>Look at what that does to a real release process. The longer you go between deploys, the longer the browser assumes your HTML will stay the same. A page that has not changed in 30 days gets roughly three days of free caching. Then you ship an urgent fix, and anybody who visited in the last three days can keep seeing the old page until their cached copy ages out, gets evicted, or they hit reload.</p>
+    <p>That is backwards from what you want. The file you most need to update quickly - <code>index.html</code>, the one that points at every other asset - is the one getting cached on a guess.</p>
+
+    <div class="callout">
+      <div class="callout-label">Why this is legal</div>
+      <p>RFC 9111 allows heuristic caching for responses whose status code is "heuristically cacheable" (200 is one of them) when there is no explicit expiry. It is not a browser bug and it is not specific to Chromium. The 10% figure is the spec's suggested approach, not a hard rule, so other caches can choose differently. The fix is the same everywhere: stop letting them guess.</p>
+    </div>
+
+    <p>This is also why "we do not set cache headers, so nothing is cached" is one of the most expensive beliefs in frontend infrastructure. Plenty of origins - a bare nginx, an S3 bucket, a quick Express static server - send <code>Last-Modified</code> by default and nothing else. Every one of them is opting into heuristic caching without saying so.</p>
+  </section>
+
+  <section>
+    <div class="section-num">03 · The Three Directives</div>
+    <h2>no-cache, no-store And max-age=0 Are Three Different Things</h2>
+    <p>Here is the part the names get wrong. There are three directives people reach for when they mean "do not serve my users stale stuff", and they do different things.</p>
+
+    <table>
+      <thead>
+        <tr><th>Directive</th><th>Stored?</th><th>Reused without asking?</th><th>What it actually means</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>no-store</code></td><td>No</td><td>No</td><td>Do not keep any copy. Download the whole thing every time.</td></tr>
+        <tr><td><code>no-cache</code></td><td>Yes</td><td>No</td><td>Keep a copy, but revalidate with the server before every use.</td></tr>
+        <tr><td><code>max-age=0</code></td><td>Yes</td><td>No (stale immediately)</td><td>Fresh for zero seconds. Revalidate before reuse, with some edge cases.</td></tr>
+        <tr><td>(nothing)</td><td>Yes</td><td>Yes, for a guessed period</td><td>Heuristic freshness from <code>Last-Modified</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p><code>no-cache</code> is the one with the misleading name. It is really "no-reuse-without-checking". The browser keeps the body, and when it needs the resource again it sends <code>If-None-Match</code> with the stored ETag. If nothing changed, the server replies <code>304</code> with no body and the browser uses its copy. You pay one round trip, but not the download.</p>
+    <p>That is almost always what you want for HTML. You get correctness - every visit checks with the server - and you still skip most of the bytes when nothing changed.</p>
+    <p><code>no-store</code> is the real "do not cache". Nothing is kept, so every visit pays for the full response. For a bank statement or a page with personal data on a shared machine, that is the right call. For your marketing homepage, it is paying for the same kilobytes over and over.</p>
+    <p><code>max-age=0</code> behaves like <code>no-cache</code> most of the time in a browser, and in my tests it produced identical requests. The difference is on paper: a stale response can, under some conditions, be served without revalidation - for example when a cache is disconnected from the origin - unless you forbid it with <code>must-revalidate</code>. <code>no-cache</code> has no such escape hatch. If you mean "always check", say <code>no-cache</code>.</p>
+
+    <div class="highlight-box"><strong>The one-line version</strong><code>no-cache</code> controls <em>reuse</em>. <code>no-store</code> controls <em>storage</em>. Mixing them up means you either cache things you wanted gone, or you throw away perfectly good caching for no reason.</div>
+  </section>
+
+  <section>
+    <div class="section-num">04 · What I Measured</div>
+    <h2>Six Policies, One Chromium, And A Server Log</h2>
+    <p>To stop arguing from memory, I wrote a tiny Node server with one route per policy. Each route served an HTML page that loaded one script, both sent with the same <code>Cache-Control</code>, an <code>ETag</code>, and a <code>Last-Modified</code> ten days in the past. Then Playwright drove headless Chromium 147 through the same sequence for each policy: first visit, navigate away, visit again, reload, navigate away, press Back. The server logged every request and whether it was conditional.</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">0</div><div class="stat-label">Requests on revisit, no header</div></div>
+      <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">304s on revisit, no-cache</div></div>
+      <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">Full 200s on Back, no-store</div></div>
+      <div class="stat-item"><div class="stat-num">1</div><div class="stat-label">Request on reload, 1-year max-age</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Policy</th><th>Revisit (normal navigation)</th><th>Reload</th><th>Back button</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>No header</td><td>Nothing sent</td><td>HTML revalidated, script not</td><td>Nothing sent</td></tr>
+        <tr><td><code>no-cache</code></td><td>HTML + script revalidated (304)</td><td>Both revalidated</td><td>Nothing sent</td></tr>
+        <tr><td><code>no-store</code></td><td>Both fully downloaded</td><td>Both fully downloaded</td><td>Both fully downloaded</td></tr>
+        <tr><td><code>max-age=0</code></td><td>Both revalidated (304)</td><td>Both revalidated</td><td>Nothing sent</td></tr>
+        <tr><td><code>max-age=600</code></td><td>Nothing sent</td><td>HTML revalidated, script not</td><td>Nothing sent</td></tr>
+        <tr><td><code>max-age=31536000, immutable</code></td><td>Nothing sent</td><td>HTML revalidated, script not</td><td>Nothing sent</td></tr>
+      </tbody>
+    </table>
+
+    <p>Three things in that table surprised me.</p>
+    <p><strong>No header behaved exactly like <code>max-age=600</code>.</strong> Same row, same requests. For a file that is ten days old, the browser's guess was a day of freshness, so within the test it was indistinguishable from a policy someone deliberately wrote.</p>
+    <p><strong>Reload only revalidated the page.</strong> On an ordinary reload, Chromium revalidates the main document and reuses subresources that are still fresh. That has been Chromium's behaviour since around 2017, when the team changed reload to stop revalidating every asset on the page. So "just reload" fixes stale HTML but will not necessarily fix a stale script with a long <code>max-age</code>.</p>
+    <p><strong>The Back button did not revalidate even <code>no-cache</code>.</strong> I checked, and it was not the back/forward cache - the page fired <code>pageshow</code> with <code>persisted: false</code>, so it was a real load served from the HTTP cache. RFC 9111 explicitly allows this: history navigation is meant to show what the user saw before, not fetch a new copy. Only <code>no-store</code> forced a full refetch, because there was nothing stored to show.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Scope of these numbers</div>
+      <p>This is one browser engine, headless, on a local server. Firefox and Safari follow the same spec but make different choices in the places the spec leaves open, like the heuristic percentage and reload behaviour. Treat the table as "this is what happens in Chromium", not "this is what happens everywhere".</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">05 · The Deploy Test</div>
+    <h2>Only One Policy Delivered v2 On The Next Visit</h2>
+    <p>The table above counts requests. What users actually care about is whether they get the new release. So I repeated the deploy scenario from the opening for three policies: visit v1, navigate away, flip the server to v2, navigate back.</p>
+
+    <table>
+      <thead>
+        <tr><th>Policy on the HTML</th><th>Next visit after deploy</th><th>After reload</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>No header (<code>Last-Modified</code> 10 days old)</td><td>v1</td><td>v2</td></tr>
+        <tr><td><code>max-age=600</code></td><td>v1</td><td>v2</td></tr>
+        <tr><td><code>no-cache</code> + <code>ETag</code></td><td><strong>v2</strong></td><td>v2</td></tr>
+      </tbody>
+    </table>
+
+    <p>That is the whole argument in three rows. <code>max-age=600</code> at least has a known ceiling: ten minutes after a deploy, everyone is on the new HTML. No header has an unknown ceiling that grows with the time between your deploys. <code>no-cache</code> has no staleness window at all, at the price of one small conditional request per visit.</p>
+    <p>For the HTML entry point of a single-page app, I think that price is a bargain. The document is usually small, the 304 has no body, and it is the one request that decides which version of your app the user runs. Everything else should be cached aggressively, and the next section is how you get to do that safely.</p>
+
+    <div class="pull-quote">
+      <p>Your HTML is not an asset. It is the pointer to your release. Cache the pointer and you have cached the release.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">06 · The Two-Rule Setup</div>
+    <h2>Revalidate The Pointer. Cache The Hashed Files Forever.</h2>
+    <p>Every modern bundler - Vite, webpack, Rollup, Next.js, esbuild - can put a content hash in output file names: <code>index-4f9a1c.js</code>, <code>app-b8985194.css</code>. If the content changes, the name changes. That means a hashed URL is effectively immutable: whatever lives at that URL today will live there forever.</p>
+    <p>That gives you a clean split with exactly two rules:</p>
+
+    <div class="arch-title">Two Rules For A Static Frontend</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node">index.html</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">no-cache + ETag</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">304 when unchanged</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node">app-4f9a1c.js</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">1 year + immutable</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">never refetched</div>
+      </div>
+    </div>
+
+    <p>In nginx it looks like this. The same idea translates to CloudFront behaviours, Netlify's <code>_headers</code> file, Vercel's <code>headers</code> config or an S3 object's metadata:</p>
+
+    <div class="code-block">
+      <div class="code-label">nginx.conf</div>
+<pre><span class="code-cmt"># Hashed build output: the name changes when the content does</span>
+<span class="code-kw">location</span> /assets/ {
+  <span class="code-fn">add_header</span> Cache-Control <span class="code-str">"public, max-age=31536000, immutable"</span>;
+}
+
+<span class="code-cmt"># Everything that is not hashed, and the HTML entry point</span>
+<span class="code-kw">location</span> / {
+  <span class="code-fn">add_header</span> Cache-Control <span class="code-str">"no-cache"</span>;
+  <span class="code-fn">try_files</span> <span class="code-var">$uri</span> /index.html;
+}</pre>
+    </div>
+
+    <p>A few details decide whether this works in practice:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Only hashed files get the one-year rule.</strong> <code>favicon.ico</code>, <code>robots.txt</code>, <code>manifest.webmanifest</code> and anything in a <code>public/</code> folder keep their names across releases. Give them a year and you cannot change them.</span></li>
+      <li><span><strong>Keep ETags on the HTML.</strong> <code>no-cache</code> without a validator means every revalidation downloads the full body. nginx sends ETags for static files by default. Check yours does.</span></li>
+      <li><span><strong><code>immutable</code> is a bonus, not the mechanism.</strong> It comes from RFC 8246 and tells the browser not to revalidate on reload. Firefox and Safari honour it. Chromium does not implement it, largely because its reload already skips revalidating fresh subresources - which is what my table showed. The <code>max-age</code> does the real work.</span></li>
+      <li><span><strong>The service worker script is its own case.</strong> Browsers already bypass the HTTP cache for update checks on the worker script by default, but serving <code>sw.js</code> with <code>no-cache</code> costs nothing and removes a variable. I went through the full lifecycle in my previous piece on service workers.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">07 · The Chunk That Is Not There</div>
+    <h2>Stale HTML Breaks Loudly When You Delete Old Files</h2>
+    <p>Heuristic caching of HTML would be a minor annoyance if old releases stayed runnable. The reason it turns into a blank screen is a deploy habit that looks tidy: <strong>wiping the old build before uploading the new one</strong>.</p>
+    <p>Walk through what happens. A user has v1's <code>index.html</code> cached, heuristically or otherwise. It references <code>app-4f9a1c.js</code>, and that file lazily imports <code>settings-91be02.js</code> when they open the settings page. You deploy v2 and your pipeline syncs the bucket with delete enabled, so every v1 file is gone. The user comes back, gets the cached v1 HTML, and the entry chunk may still be in their cache too. Then they click Settings. The browser requests <code>settings-91be02.js</code>, which was never cached because they never opened that page before, and the origin says 404.</p>
+    <p>In a Vite app, that surfaces as a failed dynamic import. In webpack-based setups it is the familiar <code>ChunkLoadError</code>. Either way, a route that worked yesterday is dead for that user, and your error tracker fills with an error you cannot reproduce because your own browser has the new HTML.</p>
+
+    <div class="code-block">
+      <div class="code-label">what the user's browser is doing</div>
+<pre><span class="code-cmt">// cached v1 entry chunk, still running after the v2 deploy</span>
+<span class="code-kw">const</span> <span class="code-var">Settings</span> = <span class="code-fn">lazy</span>(() =&gt; <span class="code-kw">import</span>(<span class="code-str">"./settings-91be02.js"</span>));
+<span class="code-cmt">//                                   ^ deleted by the v2 deploy -&gt; 404</span></pre>
+    </div>
+
+    <p>The fixes stack, and I would do all of them:</p>
+    <ul class="bullet-list">
+      <li><span><strong><code>no-cache</code> on HTML</strong>, so the window where old HTML exists is as short as possible.</span></li>
+      <li><span><strong>Keep the previous release's assets on the origin</strong> for at least a couple of releases. Hashed files do not collide, so leaving them costs a little storage and nothing else. Clean up on a schedule, not on every deploy.</span></li>
+      <li><span><strong>Handle the failure anyway.</strong> Tabs that were open before the deploy are running v1 no matter what your headers say. Vite dispatches a <code>vite:preloadError</code> event you can listen for, and a single guarded reload is a reasonable response.</span></li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-label">Headers cannot fix open tabs</div>
+      <p>Caching headers only apply when the browser makes a request. A tab someone opened this morning already has v1's JavaScript in memory, and it will ask for v1's chunks no matter how you configure <code>index.html</code>. Keeping old assets around is the only thing that covers both cases.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">08 · Shared Caches</div>
+    <h2>Your CDN Reads The Same Header, With Different Rules</h2>
+    <p>Everything so far has been about the browser, which RFC 9111 calls a <em>private cache</em>. Your CDN and any proxy in between are <em>shared caches</em>, and they read <code>Cache-Control</code> too - but a few directives exist just for them.</p>
+    <ul class="bullet-list">
+      <li><span><strong><code>private</code></strong> means shared caches must not store the response at all. Use it for anything personalised that browsers may still cache.</span></li>
+      <li><span><strong><code>public</code></strong> lets shared caches store responses they otherwise would not, including responses to requests with an <code>Authorization</code> header. It is not a "make it faster" flag. On an authenticated API response it can put one user's data in a cache that serves other users.</span></li>
+      <li><span><strong><code>s-maxage</code></strong> overrides <code>max-age</code> for shared caches only. <code>max-age=0, s-maxage=300</code> means the browser always revalidates but the CDN keeps a copy for five minutes. That is a good fit for HTML you purge on deploy.</span></li>
+      <li><span><strong><code>CDN-Cache-Control</code></strong> (RFC 9213) is a separate header that only CDNs read, so you can give the edge a completely different policy from the browser. Support depends on your provider, so check their docs before relying on it.</span></li>
+    </ul>
+    <p>The trap here is the CDN dashboard. Most CDNs let you set a "cache everything for N hours" rule that ignores or overrides origin headers. That rule plus a purge-on-deploy step works fine at the edge. But if the CDN also <em>forwards</em> a long <code>max-age</code> to browsers, your purge cleans the edge while every browser keeps its copy. Purges do not reach users' disks.</p>
+
+    <div class="pull-quote">
+      <p>A CDN purge clears the edge. It does not clear a single browser. Only your headers reach that far.</p>
+    </div>
+
+    <p>So when you configure caching at the edge, check two things separately: what the CDN stores, and what <code>Cache-Control</code> it sends on to the browser. <code>curl -sI</code> against the production URL shows the second. It is the one people forget.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 · My Own Site</div>
+    <h2>I Checked This Blog. It Is Not Following My Advice.</h2>
+    <p>Fair is fair, so I ran the same check against the site you are reading this on. It is a Next.js static export on GitHub Pages.</p>
+
+    <div class="code-block">
+      <div class="code-label">terminal</div>
+<pre>$ curl -sI https://rgndunes.github.io/ | grep -i cache-control
+cache-control: max-age=600
+
+$ curl -sI https://rgndunes.github.io/_next/static/chunks/webpack-b8985194118577c8.js \
+    | grep -i cache-control
+cache-control: max-age=600</pre>
+    </div>
+
+    <p>Both get <code>max-age=600</code>, the HTML and the content-hashed chunk. GitHub Pages sets this for everything and does not let you configure headers. So for up to ten minutes after I publish, a returning reader can get the previous HTML. And a hashed file that will never change gets revalidated every ten minutes for no reason. The upside is that GitHub Pages sends ETags, so those revalidations are cheap 304s rather than full downloads.</p>
+    <p>For a personal blog, I am fine with that trade. It is free, it deploys on push, and ten minutes of staleness on an article page hurts nobody. But I would never run a product frontend this way. If a payments page or a dashboard ships a fix, "most users will get it within ten minutes" is not good enough, and paying for a revalidation on every hashed chunk is wasted latency on every visit after the first ten minutes.</p>
+    <p>That is the honest version of this advice. You do not always control headers. Some hosts pick them for you. The point is to <strong>know</strong> which policy you are running and choose the host with that in mind, rather than finding out from a support ticket.</p>
+
+    <div class="highlight-box"><strong>Check yours in thirty seconds</strong>Run <code>curl -sI</code> against your production <code>index.html</code> and one hashed asset. If the HTML has no <code>Cache-Control</code>, or the hashed file has a short one, you have found your next infra ticket.</div>
+  </section>
+
+  <section>
+    <div class="section-num">10 · Cargo Cult Directives</div>
+    <h2>Headers I Keep Seeing Copy-Pasted</h2>
+    <p>Caching config tends to get written once, copied from a Stack Overflow answer, and never read again. These are the ones I see most often, and what they actually do.</p>
+    <ul class="bullet-list">
+      <li><span><strong><code>no-cache, no-store, must-revalidate</code></strong>. <code>no-store</code> alone already means "do not keep a copy". The other two describe how to treat a stored copy that will never exist. Harmless, but it tells you nobody read the spec.</span></li>
+      <li><span><strong><code>must-revalidate</code> on its own</strong>. It does not force a check on every request. It only says that once the response is stale, the cache must not serve it without revalidating. If it is fresh, it is used as normal.</span></li>
+      <li><span><strong><code>Pragma: no-cache</code></strong>. An HTTP/1.0 request header. RFC 9111 deprecates <code>Pragma</code>, and it never had a defined meaning in responses. It does nothing for your caching policy.</span></li>
+      <li><span><strong><code>Expires</code> next to <code>max-age</code></strong>. When both are present, <code>max-age</code> wins and <code>Expires</code> is ignored. Keeping both is fine; tuning the wrong one is not.</span></li>
+      <li><span><strong><code>stale-while-revalidate</code></strong> (RFC 5861). Serve the stale copy now and refresh in the background. Very useful on a CDN. Browser support is not universal, so do not build your correctness story on it.</span></li>
+      <li><span><strong><code>no-store</code> on every page "to be safe"</strong>. It costs the full download on every visit and, as my test showed, on every Back press too. Keep it for responses that genuinely must not stay on disk.</span></li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-label">A quick way to review your config</div>
+      <p>For every <code>Cache-Control</code> value in your repo, try to explain in one sentence why each directive is there. The ones you cannot explain are the ones to delete or fix.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">11 · The Short Version</div>
+    <h2>Stop Letting The Browser Guess</h2>
+    <p>If you keep one thing from this, keep the short version:</p>
+    <ul class="bullet-list">
+      <li><span>No <code>Cache-Control</code> does not mean no caching. With a <code>Last-Modified</code> header, Chromium caches for about 10% of the file's age, and I watched it serve v1 after a v2 deploy without sending a request.</span></li>
+      <li><span><code>no-cache</code> means "store, but revalidate before every use". <code>no-store</code> is the one that means "do not cache".</span></li>
+      <li><span>HTML gets <code>no-cache</code> plus an ETag. Content-hashed assets get <code>max-age=31536000, immutable</code>. Anything without a hash in the name gets neither of those extremes.</span></li>
+      <li><span>Reload in Chromium revalidates the page, not its fresh subresources. The Back button reuses the stored copy even for <code>no-cache</code>.</span></li>
+      <li><span>Keep previous releases' hashed assets on the origin. Stale HTML and already-open tabs will ask for them.</span></li>
+      <li><span>A CDN purge does not reach browsers. Check what your edge forwards, not just what it stores.</span></li>
+    </ul>
+    <p>None of this is new. RFC 9111 was published in 2022 and heuristic freshness goes back decades before that. What keeps catching teams out is the naming - <code>no-cache</code> sounds like the off switch, and no header sounds like no caching. Neither is true, and the cost shows up as your least reproducible bug.</p>
+
+    <div class="pull-quote">
+      <p>Caching is going to happen whatever you do. The only choice you have is whether you wrote the policy or the browser guessed it.</p>
+    </div>
+
+    <div class="footnote">The request counts and the deploy test were reproduced locally with a small Node 26 HTTP server driven by Playwright 1.59.1 against headless Chromium 147.0.7727.15. Each route sent an ETag and a Last-Modified date ten days in the past; the back/forward result was confirmed as an HTTP cache load rather than bfcache via <code>pageshow</code>'s <code>persisted</code> flag. Directive semantics, heuristic freshness (Section 4.2.2), the shared-cache rules for <code>Authorization</code> and the history-list behaviour come from RFC 9111; <code>immutable</code> from RFC 8246; <code>stale-while-revalidate</code> from RFC 5861; <code>CDN-Cache-Control</code> from RFC 9213. GitHub Pages headers were checked with <code>curl -sI</code> on 24 September 2026. Firefox and Safari make different choices where the spec allows it, so verify there before relying on exact behaviour.</div>
+  </section>
+
+</div>
+
+</body>
+</html>

@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "cache-control-no-cache-does-not-mean-do-not-cache",
+    title:
+      "Cache-Control: no-cache Does Not Mean Do Not Cache. And No Header At All Is Worse.",
+    description:
+      "no-cache stores the response and revalidates it every time - no-store is the one that refuses to store. And an index.html with no Cache-Control at all is still cached, for a period the browser works out from Last-Modified. Reproduced in Chromium, with the two-rule setup I would use.",
+    contentPath: "/blog/cache-control-no-cache-does-not-mean-do-not-cache_article.html",
+    publishedAt: "2026-09-24",
+    tags: ["HTTP Caching", "Frontend Infrastructure", "Performance", "Release Engineering", "CDN"],
+    readingTime: "~16 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "service-worker-is-a-deploy-you-cannot-roll-back",
     title:
       "Your Service Worker Is A Deploy You Cannot Roll Back. Stop Shipping It Like A Script.",
