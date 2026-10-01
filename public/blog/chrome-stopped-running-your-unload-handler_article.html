@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chrome Stopped Running Your unload Handler. If Your Analytics Still Use It, Your Numbers Already Changed.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="Since Chrome 154, unload handlers are off by default on every Chrome page load. They register without error and never run. I reproduced it in Chromium, along with what it does to the Back button, which data quietly went missing, and what to replace unload with." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Chrome Stopped Running Your unload Handler. If Your Analytics Still Use It, Your Numbers Already Changed." />
+<meta property="og:description" content="Chrome 154 finished a seven-month rollout: unload handlers are now disabled by default. They register without error and never fire. What that did to your exit metrics, how to find the handlers you did not write, and the pagehide pattern that works everywhere." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1561715608-5659baeccfb4?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/chrome-stopped-running-your-unload-handler" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Chrome Stopped Running Your unload Handler. If Your Analytics Still Use It, Your Numbers Already Changed." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1561715608-5659baeccfb4?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Browser Internals &nbsp;&middot;&nbsp; Page Lifecycle</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1561715608-5659baeccfb4?w=1200&h=630&fit=crop&q=80" alt="An illuminated green emergency exit sign with a running figure and an arrow, mounted on a dark stone wall" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Myth-busting &middot; Browser Internals</div>
+  <h1>Chrome Stopped Running Your unload Handler. <em>If Your Analytics Still Use It, Your Numbers Already Changed.</em></h1>
+  <p class="hero-sub">Chrome spent seven months turning unload handlers off, a few percent of page loads at a time. The code still registers, nothing throws, and the handler never runs. I built a small test bed to watch it happen, and to see what the Back button gets in return.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>October 2026</span>
+    <span class="byline-dot"></span>
+    <span>~17 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">Browser Internals</span>
+    <span class="tag">Performance</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 · The Handler Nobody Deleted</div>
+    <h2>The Code Is Still There. Chrome Just Stopped Calling It.</h2>
+    <p>Somewhere in most frontend codebases older than a couple of years, there is a block that looks like this:</p>
+
+    <div class="code-block">
+      <div class="code-label">analytics.js</div>
+<pre><span class="code-fn">addEventListener</span>(<span class="code-str">"unload"</span>, () =&gt; {
+  navigator.<span class="code-fn">sendBeacon</span>(<span class="code-str">"/collect"</span>, <span class="code-fn">buildSessionEndPayload</span>());
+});</pre>
+    </div>
+
+    <p>It sends a "session ended" event, or time on page, or releases a lock, or tells the server a draft is no longer being edited. Someone wrote it years ago, it worked, and nobody has opened that file since.</p>
+    <p>On 22 September 2026, Chrome 154 finished a rollout that has been running since March: <strong>unload handlers are now disabled by default on 100% of Chrome page loads.</strong> The listener still registers. <code>addEventListener</code> does not throw. Nothing shows up in the console. The function just never runs.</p>
+    <p>I wanted to see that for myself rather than trust a changelog, so I built a small test bed - a Node server with one page per variant, each page firing a beacon back to the server from a different lifecycle event - and drove Chromium through it with Playwright. Load the page, click a link, press Back. Then count what reached the server.</p>
+    <p>With the policy Chrome now applies by default, the unload beacon never arrived. Not late. Not sometimes. Never. And the same page came back from the back/forward cache instantly, which is the entire reason Chrome made the change.</p>
+
+    <div class="pull-quote">
+      <p>A deleted feature breaks loudly. A disabled event handler breaks your dashboard, quietly, one percentage point at a time.</p>
+    </div>
+
+    <p>This piece covers what Chrome actually changed, what the test showed, what kind of data you have probably already lost, how to find the unload handlers you did not write yourself, and what to replace them with. It is also a follow-up to my <a href="https://rgndunes.github.io/blog/cache-control-no-cache-does-not-mean-do-not-cache">Cache-Control piece</a>, where the Back button kept showing up as the odd one out. This is the other half of why.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 · The Timeline</div>
+    <h2>This Did Not Happen Overnight. That Is The Problem.</h2>
+    <p>Chrome did not flip a switch. It turned a dial, over about seven months, and the way it turned that dial is what makes the breakage hard to notice.</p>
+    <p>The mechanism is a Permissions Policy feature called <code>unload</code>. When the policy denies it, unload listeners on that document do not fire. For years the default was "allow". The deprecation is Chrome moving that default to "deny" for a growing share of page loads. The top 50 sites were moved first, and from Chrome 146 onwards the rest of the web followed:</p>
+
+    <table>
+      <thead>
+        <tr><th>Chrome</th><th>Stable date</th><th>Page loads with unload off by default</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>146</td><td>10 Mar 2026</td><td>1%</td></tr>
+        <tr><td>147</td><td>7 Apr 2026</td><td>5%</td></tr>
+        <tr><td>148</td><td>5 May 2026</td><td>10%</td></tr>
+        <tr><td>149</td><td>2 Jun 2026</td><td>20%</td></tr>
+        <tr><td>150</td><td>30 Jun 2026</td><td>40%</td></tr>
+        <tr><td>151</td><td>28 Jul 2026</td><td>60%</td></tr>
+        <tr><td>152</td><td>25 Aug 2026</td><td>80%</td></tr>
+        <tr><td>154</td><td>22 Sep 2026</td><td>100%</td></tr>
+      </tbody>
+    </table>
+
+    <p>The detail that matters most is how a page load gets picked. According to Chrome's deprecation explainer, the bucket comes from a <strong>combined hash of the user and the site</strong>. That was a deliberate choice: random selection would make bugs impossible to reproduce, picking by user would break everything for some people, and picking by site would break some sites completely overnight.</p>
+    <p>That reasoning is fair. But look at what it does to your metrics. For any one user on your site the behaviour is consistent, so nobody files a bug saying "it works sometimes". Across all your users, though, the share whose unload handler stopped firing went up by a few points every four weeks, for seven months.</p>
+    <p>On a dashboard, that does not look like an incident. It looks like a slow trend. "Session-end events are down 4% this month" is the kind of line that gets blamed on seasonality, a marketing change, or a tracking blocker, and then forgotten.</p>
+
+    <div class="callout">
+      <div class="callout-label">Where we are now</div>
+      <p>As of Chrome 154, the default is "deny" everywhere. If your users are on current Chrome and you have not opted out, assume your main-frame unload handlers are not running. Edge and other Chromium-based browsers ship on their own schedules, so check them separately rather than assuming they match.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 · The Test</div>
+    <h2>Eight Pages, One Back Button, And A Server Counting Beacons</h2>
+    <p>Each test page did the same thing: register a <code>pageshow</code> listener to record whether the page came out of the back/forward cache, register one extra thing depending on the variant, and link to a second page. The script loaded the page, clicked through, pressed Back, and then read two things: <code>event.persisted</code> from <code>pageshow</code>, and whatever beacons the server had received.</p>
+    <p>The browser was Playwright's bundled Chromium 147. Version 147 was only at the 5% stage of the rollout, which turned out to be useful - by default, my local origin was still in the "allow" bucket, so I could compare the old behaviour against the new one by setting the policy header myself.</p>
+
+    <table>
+      <thead>
+        <tr><th>Page variant</th><th>Restored from bfcache?</th><th>Beacon received</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Plain page</td><td>Yes</td><td>-</td></tr>
+        <tr><td><code>unload</code> listener, no policy</td><td><strong>No</strong></td><td>unload fired</td></tr>
+        <tr><td><code>unload</code> listener + <code>Permissions-Policy: unload=()</code></td><td>Yes</td><td><strong>nothing</strong></td></tr>
+        <tr><td><code>unload</code> listener + <code>Permissions-Policy: unload=(self)</code></td><td><strong>No</strong></td><td>unload fired</td></tr>
+        <tr><td><code>pagehide</code> listener</td><td>Yes</td><td>pagehide fired, <code>persisted=true</code></td></tr>
+        <tr><td><code>beforeunload</code> listener (empty)</td><td>Yes</td><td>-</td></tr>
+        <tr><td><code>Cache-Control: no-store</code></td><td>Yes</td><td>-</td></tr>
+        <tr><td>Open <code>BroadcastChannel</code></td><td>Yes</td><td>-</td></tr>
+      </tbody>
+    </table>
+
+    <p>Rows two and three are the whole story. The <code>unload=()</code> row is exactly what Chrome 154 now does by default. The handler was registered, the page navigated away, and the handler did not run. In exchange, the Back button restored the page from memory instead of reloading it.</p>
+    <p>Row four is the opt-out, which I come back to in section 08. It brings the old behaviour back - the handler fires - and the cost comes back with it. The page reloads in full every time someone presses Back.</p>
+    <p>For the unload rows, I also read <code>performance.getEntriesByType("navigation")[0].notRestoredReasons</code> after going back. Chrome reported the reason in plain text:</p>
+
+    <div class="code-block">
+      <div class="code-label">notRestoredReasons, unload variant</div>
+<pre>[{ <span class="code-var">reason</span>: <span class="code-str">"masked"</span> }, { <span class="code-var">reason</span>: <span class="code-str">"unload-listener"</span> }]</pre>
+    </div>
+
+    <p>The last three rows surprised me a little, in a good way. An empty <code>beforeunload</code> listener did not block the cache in this test. A <code>no-store</code> page was restored too - Chrome has allowed that since its 2025 rollout, though it evicts those pages when cookies change and keeps them for a shorter time. And an open <code>BroadcastChannel</code> did not block it either. Older bfcache advice lists all three as blockers. The browsers have moved on, and a lot of blog posts have not.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Scope of the test</div>
+      <p>One Chromium build, desktop, headless, a local origin, a simple link-then-Back flow. It shows the mechanism clearly. It does not prove every rule for every browser - Firefox and Safari make different choices, covered in section 09.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">04 · Why Chrome Did It</div>
+    <h2>The Back Button Was Paying For A Handler That Barely Worked</h2>
+    <p>The back/forward cache (bfcache) keeps a page you just left frozen in memory - DOM, JavaScript heap, scroll position, all of it - so that pressing Back shows it instantly instead of fetching, parsing and running everything again. It is one of the biggest free performance wins on the web, and it applies to a lot of traffic:</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">1 in 10</div><div class="stat-label">Desktop navigations that are back or forward</div></div>
+      <div class="stat-item"><div class="stat-num">1 in 5</div><div class="stat-label">Mobile navigations that are back or forward</div></div>
+      <div class="stat-item"><div class="stat-num">30%+</div><div class="stat-label">Cacheable navigations that had an unload handler</div></div>
+      <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">Chrome page loads with unload off, from M154</div></div>
+    </div>
+
+    <p>The first two numbers are from the web.dev bfcache guide. The third is from Chrome's deprecation explainer: unload handlers showed up in over 30% of navigations that could otherwise have been cached. That was the problem.</p>
+    <p>Here is the conflict. The HTML spec says <code>unload</code> only fires when the page is actually being destroyed - if the browser is keeping the page alive in bfcache, unload does not run. Safari has always worked that way. But desktop Chrome and desktop Firefox went the other way: if a page had an unload handler, they skipped the bfcache so the handler would definitely run.</p>
+    <p>So on desktop, one unload listener anywhere on the page - including inside an iframe from an ad network or a chat widget - meant every Back press to that page was a full reload.</p>
+    <p>And what did you get for that? A handler that was much less reliable than people assumed. The explainer quotes Nic Jansma's beaconing research: unload handlers ran <strong>95%+ of the time</strong> on desktop Chrome, Edge and Firefox, but only <strong>57% to 68%</strong> on mobile browsers and desktop Safari. Mobile operating systems kill background tabs without warning, and no event fires when that happens.</p>
+
+    <div class="pull-quote">
+      <p>Every desktop user paid for unload on every Back press, for an event that mobile browsers and Safari were already skipping a third of the time.</p>
+    </div>
+
+    <p>Chrome's team tried the polite route first - an opt-in policy so sites could disable unload themselves. According to the explainer, other browser vendors did not support that version. The flipped default is what they shipped instead: unload off unless you ask for it.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05 · What You Lost</div>
+    <h2>The Missing Data Is Not Random. That Is What Makes It Dangerous.</h2>
+    <p>If a handler fails at random, your numbers get noisier but stay honest. This one did not fail at random, and that is the part I would worry about first.</p>
+    <p>The explainer makes this point directly. Even before the deprecation, whether unload ran depended on whether the page was bfcache-eligible, which in turn depended on things like which third-party iframes loaded. So which data went missing depended on what the user did and which ads they happened to see. You cannot correct for a gap like that with a multiplier.</p>
+    <p>Now Chrome has added a second filter: during the rollout, whether your handler ran also depended on the user-and-site hash and on which Chrome version the user had. Over March to September, the share of Chrome sessions sending your unload event kept falling. Other browsers did not change.</p>
+    <p>So here is what I would expect to see, if your unload handler fed a metric:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Session-end or "page exit" events falling</strong> from March, with Chrome's share of those events falling faster than Firefox's or Safari's.</span></li>
+      <li><span><strong>Time-on-page or engaged-time metrics shifting</strong>, if the final duration was only sent on unload. You are now left with whatever the last heartbeat recorded.</span></li>
+      <li><span><strong>Abandonment funnels looking healthier than they are.</strong> If "user left the checkout page" was an unload beacon, those exits simply stopped being recorded.</span></li>
+      <li><span><strong>Server-side resources not being released.</strong> Edit locks, presence indicators ("Divyansh is viewing this document"), reserved seats, temporary uploads - anything cleaned up by an unload request now waits for a timeout instead.</span></li>
+      <li><span><strong>Iframes that told their parent "I navigated away" through unload</strong> going quiet. The deprecation covers subframe navigations too.</span></li>
+    </ul>
+    <p>The fastest check: split your exit-event counts by browser, by week, from February onwards. If Chrome's line steps down roughly every four weeks from March, in line with the stable releases in the table above, while Firefox stays flat, you have found it.</p>
+
+    <div class="highlight-box"><strong>The uncomfortable part</strong>If a product decision was made in the last six months based on a trend in exit or engagement data, it is worth checking whether that trend was user behaviour or Chrome's rollout schedule.</div>
+  </section>
+
+  <section>
+    <div class="section-num">06 · Finding The Handlers</div>
+    <h2>Most Of The Unload Handlers On Your Page Are Not Yours</h2>
+    <p>Searching your repo for <code>"unload"</code> is the obvious first step, and you should do it. It will also miss most of them. Analytics SDKs, A/B testing tools, session replay scripts, consent banners, chat widgets and older polyfills have all registered unload handlers at some point. They arrive through a script tag or a dependency, not your source tree.</p>
+    <p>A few checks that find what is actually registered at runtime:</p>
+    <ul class="bullet-list">
+      <li><span><strong>DevTools console:</strong> <code>getEventListeners(window).unload</code> lists every unload listener on the window, and you can click through to the source. It is a DevTools console utility, so it will not work in your app code.</span></li>
+      <li><span><strong>DevTools Application panel, Back/forward cache section:</strong> "Test back/forward cache" navigates away and back, then lists every reason the page was not restored, including which frame caused it.</span></li>
+      <li><span><strong>In production, from real users:</strong> read <code>notRestoredReasons</code> on the navigation entry after a back/forward navigation and send it to your monitoring. That shows what blocks the cache for real sessions, not just your own clean dev profile.</span></li>
+      <li><span><strong>In your built bundle, not just source:</strong> grep the output for <code>"unload"</code> and <code>onunload</code>. Dependencies show up there even if they do not appear in your code.</span></li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-label">report-bfcache.js</div>
+<pre><span class="code-fn">addEventListener</span>(<span class="code-str">"pageshow"</span>, (<span class="code-var">event</span>) =&gt; {
+  <span class="code-cmt">// Restored from bfcache: the page never reloaded, so this is the only signal.</span>
+  <span class="code-kw">if</span> (<span class="code-var">event</span>.persisted) <span class="code-kw">return</span> <span class="code-fn">report</span>(<span class="code-str">"bfcache"</span>, { <span class="code-var">restored</span>: <span class="code-kw">true</span> });
+
+  <span class="code-kw">const</span> <span class="code-var">nav</span> = performance.<span class="code-fn">getEntriesByType</span>(<span class="code-str">"navigation"</span>)[<span class="code-num">0</span>];
+  <span class="code-kw">if</span> (<span class="code-var">nav</span>?.type !== <span class="code-str">"back_forward"</span>) <span class="code-kw">return</span>;
+
+  <span class="code-cmt">// A Back/Forward that reloaded instead. Chromium explains why.</span>
+  <span class="code-fn">report</span>(<span class="code-str">"bfcache"</span>, { <span class="code-var">restored</span>: <span class="code-kw">false</span>, <span class="code-var">reasons</span>: <span class="code-var">nav</span>.notRestoredReasons ?? <span class="code-kw">null</span> });
+});</pre>
+    </div>
+
+    <p>The order in that snippet matters. When a page <em>is</em> restored from bfcache, the navigation entry is still the one from the original load, so its <code>type</code> is not <code>"back_forward"</code>. Check <code>persisted</code> first, or every successful restore is silently dropped from your numbers and your hit rate looks like zero.</p>
+    <p>For third-party scripts you cannot change, the next two sections cover the options: check whether a newer version of the vendor's SDK has already moved off unload, or decide whether you actually want their handler to run.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 · The Replacement</div>
+    <h2>pagehide And visibilitychange, With sendBeacon Doing The Sending</h2>
+    <p>There is no single event that replaces unload, because unload was never answering one question. It was being used for two:</p>
+    <ul class="bullet-list">
+      <li><span><strong>"The user might be gone for good - save what you have."</strong> Use <code>visibilitychange</code> when <code>document.visibilityState</code> becomes <code>"hidden"</code>. It fires on tab switches, app switches, minimising and, on mobile, before the OS may kill the tab. Chrome's documentation calls hidden "the last reliable time to save app and user data". Treat it as a checkpoint, not a goodbye - the user may come back.</span></li>
+      <li><span><strong>"The user is navigating away from this page."</strong> Use <code>pagehide</code>. It fires everywhere unload used to fire, plus when the page enters bfcache, and it does not block the cache. Its <code>persisted</code> flag tells you whether the page is being kept alive.</span></li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-label">session-end.js</div>
+<pre><span class="code-kw">let</span> <span class="code-var">flushed</span> = <span class="code-kw">false</span>;
+
+<span class="code-kw">function</span> <span class="code-fn">flush</span>(<span class="code-var">reason</span>) {
+  <span class="code-kw">if</span> (<span class="code-var">flushed</span>) <span class="code-kw">return</span>;      <span class="code-cmt">// both events can fire for one exit</span>
+  <span class="code-var">flushed</span> = <span class="code-kw">true</span>;
+  navigator.<span class="code-fn">sendBeacon</span>(<span class="code-str">"/collect"</span>, <span class="code-fn">JSON.stringify</span>(<span class="code-fn">buildPayload</span>(<span class="code-var">reason</span>)));
+}
+
+document.<span class="code-fn">addEventListener</span>(<span class="code-str">"visibilitychange"</span>, () =&gt; {
+  <span class="code-kw">if</span> (document.visibilityState === <span class="code-str">"hidden"</span>) <span class="code-fn">flush</span>(<span class="code-str">"hidden"</span>);
+});
+
+<span class="code-fn">addEventListener</span>(<span class="code-str">"pagehide"</span>, () =&gt; <span class="code-fn">flush</span>(<span class="code-str">"pagehide"</span>));
+
+<span class="code-cmt">// The page can come back from bfcache, or the tab can become visible again.</span>
+<span class="code-cmt">// Either way, this is a new stretch of the session.</span>
+<span class="code-fn">addEventListener</span>(<span class="code-str">"pageshow"</span>, (<span class="code-var">e</span>) =&gt; { <span class="code-kw">if</span> (<span class="code-var">e</span>.persisted) <span class="code-var">flushed</span> = <span class="code-kw">false</span>; });
+document.<span class="code-fn">addEventListener</span>(<span class="code-str">"visibilitychange"</span>, () =&gt; {
+  <span class="code-kw">if</span> (document.visibilityState === <span class="code-str">"visible"</span>) <span class="code-var">flushed</span> = <span class="code-kw">false</span>;
+});</pre>
+    </div>
+
+    <p>Three things about this pattern that I would not skip:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Your data model changes.</strong> "One session-end event per page view" becomes "one or more hidden events per page view". A user who switches tabs five times sends five. Your backend has to treat them as checkpoints and keep the latest, not count them as exits.</span></li>
+      <li><span><strong>Send with <code>sendBeacon</code> or <code>fetch(url, { keepalive: true })</code>.</strong> A normal <code>fetch</code> started while the page is being hidden can be cancelled. Both keepalive options have a small payload budget - the Fetch spec caps in-flight keepalive bodies at 64 KiB in total - so send a summary, not a replay buffer.</span></li>
+      <li><span><strong>Do not do synchronous work in these handlers.</strong> The old trick of a synchronous XHR or a busy loop in unload to "make sure the request goes out" is exactly what browsers have spent years shutting down. Queue the beacon and return.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">08 · The Escape Hatch</div>
+    <h2>You Can Turn Unload Back On. Think Hard Before You Do.</h2>
+    <p>Chrome kept an opt-out, because some sites cannot migrate quickly. It is the same Permissions Policy, set the other way:</p>
+
+    <div class="code-block">
+      <div class="code-label">response headers</div>
+<pre><span class="code-cmt"># Re-enable unload handlers for this document (opt out of the deprecation)</span>
+Permissions-Policy: unload=(self)
+
+<span class="code-cmt"># Explicitly disable them - what Chrome 154 now does by default anyway</span>
+Permissions-Policy: unload=()</pre>
+    </div>
+
+    <p>In my test, <code>unload=(self)</code> did exactly what it says. The handler fired again, and the page went straight back to being excluded from bfcache. That is the trade, and there is no version where you get both.</p>
+    <p>For managed devices, there is also an enterprise policy, <code>ForcePermissionPolicyUnloadDefaultEnabled</code>, that keeps unload enabled by default. If you build internal tools that run on company laptops, it is worth knowing about, because your IT team may already have set it - which would mean your internal dashboards behave differently from the public site.</p>
+    <p>My view: <strong>use the opt-out as a short-term timer, not a fix.</strong> If a critical flow breaks today and the replacement needs a sprint, set <code>unload=(self)</code> on the routes that need it, ship it, and put a removal date on the ticket. Do not set it site-wide. Every page that carries it gives up instant Back navigation for every desktop Chrome user.</p>
+    <p>And the reverse is worth doing deliberately: <strong>send <code>Permissions-Policy: unload=()</code> yourself.</strong> Chrome already defaults to it, but setting it explicitly stops anyone from re-enabling unload by accident later, documents the decision in your config, and makes the behaviour clear to anyone reading your headers.</p>
+
+    <div class="callout">
+      <div class="callout-label">Iframes</div>
+      <p>Permissions Policy flows down from the top-level document. If you embed a cross-origin iframe that depends on unload, the parent page's policy decides whether it can have it. If you are the vendor inside someone else's iframe, assume you do not get unload, and use <code>pagehide</code>.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">09 · Other Browsers</div>
+    <h2>Chrome Is Done. Firefox Is Not. Write Code That Does Not Care.</h2>
+    <p>This is Chrome's change. The other engines still do what they did before:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Firefox, desktop and Android:</strong> per web.dev's bfcache guide, a page with an unload listener is still not eligible for bfcache. The handler runs; the Back button reloads. That is the same trade Chrome just walked away from.</span></li>
+      <li><span><strong>Safari:</strong> follows the spec. It tries to cache the page and does not run unload when it does. So an unload handler on Safari already ran only some of the time, which matches the 57% to 68% reliability figure.</span></li>
+      <li><span><strong>Chrome on Android:</strong> already preferred bfcache over unload on mobile, so the deprecation mostly changes desktop.</span></li>
+    </ul>
+    <p>So unload now does three different things depending on the browser: never runs (Chrome), sometimes runs (Safari, mobile), always runs and costs you the cache (desktop Firefox). The only code that behaves the same everywhere is the <code>pagehide</code> plus <code>visibilitychange</code> pattern from section 07. That alone is reason enough to migrate, Chrome deprecation or not.</p>
+
+    <h3>What about beforeunload?</h3>
+    <p><code>beforeunload</code> is a separate event and it was not part of this deprecation. It still powers the "Leave site? Changes you made may not be saved" prompt. In my Chromium test, an empty <code>beforeunload</code> listener did not stop the page from being cached. The guidance from web.dev still applies, though, because browsers have not always treated it this kindly: add the listener only when there are unsaved changes, and remove it once they are saved.</p>
+
+    <div class="code-block">
+      <div class="code-label">unsaved-changes.js</div>
+<pre><span class="code-kw">const</span> <span class="code-fn">warn</span> = (<span class="code-var">e</span>) =&gt; { <span class="code-var">e</span>.<span class="code-fn">preventDefault</span>(); };
+
+<span class="code-kw">export function</span> <span class="code-fn">markDirty</span>()  { <span class="code-fn">addEventListener</span>(<span class="code-str">"beforeunload"</span>, <span class="code-fn">warn</span>); }
+<span class="code-kw">export function</span> <span class="code-fn">markSaved</span>()  { <span class="code-fn">removeEventListener</span>(<span class="code-str">"beforeunload"</span>, <span class="code-fn">warn</span>); }</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">10 · Your Test Suite Cannot See Any Of This</div>
+    <h2>Playwright Turns The Back/Forward Cache Off. By Default.</h2>
+    <p>Before writing the test bed, I checked how Playwright launches Chromium, because I half-remembered something about it. In Playwright 1.59, the default switches include this line:</p>
+
+    <div class="code-block">
+      <div class="code-label">playwright-core/lib/server/chromium/chromiumSwitches.js</div>
+<pre><span class="code-str">"--disable-back-forward-cache"</span>,</pre>
+    </div>
+
+    <p>Which means if your end-to-end suite runs on Playwright's Chromium with default settings, <strong>no test you have ever written has exercised a bfcache restore.</strong> Every <code>page.goBack()</code> was a full reload. Bugs that only happen when a page comes back from memory - a stale auth state, a timer that was paused, a WebSocket that needs reconnecting, a "session started" event that never fires again - are invisible to that suite.</p>
+    <p>To get a real browser's Back behaviour in a test, remove the flag:</p>
+
+    <div class="code-block">
+      <div class="code-label">bfcache.spec.ts</div>
+<pre><span class="code-kw">const</span> <span class="code-var">browser</span> = <span class="code-kw">await</span> chromium.<span class="code-fn">launch</span>({
+  <span class="code-var">ignoreDefaultArgs</span>: [<span class="code-str">"--disable-back-forward-cache"</span>],
+});
+<span class="code-cmt">// ...navigate away, then:</span>
+<span class="code-kw">await</span> page.<span class="code-fn">goBack</span>({ <span class="code-var">waitUntil</span>: <span class="code-str">"commit"</span> });
+<span class="code-kw">const</span> <span class="code-var">restored</span> = <span class="code-kw">await</span> page.<span class="code-fn">evaluate</span>(() =&gt; window.__lastPageshowPersisted);</pre>
+    </div>
+
+    <p>Note the <code>waitUntil: "commit"</code>. That was the second thing that tripped me up. A page restored from bfcache does not fire <code>load</code> again, because it never unloaded. So the default <code>goBack()</code>, which waits for <code>load</code>, hangs until it times out - on exactly the pages that worked best. My first run died on the very first page with a 30-second timeout. The test "failed" because the cache was doing its job.</p>
+    <p>Playwright's Firefox build did not restore anything from bfcache either, not even the plain page, which is why I have not put Firefox numbers in the table. If you need those, test in a real Firefox profile.</p>
+
+    <div class="pull-quote">
+      <p>If your tests have never seen a bfcache restore, then your users are the ones testing it.</p>
+    </div>
+
+    <p>I would add one test like this per important page type, with an assertion on <code>persisted</code>. It catches the next third-party script that quietly adds an unload listener, which is the regression you are most likely to see.</p>
+  </section>
+
+  <section>
+    <div class="section-num">11 · The Short Version</div>
+    <h2>Delete Unload Before It Lies To You Again</h2>
+    <ul class="bullet-list">
+      <li><span>Since Chrome 154 (22 September 2026), unload handlers are off by default on 100% of Chrome page loads. They register without error and never run.</span></li>
+      <li><span>The rollout went from 1% to 100% between March and September, bucketed by user and site, so any metric fed by unload has been drifting for months rather than breaking on one day.</span></li>
+      <li><span>Check exit, session-end and engaged-time metrics split by browser and by week. A Chrome-only decline in steps is the signature.</span></li>
+      <li><span>Find handlers at runtime with <code>getEventListeners(window).unload</code>, the DevTools bfcache tester and <code>notRestoredReasons</code> from real users - not just a grep of your own source.</span></li>
+      <li><span>Replace them with <code>visibilitychange</code> (hidden) as a checkpoint plus <code>pagehide</code> for navigation, sending with <code>sendBeacon</code> or <code>keepalive</code>, and dedupe on the server.</span></li>
+      <li><span><code>Permissions-Policy: unload=(self)</code> brings the old behaviour back, including the full reload on Back. Use it per route, with an end date.</span></li>
+      <li><span>Remove <code>--disable-back-forward-cache</code> in at least one Playwright project, or your suite will never see what your users see when they press Back.</span></li>
+    </ul>
+    <p>Unload was always a strange event. It promised a last word that the browser could not guarantee, and the price was the fastest navigation the web has. Chrome has made that call for you now. The only thing left to decide is whether you find out from your code or from a dashboard that has been slowly going wrong since March.</p>
+
+    <div class="pull-quote">
+      <p>The page is not being destroyed any more. It is being put on a shelf. Write code for the shelf.</p>
+    </div>
+
+    <div class="footnote">Test results were reproduced locally with a small Node 26 HTTP server driven by Playwright 1.59.1 against Chromium 147.0.7727.15 (headless, <code>--disable-back-forward-cache</code> removed). Each variant was loaded, navigated away from via a link and restored with the Back button; restoration was read from <code>pageshow</code>'s <code>persisted</code> flag, and beacons were counted on the server. The rollout schedule, the user-and-site bucketing and the enterprise policy come from Chrome's "Deprecating the unload event" documentation and the Permissions-Policy unload explainer, which also quotes the 95%+ and 57% to 68% reliability figures from Nic Jansma's beaconing research and the 30%+ prevalence figure. Back/forward navigation share and per-browser unload behaviour come from web.dev's back/forward cache guide; the <code>no-store</code> behaviour from Chrome's bfcache-for-<code>Cache-Control: no-store</code> documentation. Firefox and Safari results were not reproduced locally (Playwright's Firefox also disables bfcache) - check them in a real browser before relying on exact behaviour.</div>
+  </section>
+
+</div>
+
+</body>
+</html>

@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "chrome-stopped-running-your-unload-handler",
+    title:
+      "Chrome Stopped Running Your unload Handler. If Your Analytics Still Use It, Your Numbers Already Changed.",
+    description:
+      "Since Chrome 154, unload handlers are off by default on every Chrome page load - they register without error and never run. Reproduced in Chromium: what it does to the Back button, which data quietly went missing during the seven-month rollout, and the pagehide pattern to use instead.",
+    contentPath: "/blog/chrome-stopped-running-your-unload-handler_article.html",
+    publishedAt: "2026-10-01",
+    tags: ["Browser Internals", "Performance", "Page Lifecycle", "Analytics", "Frontend Infrastructure"],
+    readingTime: "~17 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "cache-control-no-cache-does-not-mean-do-not-cache",
     title:
       "Cache-Control: no-cache Does Not Mean Do Not Cache. And No Header At All Is Worse.",
