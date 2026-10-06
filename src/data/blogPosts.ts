@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "javascript-date-parsing-off-by-one",
+    title:
+      'JavaScript Reads "2026-10-06" As UTC And "2026-10-06T00:00" As Local Time. Most Off-By-One Date Bugs Start There.',
+    description:
+      "new Date(\"2026-10-06\") is UTC midnight, new Date(\"2026-10-06T00:00\") is local midnight. Tested in Chromium, Firefox and WebKit across three time zones: where the day slips, why Indian teams rarely see it, \"06-10-2026\" becoming 10 June, DST arithmetic, and what Temporal fixes.",
+    contentPath: "/blog/javascript-date-parsing-off-by-one_article.html",
+    publishedAt: "2026-10-06",
+    tags: ["JavaScript", "Browser Internals", "Temporal", "Dates", "Frontend Infrastructure"],
+    readingTime: "~18 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "chrome-stopped-running-your-unload-handler",
     title:
       "Chrome Stopped Running Your unload Handler. If Your Analytics Still Use It, Your Numbers Already Changed.",

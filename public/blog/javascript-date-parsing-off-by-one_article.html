@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JavaScript Reads &quot;2026-10-06&quot; As UTC And &quot;2026-10-06T00:00&quot; As Local Time. Most Off-By-One Date Bugs Start There.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="new Date(&quot;2026-10-06&quot;) is UTC midnight; new Date(&quot;2026-10-06T00:00&quot;) is local midnight. I ran the same date code through Chromium, Firefox and WebKit in three time zones to show where the day slips, why Indian teams rarely see it, and what Temporal fixes." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="JavaScript Reads &quot;2026-10-06&quot; As UTC And &quot;2026-10-06T00:00&quot; As Local Time. Most Off-By-One Date Bugs Start There." />
+<meta property="og:description" content="new Date(&quot;2026-10-06&quot;) is UTC midnight; new Date(&quot;2026-10-06T00:00&quot;) is local midnight. I ran the same date code through Chromium, Firefox and WebKit in three time zones to show where the day slips, why Indian teams rarely see it, and what Temporal fixes." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1633526543814-9718c8922b7a?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/javascript-date-parsing-off-by-one" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="JavaScript Reads &quot;2026-10-06&quot; As UTC And &quot;2026-10-06T00:00&quot; As Local Time. Most Off-By-One Date Bugs Start There." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1633526543814-9718c8922b7a?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; JavaScript Internals &nbsp;&middot;&nbsp; Dates &amp; Time</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1633526543814-9718c8922b7a?w=1200&h=630&fit=crop&q=80" alt="A white wall calendar with red push pins stuck into several dates and the 30th circled in red" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Myth-busting &middot; JavaScript Internals</div>
+  <h1>JavaScript Reads "2026-10-06" As UTC And "2026-10-06T00:00" As Local Time. <em>Most Off-By-One Date Bugs Start There.</em></h1>
+  <p class="hero-sub">Two strings, six characters apart, that parse to two different moments. I ran the same date code through Chromium, Firefox and WebKit in three time zones to see exactly where the day slips - and what Temporal finally fixes.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>October 2026</span>
+    <span class="byline-dot"></span>
+    <span>~18 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">JavaScript</span>
+    <span class="tag">Browser Internals</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 · Two Strings</div>
+    <h2>Six Characters Decide Which Day It Is</h2>
+    <p>Here are two lines of JavaScript. Read them and decide whether they create the same <code>Date</code>.</p>
+
+    <div class="code-block">
+      <div class="code-label">console</div>
+<pre><span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-str">"2026-10-06"</span>)
+<span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-str">"2026-10-06T00:00"</span>)</pre>
+    </div>
+
+    <p>Most people say yes. Same day, same midnight, the second one is just more explicit. In India, they are five and a half hours apart. In New York, they are four hours apart and do not even fall on the same calendar day. The only place on Earth where they match is wherever the local offset happens to be zero at that moment - and in October, that is not even London.</p>
+    <p>The first string is a <strong>date-only form</strong>, and the spec says date-only forms with no offset are UTC. The second is a <strong>date-time form</strong>, and the spec says date-time forms with no offset are local time. Adding <code>T00:00</code> does not make the string more precise. It changes which clock the string is measured against.</p>
+    <p>I work on a payroll and HR platform. In that world, a date is not decoration on a timestamp - it is a pay date, a joining date, the first day of leave, the last working day. A date that is off by one is not a cosmetic bug. It is a wrong payslip. So I have a slightly paranoid relationship with how JavaScript handles dates, and I wanted to move from "I think this is how it works" to "I watched it happen".</p>
+    <p>So I wrote a small probe, ran it with Playwright against Chromium 147, Firefox 148 and WebKit 26.4, and set the browser time zone to <code>Asia/Kolkata</code>, <code>America/New_York</code> and <code>Europe/London</code> for each. Same code, nine runs. Every result in this article comes from that probe or from a DST test I ran in Node with the <code>TZ</code> variable set.</p>
+
+    <div class="pull-quote">
+      <p>Adding T00:00 does not make the string more precise. It changes which clock the string is measured against.</p>
+    </div>
+
+    <p>This is also a follow-up to my piece on <a href="https://rgndunes.github.io/blog/typescript-doesnt-protect-you-at-runtime_article.html">TypeScript types vanishing at runtime</a>. Dates are the place where that problem bites hardest, because JSON has no date type at all - and the conversion back and forth is exactly where days go missing.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 · The Rule</div>
+    <h2>The Spec Changed Its Mind, Then Split The Difference</h2>
+    <p>This is not a browser bug and it is not V8 being weird. It is written into ECMAScript, and it got there through a bit of history that explains why the rule looks so arbitrary.</p>
+    <p><strong>ES5 (2009)</strong> introduced the ISO-style date string format to the language and said: if the offset is absent, it is <code>"Z"</code>. Everything without an offset was UTC. Simple, consistent, and the opposite of what ISO 8601 says, which is that a time with no offset is local time.</p>
+    <p><strong>ES2015</strong> tried to fix that by aligning with ISO 8601: no offset means local time, for every form. That would have been consistent too. The trouble is that by 2015 a large amount of code on the web was already parsing <code>"2015-06-17"</code> and treating the result as UTC midnight. Changing date-only strings to local time would have shifted every one of those dates for every user west or east of Greenwich.</p>
+    <p><strong>ES2016</strong> settled on the compromise that we still live with:</p>
+
+    <blockquote>
+      <p>When the time zone offset is absent, date-only forms are interpreted as a UTC time and date-time forms are interpreted as a local time.</p>
+    </blockquote>
+
+    <p>That sentence is the whole bug. Web compatibility kept date-only strings on UTC. ISO alignment moved date-time strings to local. And the two forms look so similar that nobody reading a code review notices which one they are looking at.</p>
+
+    <table>
+      <thead>
+        <tr><th>Input string</th><th>Form</th><th>Interpreted as</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>"2026-10-06"</code></td><td>Date-only</td><td>UTC midnight</td></tr>
+        <tr><td><code>"2026-10-06T00:00"</code></td><td>Date-time, no offset</td><td>Local midnight</td></tr>
+        <tr><td><code>"2026-10-06T00:00Z"</code></td><td>Date-time, UTC</td><td>UTC midnight</td></tr>
+        <tr><td><code>"2026-10-06T00:00+05:30"</code></td><td>Date-time, explicit offset</td><td>Midnight IST</td></tr>
+        <tr><td><code>"2026/10/06"</code>, <code>"Oct 6, 2026"</code></td><td>Not the ISO format</td><td>Implementation-defined</td></tr>
+      </tbody>
+    </table>
+
+    <p>The last row matters more than it looks. The spec only defines one string format. Anything else falls through to "whatever heuristics the engine has". We will get to what that does to Indian-style dates in a minute.</p>
+
+    <div class="callout">
+      <div class="callout-label">The only safe strings</div>
+      <p>If a string carries an explicit offset - <code>Z</code> or <code>+05:30</code> - every engine agrees on the moment. If it does not, you are relying on the date-only versus date-time rule, and on whoever wrote the string knowing it.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 · The Probe</div>
+    <h2>Nine Runs, Same Code, Three Different Calendars</h2>
+    <p>Here is what <code>new Date("2026-10-06")</code> and its siblings produced. The ISO column is the actual instant stored inside the <code>Date</code>. The <code>getDate()</code> column is what your UI shows if you render the day of the month in the user's local time, which is what nearly every date formatter does by default.</p>
+
+    <table>
+      <thead>
+        <tr><th>Time zone</th><th><code>"2026-10-06"</code> stored as</th><th>Shown as day</th><th><code>"2026-10-06T00:00"</code> stored as</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Asia/Kolkata</td><td>2026-10-06T00:00Z</td><td>6</td><td>2026-10-05T18:30Z</td></tr>
+        <tr><td>Europe/London (BST)</td><td>2026-10-06T00:00Z</td><td>6</td><td>2026-10-05T23:00Z</td></tr>
+        <tr><td>America/New_York</td><td>2026-10-06T00:00Z</td><td><strong>5</strong></td><td>2026-10-06T04:00Z</td></tr>
+      </tbody>
+    </table>
+
+    <p>Chromium, Firefox and WebKit agreed on every one of these. That is the point: this is not cross-browser flakiness you can blame on Safari. It is specified behaviour, implemented faithfully, and still wrong for what most code means.</p>
+    <p>Look at the New York row. A date picker stores <code>"2026-10-06"</code>, the backend echoes it back, the frontend does <code>new Date(value)</code> and renders it with <code>toLocaleDateString()</code>. A user in New York sees <strong>5 October</strong>. Nothing threw. No test failed, because the person who wrote the test was in a time zone ahead of UTC, where the day survives.</p>
+    <p>That last part is the reason this bug is so durable in Indian teams in particular. IST is UTC+5:30. UTC midnight is 5:30 AM in India - still the same calendar day. So <code>new Date("2026-10-06").getDate()</code> returns <code>6</code> on every developer machine in Bengaluru, and the bug ships straight to every user in the Americas.</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">6</div><div class="stat-label">Characters ("T00:00") that switch UTC to local</div></div>
+      <div class="stat-item"><div class="stat-num">5h 30m</div><div class="stat-label">Daily window where IST's toISOString() says yesterday</div></div>
+      <div class="stat-item"><div class="stat-num">47</div><div class="stat-label">Hours in "two days" across US DST in March</div></div>
+      <div class="stat-item"><div class="stat-num">3 Mar</div><div class="stat-label">What Date says 31 Jan + 1 month is</div></div>
+    </div>
+
+    <p>The bug is direction-dependent. West of UTC, date-only strings render as the day before. East of UTC, a different set of operations breaks instead - the ones that go from a local date back to a string. India gets that one every single day.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 · India's 5:30 Problem</div>
+    <h2>toISOString() Returns Yesterday Until 5:30 Every Morning</h2>
+    <p>This is the most common way I see people "format a date as YYYY-MM-DD":</p>
+
+    <div class="code-block">
+      <div class="code-label">utils/date.js</div>
+<pre><span class="code-kw">const</span> <span class="code-var">today</span> = <span class="code-kw">new</span> <span class="code-fn">Date</span>().<span class="code-fn">toISOString</span>().<span class="code-fn">slice</span>(<span class="code-num">0</span>, <span class="code-num">10</span>);</pre>
+    </div>
+
+    <p>It looks harmless. It works in every test. And it is wrong for a slice of every day in India, because <code>toISOString()</code> always prints UTC. At 2:00 AM IST on 6 October it is still 8:30 PM on 5 October in UTC, so the string you get is <code>"2026-10-05"</code>. My probe confirmed it: a <code>Date</code> constructed for 2:00 AM local in <code>Asia/Kolkata</code> sliced to the 5th in all three engines.</p>
+    <p>Midnight is worse, because midnight is what date pickers and "start of day" helpers produce. <code>new Date(2026, 9, 6)</code> - local midnight on the 6th - comes out of <code>toISOString()</code> as <code>2026-10-05T18:30:00.000Z</code>. Slice it and you have the wrong day, every time, not just in the early hours.</p>
+    <p>And this is not only an Indian problem. In October, London is on British Summer Time, UTC+1. Local midnight there is <code>23:00Z</code> on the previous day, and the probe sliced it to the 5th as well. Any team that tested this in London in January, on GMT, would have seen the right answer and moved on.</p>
+
+    <h3>JSON.stringify does the same thing, quietly</h3>
+    <p><code>JSON.stringify</code> calls <code>Date.prototype.toJSON</code>, which calls <code>toISOString</code>. So a date-of-birth field that a form library stores as a local-midnight <code>Date</code> goes over the wire like this from an IST browser:</p>
+
+    <div class="code-block">
+      <div class="code-label">probe output, Asia/Kolkata</div>
+<pre><span class="code-fn">JSON</span>.<span class="code-fn">stringify</span>({ <span class="code-var">dob</span>: <span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-num">2026</span>, <span class="code-num">9</span>, <span class="code-num">6</span>) })
+<span class="code-cmt">// '{"dob":"2026-10-05T18:30:00.000Z"}'</span></pre>
+    </div>
+
+    <p>Now it depends on the backend. If it parses that as an instant and converts to IST, you get the 6th back. If it truncates to the first ten characters - which is what an awful lot of code does to "get the date part" - you have just changed someone's birthday. Nothing in that pipeline is technically incorrect. Every function did what its docs say. The bug lives in the gap between them.</p>
+
+    <h3>The fix that keeps it local</h3>
+    <p>If what you want is the user's local calendar date, build the string from the local getters. It is boring and it is correct:</p>
+
+    <div class="code-block">
+      <div class="code-label">utils/date.js</div>
+<pre><span class="code-kw">export const</span> <span class="code-fn">toLocalISODate</span> = (<span class="code-var">d</span>) =&gt;
+  <span class="code-str">`${</span><span class="code-var">d</span>.<span class="code-fn">getFullYear</span>()<span class="code-str">}-${</span><span class="code-fn">String</span>(<span class="code-var">d</span>.<span class="code-fn">getMonth</span>() + <span class="code-num">1</span>).<span class="code-fn">padStart</span>(<span class="code-num">2</span>, <span class="code-str">"0"</span>)<span class="code-str">}-${</span><span class="code-fn">String</span>(<span class="code-var">d</span>.<span class="code-fn">getDate</span>()).<span class="code-fn">padStart</span>(<span class="code-num">2</span>, <span class="code-str">"0"</span>)<span class="code-str">}`</span>;
+
+<span class="code-cmt">// Also works, and reads cleaner if you trust it: en-CA formats as YYYY-MM-DD</span>
+<span class="code-kw">new</span> <span class="code-fn">Intl.DateTimeFormat</span>(<span class="code-str">"en-CA"</span>).<span class="code-fn">format</span>(<span class="code-var">d</span>); <span class="code-cmt">// "2026-10-06" in all nine runs</span></pre>
+    </div>
+
+    <p>The <code>en-CA</code> trick is widely used and it held up in every engine and zone I tested. I still prefer the explicit version in shared utilities, because the output of <code>Intl</code> locale formats is not a contract - it is whatever the locale data says this year.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05 · DD-MM-YYYY</div>
+    <h2>"06-10-2026" Is 10 June In Chrome And Invalid In Safari</h2>
+    <p>Here is the one that should worry anyone building for Indian users. We write dates day first. <code>06-10-2026</code> is 6 October to every person in this country. So what does JavaScript think it is?</p>
+
+    <table>
+      <thead>
+        <tr><th>Engine</th><th><code>new Date("06-10-2026")</code> in Asia/Kolkata</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Chromium 147</td><td><code>2026-06-09T18:30:00.000Z</code> - local midnight, <strong>10 June</strong></td></tr>
+        <tr><td>Firefox 148</td><td><code>2026-06-09T18:30:00.000Z</code> - local midnight, <strong>10 June</strong></td></tr>
+        <tr><td>WebKit 26.4</td><td><code>Invalid Date</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>Three engines, two different wrong answers. Chromium and Firefox read it American-style, month first. WebKit refuses it. Neither of those is a bug. The string is not in the format the spec defines, so the spec says the engine "may fall back to any implementation-specific heuristics or implementation-specific date formats", and these are the heuristics they chose.</p>
+    <p>This is worse than the UTC problem, because it is not off by one day. It is off by four months, and only for dates where the day is 12 or under. <code>"25-10-2026"</code> cannot be month 25, so you will see an <code>Invalid Date</code> or a nonsense value on the 25th and assume you have found the bug. You have not. You have found the half of it that is loud.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Where this sneaks in</div>
+      <p>CSV imports, spreadsheet uploads, dates pasted into a text field, legacy APIs that return <code>"dd-mm-yyyy"</code>. Any path where a human-formatted date string reaches <code>new Date()</code> or <code>Date.parse()</code> directly. If it is not ISO 8601, parse it yourself: split it, validate the parts, and build the date from numbers.</p>
+    </div>
+
+    <p>The same goes for <code>"2026/10/06"</code> and <code>"Oct 6, 2026"</code>. All three engines happened to parse those as local midnight in my probe, which is the behaviour most people would expect. But "happened to" is the operative phrase. It is not specified, and I would not build anything on it that I could not afford to have change.</p>
+
+    <div class="pull-quote">
+      <p>Off by one day is a bug. Off by four months, only on days 1 to 12, is a bug that hides behind its own error message.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">06 · The Date Input</div>
+    <h2>Even The Browser's Own Date Picker Hands You UTC</h2>
+    <p>You might think the safe path is to let the platform do it. Use <code>&lt;input type="date"&gt;</code>, and read the value back. The input gives you two ways to do that, and they disagree.</p>
+
+    <div class="code-block">
+      <div class="code-label">date-input.js</div>
+<pre><span class="code-var">input</span>.<span class="code-var">value</span>;        <span class="code-cmt">// "2026-10-06"          - a plain string, no time zone</span>
+<span class="code-var">input</span>.<span class="code-var">valueAsDate</span>;  <span class="code-cmt">// 2026-10-06T00:00:00Z  - UTC midnight, always</span>
+
+<span class="code-var">input</span>.<span class="code-var">valueAsDate</span>.<span class="code-fn">getDate</span>(); <span class="code-cmt">// 6 in Kolkata and London, 5 in New York</span></pre>
+    </div>
+
+    <p>That is straight from the probe, identical across all three engines. <code>valueAsDate</code> is specified as UTC midnight, so it inherits the exact problem from section three. The browser shows the user 6 October in the picker, and if your code then calls <code>getDate()</code> or formats it with a local formatter, a user in New York sees the 5th - in the same form where they just picked the 6th.</p>
+    <p>The <code>value</code> string, on the other hand, is exactly what you want. It is a calendar date with no time zone attached, which is what the user actually chose. Most of the time the right move is to keep it as that string all the way to the server.</p>
+    <p>If you do need a <code>Date</code> object for a calendar widget or a comparison, parse the parts and use the local constructor. Do not hand the string to <code>new Date()</code>.</p>
+
+    <div class="code-block">
+      <div class="code-label">utils/date.js</div>
+<pre><span class="code-kw">export const</span> <span class="code-fn">parseISODateLocal</span> = (<span class="code-var">s</span>) =&gt; {
+  <span class="code-kw">const</span> [<span class="code-var">y</span>, <span class="code-var">m</span>, <span class="code-var">d</span>] = <span class="code-var">s</span>.<span class="code-fn">split</span>(<span class="code-str">"-"</span>).<span class="code-fn">map</span>(<span class="code-fn">Number</span>);
+  <span class="code-kw">return new</span> <span class="code-fn">Date</span>(<span class="code-var">y</span>, <span class="code-var">m</span> - <span class="code-num">1</span>, <span class="code-var">d</span>); <span class="code-cmt">// local midnight - getDate() is 6 everywhere</span>
+};</pre>
+    </div>
+
+    <p>I checked the round trip - <code>toLocalISODate(parseISODateLocal("2026-10-06"))</code> - in Kolkata and New York, and it came back as <code>"2026-10-06"</code> in both. That pairing is the minimum I would want in any codebase that still uses <code>Date</code> for calendar dates. Real code should also validate the parts, because <code>new Date(2026, 1, 31)</code> does not throw - it quietly becomes 3 March.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 · Arithmetic</div>
+    <h2>A Day Is Not 86,400,000 Milliseconds</h2>
+    <p>Parsing is only half of it. The other half is the arithmetic people do once they have a <code>Date</code>, and the most common shortcut is treating a day as a fixed number of milliseconds.</p>
+
+    <div class="code-block">
+      <div class="code-label">TZ=America/New_York node dst.js</div>
+<pre><span class="code-kw">const</span> <span class="code-var">a</span> = <span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-num">2026</span>, <span class="code-num">9</span>, <span class="code-num">31</span>);              <span class="code-cmt">// Sat 31 Oct, midnight</span>
+<span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-var">a</span>.<span class="code-fn">getTime</span>() + <span class="code-num">2</span> * <span class="code-num">864e5</span>);         <span class="code-cmt">// Sun 1 Nov, 23:00  (not Mon 2 Nov)</span>
+
+<span class="code-kw">const</span> <span class="code-var">b</span> = <span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-num">2026</span>, <span class="code-num">9</span>, <span class="code-num">31</span>);
+<span class="code-var">b</span>.<span class="code-fn">setDate</span>(<span class="code-var">b</span>.<span class="code-fn">getDate</span>() + <span class="code-num">2</span>);                <span class="code-cmt">// Mon 2 Nov, 00:00  (correct)</span>
+
+<span class="code-cmt">// "How many days of leave?" across the March change</span>
+(<span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-num">2026</span>, <span class="code-num">2</span>, <span class="code-num">9</span>) - <span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-num">2026</span>, <span class="code-num">2</span>, <span class="code-num">7</span>)) / <span class="code-num">36e5</span>;  <span class="code-cmt">// 47 hours</span>
+<span class="code-fn">Math</span>.<span class="code-fn">floor</span>(<span class="code-num">47</span> / <span class="code-num">24</span>);                       <span class="code-cmt">// 1 day. It was two.</span></pre>
+    </div>
+
+    <p>US daylight saving time ended on 1 November 2026 and began on 8 March 2026. On those days, a local day is 25 or 23 hours long. Add <code>2 * 86400000</code> to midnight on 31 October and you land at 11 PM on the 1st, one hour short. Format that as a date and it says the 1st, not the 2nd. <code>setDate()</code> works in calendar days, so it gets it right.</p>
+    <p>The leave calculation is the one that hurts. Seven to nine March is two calendar days. In New York it is 47 hours, so <code>Math.floor(diff / 864e5)</code> gives you <code>1</code>. Swap to <code>Math.ceil</code> to fix that, and the November case - 49 hours - now gives you <code>3</code>. There is no rounding choice that is right in both directions. Run the same script with <code>TZ=Asia/Kolkata</code> and everything comes out clean, because India does not observe daylight saving time. Which, again, is why Indian developers do not see it.</p>
+
+    <h3>Months are worse</h3>
+    <p>Monthly pay cycles, subscription renewals, "same day next month" reminders - they all hit this:</p>
+
+    <div class="code-block">
+      <div class="code-label">console</div>
+<pre><span class="code-kw">const</span> <span class="code-var">d</span> = <span class="code-kw">new</span> <span class="code-fn">Date</span>(<span class="code-num">2026</span>, <span class="code-num">0</span>, <span class="code-num">31</span>);  <span class="code-cmt">// 31 January</span>
+<span class="code-var">d</span>.<span class="code-fn">setMonth</span>(<span class="code-var">d</span>.<span class="code-fn">getMonth</span>() + <span class="code-num">1</span>);
+<span class="code-fn">toLocalISODate</span>(<span class="code-var">d</span>);              <span class="code-cmt">// "2026-03-03"</span></pre>
+    </div>
+
+    <p><code>Date</code> sets the month to February, keeps day 31, notices February 2026 has 28 days, and overflows into March. "One month after 31 January" becomes 3 March. There is no option to clamp to the end of the month instead. You have to write that yourself, and plenty of code does not - which is exactly the kind of thing that only shows up on a payroll run for someone whose cycle starts on the 31st.</p>
+
+    <div class="highlight-box"><strong>The general rule</strong>Do calendar arithmetic in calendar units - days, months - not in milliseconds. Milliseconds are for durations between instants, like "how long did this request take". "Two days from now" and "next month" are calendar questions, and a timestamp cannot answer them.</div>
+  </section>
+
+  <section>
+    <div class="section-num">08 · The Mental Model</div>
+    <h2>A Date Is Not A Moment</h2>
+    <p>Every bug in this article comes from the same confusion. JavaScript's <code>Date</code> is badly named. It does not hold a date. It holds a single number - milliseconds since 1 January 1970 UTC - which is an <strong>instant</strong>: one specific point on the global timeline. Every "date" operation on it is really a question: "what does this instant look like in some time zone?"</p>
+    <p>But a lot of the things we model are not instants at all:</p>
+
+    <ul class="bullet-list">
+      <li><span><strong>Calendar dates</strong> - a birthday, a pay date, a public holiday, a leave day. 6 October is 6 October in every time zone. It does not have a time, and it does not have an offset.</span></li>
+      <li><span><strong>Instants</strong> - when a payment was processed, when a user logged in, when a build finished. These really are points on the timeline, and the same instant is a different wall-clock time in different places.</span></li>
+      <li><span><strong>Wall-clock times in a place</strong> - "the meeting is at 10 AM in Bengaluru". An instant that only makes sense with its zone attached, and that moves when that zone's rules change.</span></li>
+    </ul>
+
+    <div class="arch-title">How a calendar date goes wrong</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node green">"2026-10-06" (a date)</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">new Date() (an instant)</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">local formatter (5 Oct)</div>
+      </div>
+    </div>
+
+    <p>Squeezing a calendar date into a <code>Date</code> forces you to pick an instant to represent it - UTC midnight, local midnight, noon - and then every reader has to know which one you picked. The spec picked UTC midnight for date-only strings. Your form library probably picked local midnight. Your backend might pick something else. That is three different conventions for the same 6 October, and the code works until two of them meet.</p>
+    <p>So the rule I follow: <strong>calendar dates travel as <code>"YYYY-MM-DD"</code> strings, instants travel as ISO strings with an explicit <code>Z</code> or offset, and nothing in between.</strong> Store dates in a <code>DATE</code> column, not a timestamp. Keep the string in your frontend state. Convert to a <code>Date</code> only at the edge where a widget needs one, using the local parser from section six.</p>
+    <p>This is the same lesson as the TypeScript piece. A type annotation that says <code>birthday: Date</code> means nothing after <code>JSON.parse</code> - it is a string at runtime. If your types say <code>string</code> and your docs say "calendar date, YYYY-MM-DD", you are at least telling the truth about what is on the wire.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 · Temporal</div>
+    <h2>Temporal Fixes This By Refusing To Guess</h2>
+    <p>The real fix has been in the works at TC39 for years. Temporal reached Stage 4 and is shipping. It does not patch <code>Date</code>. It replaces it with separate types for separate concepts, which is exactly the distinction from the last section.</p>
+
+    <div class="code-block">
+      <div class="code-label">temporal.js (Chromium 147, verified)</div>
+<pre><span class="code-kw">const</span> <span class="code-var">pay</span> = <span class="code-fn">Temporal.PlainDate</span>.<span class="code-fn">from</span>(<span class="code-str">"2026-10-06"</span>);   <span class="code-cmt">// a date. No time, no zone.</span>
+<span class="code-fn">JSON</span>.<span class="code-fn">stringify</span>({ <span class="code-var">pay</span> });                           <span class="code-cmt">// '{"pay":"2026-10-06"}'</span>
+
+<span class="code-fn">Temporal.PlainDate</span>.<span class="code-fn">from</span>(<span class="code-str">"2026-03-07"</span>)
+  .<span class="code-fn">until</span>(<span class="code-fn">Temporal.PlainDate</span>.<span class="code-fn">from</span>(<span class="code-str">"2026-03-09"</span>)).<span class="code-var">days</span>; <span class="code-cmt">// 2, in any zone</span>
+
+<span class="code-fn">Temporal.PlainDate</span>.<span class="code-fn">from</span>(<span class="code-str">"2026-10-31"</span>).<span class="code-fn">add</span>({ <span class="code-var">days</span>: <span class="code-num">2</span> });     <span class="code-cmt">// 2026-11-02</span>
+<span class="code-fn">Temporal.PlainDate</span>.<span class="code-fn">from</span>(<span class="code-str">"2026-01-31"</span>).<span class="code-fn">add</span>({ <span class="code-var">months</span>: <span class="code-num">1</span> });   <span class="code-cmt">// 2026-02-28 (clamped)</span>
+
+<span class="code-fn">Temporal.PlainDate</span>.<span class="code-fn">from</span>(<span class="code-str">"06-10-2026"</span>);  <span class="code-cmt">// RangeError - no guessing</span>
+
+<span class="code-cmt">// Going from a date to an instant forces you to name the zone</span>
+<span class="code-var">pay</span>.<span class="code-fn">toZonedDateTime</span>(<span class="code-str">"Asia/Kolkata"</span>).<span class="code-fn">toInstant</span>();  <span class="code-cmt">// 2026-10-05T18:30:00Z</span></pre>
+    </div>
+
+    <p>Every one of those lines ran in Chromium 147 with the outputs shown, in both Kolkata and New York. Look at what disappeared. The leave count is 2 regardless of DST. Month arithmetic clamps to the end of February instead of overflowing. The Indian-format string is rejected loudly instead of becoming June. And there is no way to turn a <code>PlainDate</code> into an instant without saying which time zone you mean - the guess that caused all of this is simply not available.</p>
+    <p>One sharp edge worth knowing: you cannot compare Temporal objects with <code>&lt;</code>. I tried, and Chromium throws <code>TypeError: Do not use Temporal.PlainDate.prototype.valueOf</code>. That is deliberate, and it is good. Use <code>Temporal.PlainDate.compare(a, b)</code> or <code>a.equals(b)</code>.</p>
+
+    <h3>Where it runs today</h3>
+    <ul class="bullet-list">
+      <li><span><strong>Chrome and Edge 144+, Firefox 139+</strong> ship Temporal. My Playwright Chromium 147 and Firefox 148 both had it.</span></li>
+      <li><span><strong>Safari has not shipped it.</strong> The WebKit 26.4 build in my test returned <code>typeof Temporal === "undefined"</code>. Since every iOS browser uses WebKit, that means no iPhone or iPad support either.</span></li>
+      <li><span><strong>Node 26</strong> ships Temporal without a flag - in official builds. My Homebrew Node 26.0.0 was compiled with <code>v8_enable_temporal_support</code> set to 0, so <code>Temporal</code> was simply undefined. Feature-detect. Do not version-check.</span></li>
+    </ul>
+
+    <p>So for anything user-facing, you still need a polyfill - <code>@js-temporal/polyfill</code> from the champions, or the smaller <code>temporal-polyfill</code>. Both are a real bundle cost, and that is a fair reason to hold off on a small app. On anything that handles pay dates, contracts or leave, I think the cost is easily worth it.</p>
+
+    <div class="callout">
+      <div class="callout-label">If you cannot adopt Temporal yet</div>
+      <p>Adopt its model anyway. Keep calendar dates as <code>"YYYY-MM-DD"</code> strings, keep instants as offset-qualified ISO strings, and confine <code>Date</code> to the edges. When you do switch, it becomes a find-and-replace on a handful of utilities, not an audit of every component.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">10 · Monday Morning</div>
+    <h2>How I Would Find These In An Existing Codebase</h2>
+    <p>You do not need a rewrite to find most of these. Most of them have a recognisable shape, and a few searches will surface them:</p>
+
+    <div class="code-block">
+      <div class="code-label">terminal</div>
+<pre><span class="code-cmt"># date-only strings fed to the Date constructor or parser</span>
+rg <span class="code-str">'new Date\(\s*["\x27`]\d{4}-\d{2}-\d{2}["\x27`]\s*\)'</span>
+rg <span class="code-str">'Date\.parse\('</span>
+
+<span class="code-cmt"># "format as YYYY-MM-DD" via UTC</span>
+rg <span class="code-str">'toISOString\(\)\.(slice|substring|substr|split)'</span>
+
+<span class="code-cmt"># day arithmetic in milliseconds</span>
+rg <span class="code-str">'864e5|86400000|1000 \* 60 \* 60 \* 24|24 \* 60 \* 60 \* 1000'</span>
+
+<span class="code-cmt"># the date input's UTC getter</span>
+rg <span class="code-str">'valueAsDate'</span></pre>
+    </div>
+
+    <p>Not every hit is a bug. <code>toISOString().slice(0, 10)</code> on a value that really is a UTC instant, where you really do want the UTC date, is fine. But every hit deserves the question: "is this a calendar date or an instant, and does this line know which?"</p>
+
+    <h3>Make your tests live somewhere else</h3>
+    <p>The deeper fix is to stop running your test suite in the one time zone where these bugs cannot happen. Node respects the <code>TZ</code> environment variable, so this is cheap:</p>
+
+    <div class="code-block">
+      <div class="code-label">package.json</div>
+<pre><span class="code-str">"scripts"</span>: {
+  <span class="code-str">"test"</span>: <span class="code-str">"vitest run"</span>,
+  <span class="code-str">"test:tz"</span>: <span class="code-str">"TZ=America/New_York vitest run &amp;&amp; TZ=Pacific/Kiritimati vitest run"</span>
+}</pre>
+    </div>
+
+    <p>New York catches the date-only-renders-as-yesterday class and the DST class. <code>Pacific/Kiritimati</code> is UTC+14, which pushes the <code>toISOString</code> class to its extreme - local midnight there is 10 AM the previous day in UTC. Set the variable before the process starts rather than inside a test file, because the engine may cache the zone. For browser tests, Playwright takes a <code>timezoneId</code> option per context, which is exactly what my probe used. One extra project in your Playwright config with a US time zone is a very cheap insurance policy.</p>
+    <p>If your CI runners are in UTC, which most hosted runners are, be aware that UTC is the one zone where date-only and date-time strings agree. Your CI is, by accident, the best possible environment for hiding this whole category of bug.</p>
+  </section>
+
+  <section>
+    <div class="section-num">11 · The Short Version</div>
+    <h2>Stop Letting Date Guess</h2>
+    <ul class="bullet-list">
+      <li><span><code>new Date("2026-10-06")</code> is UTC midnight. <code>new Date("2026-10-06T00:00")</code> is local midnight. That split has been in the spec since ES2016, and every engine I tested follows it.</span></li>
+      <li><span>West of UTC, date-only strings render as the previous day. East of UTC - including all of India - <code>toISOString().slice(0, 10)</code> and <code>JSON.stringify</code> turn local midnight into the previous day.</span></li>
+      <li><span>Non-ISO strings are implementation-defined. <code>"06-10-2026"</code> is 10 June in Chromium and Firefox and <code>Invalid Date</code> in WebKit. Parse human-formatted dates yourself.</span></li>
+      <li><span><code>input.valueAsDate</code> is UTC midnight. Use <code>input.value</code> and keep it as a string.</span></li>
+      <li><span>Do calendar arithmetic in calendar units. <code>864e5</code> is wrong across DST, and <code>setMonth</code> overflows 31 January into 3 March.</span></li>
+      <li><span>Treat calendar dates and instants as different types. Temporal does this for you in Chrome, Edge and Firefox; Safari still needs a polyfill.</span></li>
+      <li><span>Run your tests with <code>TZ=America/New_York</code> at least once. UTC and IST are the two zones most likely to hide these bugs from you.</span></li>
+    </ul>
+    <p>None of this is exotic. It is an old problem - computers that store instants being asked about calendars - and a thirty-year-old API that never decided which one it was modelling. The spec rule is odd, but it is stable and it is documented. The bugs come from code that does not know which side of the rule it is on.</p>
+
+    <div class="pull-quote">
+      <p>A calendar date is not a timestamp at midnight. The moment you store it as one, you have to pick a midnight - and so does everyone who reads it.</p>
+    </div>
+
+    <div class="footnote">All parsing, formatting and date-input results were reproduced locally with Playwright 1.59.1 against Chromium 147.0.7727.15, Firefox 148.0 and WebKit 26.4, each run with <code>timezoneId</code> set to Asia/Kolkata, America/New_York and Europe/London on 6 October 2026. DST and month-overflow arithmetic was run in Node 26.0.0 with <code>TZ=America/New_York</code> and <code>TZ=Asia/Kolkata</code>. Temporal snippets were run in the same Chromium build. The ES5, ES2015 and ES2016 parsing rules are from the respective ECMAScript editions' date time string format sections. Temporal browser support is from caniuse and the Chromium "Intent to Ship: Temporal" thread; Safari's status was confirmed only for the Playwright WebKit build tested here, so check a real Safari release before relying on it.</div>
+  </section>
+
+</div>
+
+</body>
+</html>
