@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>setTimeout(fn, 0) Is Not Zero. In A Background Tab, Your 100ms Timer Runs Once A Minute.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="The delay you pass to setTimeout is a minimum. Measured in Chromium, Firefox, WebKit and Node: the 4ms nesting clamp, hidden tabs throttled to 1 second, Chrome&#x27;s once-a-minute intensive throttling after 5 minutes, and a 30-day timer that fires instantly - plus what to use instead." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="setTimeout(fn, 0) Is Not Zero. In A Background Tab, Your 100ms Timer Runs Once A Minute." />
+<meta property="og:description" content="The delay you pass to setTimeout is a minimum. Measured in Chromium, Firefox, WebKit and Node: the 4ms nesting clamp, hidden tabs throttled to 1 second, Chrome&#x27;s once-a-minute intensive throttling after 5 minutes, and a 30-day timer that fires instantly - plus what to use instead." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1559395471-2f2c0e290906?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/settimeout-zero-is-not-zero" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="setTimeout(fn, 0) Is Not Zero. In A Background Tab, Your 100ms Timer Runs Once A Minute." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1559395471-2f2c0e290906?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Browser Internals &nbsp;&middot;&nbsp; Timers</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1559395471-2f2c0e290906?w=1200&h=630&fit=crop&q=80" alt="A wooden hourglass with blue sand standing on a beach, footprints in the wet sand beside it" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Myth-busting &middot; Browser Internals</div>
+  <h1>setTimeout(fn, 0) Is Not Zero. <em>In A Background Tab, Your 100ms Timer Runs Once A Minute.</em></h1>
+  <p class="hero-sub">The number you pass to setTimeout is a minimum, and every browser has its own opinion about how far above it to go. I measured nesting clamps, hidden-tab throttling and a 30-day delay that fires instantly in Chromium, Firefox, WebKit and Node.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>October 2026</span>
+    <span class="byline-dot"></span>
+    <span>~19 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">JavaScript</span>
+    <span class="tag">Browser Internals</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 · The Experiment</div>
+    <h2>I Hid A Tab And Went To Make Chai</h2>
+    <p>The page was about forty lines long. It ran one loop: <code>setTimeout(tick, 100)</code>, and inside <code>tick</code>, record the time and schedule the next one. Ten ticks a second. Next to it, a <code>setInterval</code> at 100ms doing the same thing, and a Web Worker running the same chained timer on its own thread.</p>
+    <p>I let it run in the foreground for ten seconds, opened another tab on top of it, and left it hidden for a little over seven minutes. Then I switched back and read the timestamps.</p>
+    <p>In the foreground, both loops ticked every 100ms, as asked. Less than a second after the tab went into the background, both dropped to exactly one tick per second. That held for five minutes. Then, at the five-minute mark, the gaps jumped to <strong>53 seconds, then 60 seconds</strong>. Over seven minutes and twenty-one seconds hidden, a timer that should have fired about 4,400 times fired 302 times. The Web Worker's timer, meanwhile, kept ticking every 100ms the whole time, as if nothing had happened.</p>
+    <p>None of this is a bug. Every piece of it is either in the HTML spec or in a documented browser policy. But I have reviewed a lot of frontend code that treats the second argument to <code>setTimeout</code> as a promise, and it is not one. It is the <strong>shortest</strong> time the browser will wait. Everything above that number is the browser's call, and the browser has opinions.</p>
+    <p>On a payroll and HR platform, plenty of screens are long-lived. Someone starts a long job, switches to their email, and comes back fifteen minutes later expecting the progress bar, the "your session expires in 2:00" warning and the auto-save indicator to all be telling the truth. Every one of those is usually a timer. So I wanted to stop guessing and measure what timers actually do - in the foreground, in a hidden tab, and at the edges of the delay argument itself.</p>
+
+    <div class="pull-quote">
+      <p>The delay you pass to setTimeout is a floor, not a schedule. Everything above it is the browser's decision.</p>
+    </div>
+
+    <p>Everything below comes from scripts I ran with Playwright 1.59.1 against Chromium 147, Firefox 148 and WebKit 26.4, plus Node 26. Where a claim comes from documentation instead of my own run, I say so. This is also a companion to my piece on <a href="https://rgndunes.github.io/blog/long-animation-frames-not-long-tasks">Long Animation Frames</a> - that one is about why the main thread is busy, this one is about what happens to the work you scheduled for later.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 · The Contract</div>
+    <h2>The Delay Is "At Least", And The Spec Says So</h2>
+    <p>The HTML spec's timer steps do not say "run the callback after <em>timeout</em> milliseconds". They say to wait until at least that long has passed, and then queue a task. Queueing a task means the callback joins the line behind whatever else the event loop has to do. If the main thread is busy, it waits.</p>
+    <p>That part most people know in theory. Here is what it looks like in practice. I scheduled a <code>setTimeout(fn, 0)</code> and then blocked the main thread with a 200ms busy loop:</p>
+
+    <div class="code-block">
+      <div class="code-label">probe.js</div>
+<pre><span class="code-kw">const</span> <span class="code-var">t0</span> = <span class="code-fn">performance</span>.<span class="code-fn">now</span>();
+<span class="code-fn">setTimeout</span>(() =&gt; <span class="code-fn">console</span>.<span class="code-fn">log</span>(<span class="code-fn">performance</span>.<span class="code-fn">now</span>() - <span class="code-var">t0</span>), <span class="code-num">0</span>);
+
+<span class="code-kw">const</span> <span class="code-var">end</span> = <span class="code-fn">performance</span>.<span class="code-fn">now</span>() + <span class="code-num">200</span>;
+<span class="code-kw">while</span> (<span class="code-fn">performance</span>.<span class="code-fn">now</span>() &lt; <span class="code-var">end</span>) {}
+
+<span class="code-cmt">// Chromium: 200.2   Firefox: 200   WebKit: 200</span></pre>
+    </div>
+
+    <p>A "zero" timeout that took 200 milliseconds, in every engine. Not because the timer was slow, but because there was nobody free to run it. That is the first way the number lies: <strong>the delay is measured from when you call <code>setTimeout</code>, but the callback only runs when the thread is free.</strong> If you have a long task, your timer is late by however long that task runs. This is exactly the delay that the Long Animation Frames API attributes to scripts, and it is why a perfectly reasonable 16ms animation timer can produce a janky 80ms frame.</p>
+    <p>But even with an idle thread, the browser adds time of its own on purpose. There are three separate mechanisms, and they stack:</p>
+
+    <ul class="bullet-list">
+      <li><span><strong>Nesting clamp.</strong> Timers scheduled from inside timers, deep enough, get a 4ms floor. Applies everywhere, visible tab or not.</span></li>
+      <li><span><strong>Background throttling.</strong> When the tab is hidden, timers are batched so they fire at most about once a second.</span></li>
+      <li><span><strong>Intensive throttling.</strong> In Chrome, after a tab has been hidden for five minutes, chained timers are batched to once a <em>minute</em>.</span></li>
+    </ul>
+
+    <p>And then there is a fourth thing that is not throttling at all, but an integer overflow, and it goes in the opposite direction. We will get to that.</p>
+  </section>
+
+  <section>
+    <div class="section-num">03 · The 4ms Clamp</div>
+    <h2>The First Few Are Free. Then Every Hop Costs You 4ms</h2>
+    <p>The spec keeps a <em>timer nesting level</em>. A timer scheduled from normal code starts at zero. A timer scheduled from inside a timer callback is one level deeper. Once the nesting level goes past 5, any timeout under 4ms is raised to 4ms. This clamp is old - a historical compromise to stop pages that spin on <code>setTimeout(fn, 0)</code> loops from pinning the CPU - and it survived into the modern spec.</p>
+    <p>I ran a chain of twelve nested <code>setTimeout(fn, 0)</code> calls and recorded the gap between each callback:</p>
+
+    <table>
+      <thead>
+        <tr><th>Engine</th><th>First clamped callback</th><th>Gap once clamped</th><th>100 chained <code>setTimeout(0)</code></th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Chromium 147</td><td>7th</td><td>~5ms</td><td>497ms</td></tr>
+        <tr><td>Firefox 148</td><td>5th</td><td>4-6ms</td><td>576ms</td></tr>
+        <tr><td>WebKit 26.4</td><td>11th</td><td>7-10ms</td><td>800ms</td></tr>
+        <tr><td>Node 26</td><td>No nesting clamp</td><td>~1ms</td><td>124ms</td></tr>
+      </tbody>
+    </table>
+
+    <p>Two things surprised me here. The first is that the engines do not agree on <em>when</em> the clamp starts. Chromium let six callbacks through untouched, Firefox clamped from the fifth, and the Playwright WebKit build held off until the eleventh. MDN describes the clamp as kicking in "once a nested call to setTimeout has been scheduled 5 times", which matches Firefox exactly and is close enough for the others. The second is that "4ms" was rarely 4ms. On my Mac, Chromium's clamped gaps sat around 5ms and WebKit's were often double the spec number. The spec gives a floor; the operating system's timer resolution sits on top of it.</p>
+    <p>Node is the odd one out. It has no nesting clamp, but it turns a delay of 0 into 1, so every hop still costs about a millisecond. That is why 100 hops took 124ms there, against 3.4ms for 100 hops of <code>setImmediate</code>.</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">497ms</div><div class="stat-label">100 chained setTimeout(0) in Chromium</div></div>
+      <div class="stat-item"><div class="stat-num">0.3ms</div><div class="stat-label">Same 100 hops over MessageChannel</div></div>
+      <div class="stat-item"><div class="stat-num">800ms</div><div class="stat-label">100 chained setTimeout(0) in WebKit</div></div>
+      <div class="stat-item"><div class="stat-num">~1,600x</div><div class="stat-label">Chromium's gap between the two</div></div>
+    </div>
+
+    <h3>Where this actually hurts</h3>
+    <p>Nobody writes a 100-deep timer chain on purpose. They write this:</p>
+
+    <div class="code-block">
+      <div class="code-label">utils/processInChunks.js</div>
+<pre><span class="code-kw">function</span> <span class="code-fn">processInChunks</span>(<span class="code-var">items</span>, <span class="code-var">fn</span>, <span class="code-var">size</span> = <span class="code-num">50</span>) {
+  <span class="code-kw">let</span> <span class="code-var">i</span> = <span class="code-num">0</span>;
+  (<span class="code-kw">function</span> <span class="code-fn">next</span>() {
+    <span class="code-kw">const</span> <span class="code-var">end</span> = <span class="code-fn">Math</span>.<span class="code-fn">min</span>(<span class="code-var">i</span> + <span class="code-var">size</span>, <span class="code-var">items</span>.<span class="code-var">length</span>);
+    <span class="code-kw">for</span> (; <span class="code-var">i</span> &lt; <span class="code-var">end</span>; <span class="code-var">i</span>++) <span class="code-fn">fn</span>(<span class="code-var">items</span>[<span class="code-var">i</span>]);
+    <span class="code-kw">if</span> (<span class="code-var">i</span> &lt; <span class="code-var">items</span>.<span class="code-var">length</span>) <span class="code-fn">setTimeout</span>(<span class="code-fn">next</span>, <span class="code-num">0</span>); <span class="code-cmt">// "yield to the browser"</span>
+  })();
+}</pre>
+    </div>
+
+    <p>It is the textbook way to break up a long task, and it is a good instinct. But run it over 10,000 rows with chunks of 50 and you have 200 hops. Each one costs real work plus a clamped 4-5ms that does nothing. That is roughly a second of the user waiting on idle time in Chromium, and closer to two seconds in WebKit. The cost scales with the number of chunks, so the instinct to use smaller chunks for smoother UI makes it worse.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 · Receipts</div>
+    <h2>React's Scheduler Already Refuses To Use setTimeout</h2>
+    <p>If you want proof that this clamp is real enough to design around, read React's scheduler. When it needs to hand control back to the browser and resume work in a fresh task, it does not use <code>setTimeout</code>. Here is the relevant part of <code>packages/scheduler/src/forks/Scheduler.js</code> on React's main branch today:</p>
+
+    <div class="code-block">
+      <div class="code-label">react/packages/scheduler/src/forks/Scheduler.js</div>
+<pre><span class="code-kw">if</span> (<span class="code-kw">typeof</span> <span class="code-var">localSetImmediate</span> === <span class="code-str">'function'</span>) {
+  <span class="code-cmt">// Node.js and old IE.</span>
+  <span class="code-var">schedulePerformWorkUntilDeadline</span> = () =&gt; {
+    <span class="code-fn">localSetImmediate</span>(<span class="code-var">performWorkUntilDeadline</span>);
+  };
+} <span class="code-kw">else if</span> (<span class="code-kw">typeof</span> <span class="code-fn">MessageChannel</span> !== <span class="code-str">'undefined'</span>) {
+  <span class="code-cmt">// DOM and Worker environments.</span>
+  <span class="code-cmt">// We prefer MessageChannel because of the 4ms setTimeout clamping.</span>
+  <span class="code-kw">const</span> <span class="code-var">channel</span> = <span class="code-kw">new</span> <span class="code-fn">MessageChannel</span>();
+  <span class="code-kw">const</span> <span class="code-var">port</span> = <span class="code-var">channel</span>.<span class="code-var">port2</span>;
+  <span class="code-var">channel</span>.<span class="code-var">port1</span>.<span class="code-var">onmessage</span> = <span class="code-var">performWorkUntilDeadline</span>;
+  <span class="code-var">schedulePerformWorkUntilDeadline</span> = () =&gt; {
+    <span class="code-var">port</span>.<span class="code-fn">postMessage</span>(<span class="code-kw">null</span>);
+  };
+} <span class="code-kw">else</span> {
+  <span class="code-cmt">// We should only fallback here in non-browser environments.</span>
+  <span class="code-var">schedulePerformWorkUntilDeadline</span> = () =&gt; {
+    <span class="code-fn">localSetTimeout</span>(<span class="code-var">performWorkUntilDeadline</span>, <span class="code-num">0</span>);
+  };
+}</pre>
+    </div>
+
+    <p>That comment - <em>"We prefer MessageChannel because of the 4ms setTimeout clamping"</em> - is the whole argument in one line. React's concurrent rendering yields constantly, every few milliseconds. If every yield paid a 4ms tax, time-slicing would spend more time waiting than rendering. So the scheduler posts a message to itself instead. A <code>postMessage</code> on a <code>MessageChannel</code> queues a task immediately, with no nesting level and no clamp.</p>
+    <p>I measured the difference with the same 100-hop chain. Chromium: 497ms with <code>setTimeout</code>, 0.3ms with <code>MessageChannel</code>. Firefox: 576ms against 2ms. WebKit: 800ms against 8ms. Each hop is still a real task, so the browser can still paint and handle input between them. You just stop paying for nothing.</p>
+
+    <div class="callout">
+      <div class="callout-label">This is not a React trick</div>
+      <p>The same idea shows up in older code as <code>window.postMessage</code> to yourself, and it is why polyfills for <code>setImmediate</code> used to exist. React is just the most widely deployed piece of code that writes the reason down in a comment.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">05 · Hidden Tabs</div>
+    <h2>Hide The Tab And 100ms Becomes 1,000ms Within A Second</h2>
+    <p>Browsers have throttled timers in background tabs for over a decade, because a hidden tab running a 16ms animation loop is pure battery drain with nobody watching. MDN documents a one-second minimum in inactive tabs for Firefox, and Chrome documents the same once-per-second check for hidden pages. What I wanted to know was how quickly it kicks in, and what it does to code that assumes the timer is on time.</p>
+    <p>The answer to the first question is: almost immediately. Here is what my 100ms timers did, bucketed by how long the tab had been hidden:</p>
+
+    <table>
+      <thead>
+        <tr><th>Tab state</th><th>Chained <code>setTimeout(100)</code></th><th><code>setInterval(100)</code></th><th>Worker <code>setTimeout(100)</code></th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Visible</td><td>~102ms</td><td>~100ms</td><td>~107ms</td></tr>
+        <tr><td>Hidden, first 10s</td><td>1,000ms</td><td>1,000ms</td><td>~102ms</td></tr>
+        <tr><td>Hidden, 10s to 5 min</td><td>1,000ms</td><td>1,000ms</td><td>~102ms</td></tr>
+        <tr><td>Hidden, past 5 min</td><td><strong>53,001ms, 59,962ms</strong></td><td><strong>53,001ms, 59,962ms</strong></td><td>~102ms</td></tr>
+      </tbody>
+    </table>
+
+    <p>The first one-second gap appeared 917ms after the tab was hidden. There was no grace period. And note that <code>setInterval</code> behaved exactly like the chained <code>setTimeout</code>. People sometimes reach for <code>setInterval</code> believing it is "more accurate" because it does not drift. In a hidden tab it gets batched just the same - each iteration counts as part of the chain.</p>
+    <p>One second sounds harmless until you look at what people put in timers. A typing-indicator debounce, a "saving..." spinner that hides after 300ms, a retry with a 200ms backoff, a progress poll every 500ms. All of those run at 1Hz the moment the user switches tabs. Most of the time nobody notices, because nobody is looking. The problems show up when the user comes back and the code has been <em>counting ticks</em> instead of reading the clock.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">The countdown bug</div>
+      <p>A session-timeout warning that does <code>secondsLeft -= 1</code> every second is accurate in a visible tab. In a hidden tab past five minutes it decrements once a minute, so the warning on return can be off by many minutes - and the server-side session may already be gone while the UI cheerfully says "4:12 remaining".</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">06 · Intensive Throttling</div>
+    <h2>After Five Minutes, Chrome Checks Your Timers Once A Minute</h2>
+    <p>Chrome 88, in January 2021, added a third level on top of the one-second throttle. The Chrome team calls it <em>intensive throttling</em>, and their write-up lists four conditions that must all be true:</p>
+
+    <ul class="bullet-list">
+      <li><span>The page has been hidden for more than 5 minutes.</span></li>
+      <li><span>The timer's chain count is 5 or greater - it was scheduled from inside a timer callback, five deep, or it is a <code>setInterval</code> that has already run a few times.</span></li>
+      <li><span>The page has been silent for at least 30 seconds. Playing audio exempts you; a silent audio track does not count.</span></li>
+      <li><span>WebRTC is not in use.</span></li>
+    </ul>
+
+    <p>When all four hold, Chrome checks those timers once per minute, aligned to the minute. That is exactly what my run showed. The one-second ticks stopped at five minutes, the next callback came 53 seconds later - landing on the minute boundary - and the one after that 59,962ms later. Then I brought the tab back and the timer went straight back to 100ms.</p>
+
+    <div class="arch-title">What happened to one setTimeout(tick, 100) loop</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node green">Visible: every 100ms</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Hidden: every 1s</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">Hidden 5 min+: every 60s</div>
+      </div>
+    </div>
+
+    <p>Read the conditions again and think about which code meets all four. A polling loop is the textbook case: it is chained by definition, and a dashboard that polls for job status is usually silent and not on a video call. So is a heartbeat that keeps a session alive, a "refresh the token 60 seconds before it expires" timer that was rescheduled a few times, and almost every hand-rolled countdown. Chrome's own post is blunt about the alternative for state polling: use events rather than timers - WebSockets, server-sent events, or the various observers.</p>
+
+    <h3>The Worker result</h3>
+    <p>The Web Worker running the same chained 100ms timer in the same hidden tab was never throttled in my run - not at one second, not at five minutes. That is interesting, and I want to be careful with it. The Chrome write-up does not promise anything about workers, so this is observed behaviour in one Chromium version, not a contract. It is also exactly the kind of battery cost the throttling exists to prevent. If you genuinely need a heartbeat to keep going in a hidden tab, a worker is a reasonable place to look. If you are moving a UI countdown into a worker to dodge throttling, you are solving the wrong problem: the user cannot see the countdown anyway, so compute it correctly when they come back.</p>
+
+    <div class="highlight-box"><strong>The real takeaway</strong>A hidden tab is not paused, and it is not running normally either. It is running on the browser's schedule. Code that is correct only if timers are punctual is code that is correct only while someone is watching.</div>
+  </section>
+
+  <section>
+    <div class="section-num">07 · The Overflow</div>
+    <h2>A 30-Day Timer Fires Immediately. In Every Engine.</h2>
+    <p>Now the opposite problem. Throttling makes timers late. This one makes them early - catastrophically early.</p>
+    <p>The delay argument to <code>setTimeout</code> is converted to a signed 32-bit integer. The largest value that fits is <code>2147483647</code> milliseconds, which is about 24.8 days. Anything bigger wraps around. If the wrapped value is negative, the browser treats it as zero, and the callback runs on the next turn of the event loop.</p>
+    <p>I tested a handful of delays in all three engines, giving each one 1.5 seconds to fire:</p>
+
+    <table>
+      <thead>
+        <tr><th>Delay passed in</th><th>Chromium</th><th>Firefox</th><th>WebKit</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>2 ** 31 - 1</code> (24.8 days)</td><td>Did not fire</td><td>Did not fire</td><td>Did not fire</td></tr>
+        <tr><td><code>2 ** 31</code> (one ms more)</td><td><strong>0ms</strong></td><td><strong>0ms</strong></td><td><strong>0ms</strong></td></tr>
+        <tr><td>30 days</td><td><strong>0ms</strong></td><td><strong>0ms</strong></td><td><strong>0ms</strong></td></tr>
+        <tr><td><code>2 ** 32 + 1000</code></td><td>1,002ms</td><td>1,004ms</td><td>1,002ms</td></tr>
+        <tr><td><code>"1000"</code> (a string)</td><td>1,002ms</td><td>1,001ms</td><td>1,002ms</td></tr>
+      </tbody>
+    </table>
+
+    <p>All three engines agree, because they all follow the same WebIDL conversion. One millisecond past 24.8 days and your timer fires now. Go past 2<sup>32</sup> and it wraps all the way around to a small positive number, so a delay of about 49.7 days fires after one second. The last row is a small bonus: strings get converted to numbers, so <code>setTimeout(fn, "1000")</code> works, which is a fun way to learn that an environment variable was never parsed.</p>
+    <p>Node behaves differently and, I think, better. It prints a warning and sets the delay to 1ms:</p>
+
+    <div class="code-block">
+      <div class="code-label">node 26</div>
+<pre><span class="code-fn">setTimeout</span>(<span class="code-var">fn</span>, <span class="code-num">30</span> * <span class="code-num">24</span> * <span class="code-num">3600</span> * <span class="code-num">1000</span>);
+<span class="code-cmt">// (node) TimeoutOverflowWarning: 2592000000 does not fit into a 32-bit signed integer.</span>
+<span class="code-cmt">// Timeout duration was set to 1.</span>
+<span class="code-cmt">// ...and fn runs 1.5ms later</span></pre>
+    </div>
+
+    <p>Still immediate, but at least it tells you. Browsers say nothing.</p>
+
+    <h3>Who actually passes 25 days to setTimeout?</h3>
+    <p>Nobody types it. Code computes it. The classic shape is a token refresh scheduled off an expiry claim:</p>
+
+    <div class="code-block">
+      <div class="code-label">auth/scheduleRefresh.js</div>
+<pre><span class="code-kw">const</span> <span class="code-var">msUntilRefresh</span> = <span class="code-var">token</span>.<span class="code-var">exp</span> * <span class="code-num">1000</span> - <span class="code-fn">Date</span>.<span class="code-fn">now</span>() - <span class="code-num">60_000</span>;
+<span class="code-fn">setTimeout</span>(<span class="code-fn">refreshToken</span>, <span class="code-var">msUntilRefresh</span>);</pre>
+    </div>
+
+    <p>That is fine for a one-hour access token. Now someone changes the backend so that "remember me" sessions get a 30-day token. The refresh fires immediately. If the refresh handler schedules the next refresh using the new token's expiry - which is also 30 days - it fires immediately again. You have written a loop that hits your auth server as fast as the network allows, from every tab of every user who ticked the box. The same shape appears in "remind me later" banners, subscription-expiry nudges and anything keyed off an end date.</p>
+
+    <p>The fix is a few lines. Never trust a computed delay to fit; re-arm until the deadline actually arrives:</p>
+
+    <div class="code-block">
+      <div class="code-label">utils/setLongTimeout.js</div>
+<pre><span class="code-kw">const</span> <span class="code-var">MAX_DELAY</span> = <span class="code-num">2</span> ** <span class="code-num">31</span> - <span class="code-num">1</span>;
+
+<span class="code-kw">export function</span> <span class="code-fn">setLongTimeout</span>(<span class="code-var">fn</span>, <span class="code-var">ms</span>) {
+  <span class="code-kw">const</span> <span class="code-var">deadline</span> = <span class="code-fn">Date</span>.<span class="code-fn">now</span>() + <span class="code-var">ms</span>;
+  <span class="code-kw">let</span> <span class="code-var">id</span>;
+  (<span class="code-kw">function</span> <span class="code-fn">arm</span>() {
+    <span class="code-kw">const</span> <span class="code-var">left</span> = <span class="code-var">deadline</span> - <span class="code-fn">Date</span>.<span class="code-fn">now</span>();
+    <span class="code-kw">if</span> (<span class="code-var">left</span> &lt;= <span class="code-num">0</span>) <span class="code-kw">return</span> <span class="code-fn">fn</span>();
+    <span class="code-var">id</span> = <span class="code-fn">setTimeout</span>(<span class="code-fn">arm</span>, <span class="code-fn">Math</span>.<span class="code-fn">min</span>(<span class="code-var">left</span>, <span class="code-var">MAX_DELAY</span>));
+  })();
+  <span class="code-kw">return</span> () =&gt; <span class="code-fn">clearTimeout</span>(<span class="code-var">id</span>);
+}</pre>
+    </div>
+
+    <p>It checks the wall clock on every wake-up instead of trusting the timer to have counted correctly, which also makes it honest about laptop sleep. A sleeping machine does not run timers, and depending on the platform the time asleep may or may not count towards your delay. Comparing against <code>Date.now()</code> sidesteps the question.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 · What To Use Instead</div>
+    <h2>Pick The Primitive By What You Actually Want</h2>
+    <p>Most timer bugs come from using one tool for four different jobs. <code>setTimeout</code> gets used to yield, to poll, to count down and to schedule something far in the future, and it is only really good at "do this once, a bit later, and I do not mind if it is late". Here is how I split them now.</p>
+
+    <h3>To yield to the browser: scheduler.yield, with a MessageChannel fallback</h3>
+    <p><code>scheduler.yield()</code> gives control back to the browser and resumes your work with priority over other queued tasks, so a long loop does not end up behind every other script on the page. It shipped in Chrome 129 and Firefox 142. <code>scheduler.postTask</code> has been in Chrome since 94 and also landed in Firefox 142. Safari has neither, and the Playwright WebKit build I tested did not expose them either. So in practice:</p>
+
+    <div class="code-block">
+      <div class="code-label">utils/yieldToMain.js</div>
+<pre><span class="code-kw">export function</span> <span class="code-fn">yieldToMain</span>() {
+  <span class="code-kw">if</span> (<span class="code-var">globalThis</span>.<span class="code-var">scheduler</span>?.<span class="code-var">yield</span>) <span class="code-kw">return</span> <span class="code-var">scheduler</span>.<span class="code-fn">yield</span>();
+  <span class="code-kw">return new</span> <span class="code-fn">Promise</span>((<span class="code-var">resolve</span>) =&gt; {
+    <span class="code-kw">const</span> { <span class="code-var">port1</span>, <span class="code-var">port2</span> } = <span class="code-kw">new</span> <span class="code-fn">MessageChannel</span>();
+    <span class="code-var">port1</span>.<span class="code-var">onmessage</span> = () =&gt; { <span class="code-var">port1</span>.<span class="code-fn">close</span>(); <span class="code-fn">resolve</span>(); };
+    <span class="code-var">port2</span>.<span class="code-fn">postMessage</span>(<span class="code-kw">null</span>);
+  });
+}
+
+<span class="code-cmt">// for (const chunk of chunks) { work(chunk); await yieldToMain(); }</span></pre>
+    </div>
+
+    <p>In my runs, 100 hops of <code>scheduler.yield()</code> took 0.2ms in Chromium and 1ms in Firefox. The fallback is the MessageChannel path that React uses. One honest caveat: the fallback does not get <code>yield</code>'s priority boost, so on a busy page your continuation waits its turn behind other tasks. It is still nothing like a 4ms floor.</p>
+
+    <h3>To poll: stop polling when nobody is looking</h3>
+    <p>If the data matters while the tab is hidden, have the server push it - server-sent events and WebSocket messages arrive as events, not timers, which is what Chrome recommends. If polling is fine, make it visibility-aware: stop when hidden, and fetch immediately when the user comes back, because that is the moment they actually look.</p>
+
+    <div class="code-block">
+      <div class="code-label">utils/visiblePoller.js</div>
+<pre><span class="code-kw">export function</span> <span class="code-fn">pollWhileVisible</span>(<span class="code-var">fn</span>, <span class="code-var">ms</span>) {
+  <span class="code-kw">let</span> <span class="code-var">id</span>;
+  <span class="code-kw">const</span> <span class="code-fn">start</span> = () =&gt; { <span class="code-fn">fn</span>(); <span class="code-var">id</span> = <span class="code-fn">setInterval</span>(<span class="code-var">fn</span>, <span class="code-var">ms</span>); };
+  <span class="code-kw">const</span> <span class="code-fn">stop</span> = () =&gt; <span class="code-fn">clearInterval</span>(<span class="code-var">id</span>);
+  <span class="code-kw">const</span> <span class="code-fn">onChange</span> = () =&gt; (<span class="code-var">document</span>.<span class="code-var">hidden</span> ? <span class="code-fn">stop</span>() : <span class="code-fn">start</span>());
+
+  <span class="code-var">document</span>.<span class="code-fn">addEventListener</span>(<span class="code-str">"visibilitychange"</span>, <span class="code-var">onChange</span>);
+  <span class="code-kw">if</span> (!<span class="code-var">document</span>.<span class="code-var">hidden</span>) <span class="code-fn">start</span>();
+  <span class="code-kw">return</span> () =&gt; { <span class="code-fn">stop</span>(); <span class="code-var">document</span>.<span class="code-fn">removeEventListener</span>(<span class="code-str">"visibilitychange"</span>, <span class="code-var">onChange</span>); };
+}</pre>
+    </div>
+
+    <p>Data libraries already do the "refetch on return" half of this - TanStack Query's <code>refetchOnWindowFocus</code> is on by default - but a hand-written <code>setInterval</code> in a <code>useEffect</code> usually is not.</p>
+
+    <h3>To count down: compute, do not count</h3>
+    <p>A countdown that does <code>remaining -= 1</code> on every tick is wrong the moment a tick is late, and in a hidden tab ticks are late by design. Store the deadline, and on every render compute <code>deadline - Date.now()</code>. Late ticks then just mean a less frequent update, not a wrong number. Re-render on <code>visibilitychange</code> so the user sees the correct value the instant they come back.</p>
+
+    <table>
+      <thead>
+        <tr><th>You want to...</th><th>Use</th><th>Avoid</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Break up a long task</td><td><code>scheduler.yield()</code>, MessageChannel fallback</td><td><code>setTimeout(fn, 0)</code> chains</td></tr>
+        <tr><td>Poll a server</td><td>Push (SSE, WebSocket), or poll only while visible</td><td>Fixed <code>setInterval</code> forever</td></tr>
+        <tr><td>Show a countdown</td><td>Deadline + <code>Date.now()</code>, refresh on <code>visibilitychange</code></td><td>Decrementing a counter per tick</td></tr>
+        <tr><td>Run something days later</td><td><code>setLongTimeout</code>, or do it on the server</td><td>Raw <code>setTimeout</code> with a computed delay</td></tr>
+        <tr><td>Animate</td><td><code>requestAnimationFrame</code> or CSS</td><td><code>setTimeout(fn, 16)</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="section-num">09 · Your Tests Cannot See This</div>
+    <h2>Playwright Turns Background Throttling Off By Default</h2>
+    <p>Here is the part that made me want to write this up. My first attempt at the hidden-tab experiment showed no throttling at all. The tab I had covered with another tab still reported <code>document.visibilityState === "visible"</code>, and its 100ms timer kept firing every 100ms.</p>
+    <p>That is not Chromium being lenient. It is Playwright, on purpose. In <code>playwright-core/lib/server/chromium/chromiumSwitches.js</code>, the default Chromium flags include:</p>
+
+    <div class="code-block">
+      <div class="code-label">playwright-core 1.59.1 - chromiumSwitches.js</div>
+<pre><span class="code-str">"--disable-background-timer-throttling"</span>,
+<span class="code-str">"--disable-renderer-backgrounding"</span>,
+<span class="code-cmt">// ...and crPage.js turns on Emulation.setFocusEmulationEnabled for every page</span></pre>
+    </div>
+
+    <p>That is a sensible default for a test runner. Tests open several pages, and you do not want the one that is not in front to slow down and make your suite flaky. But it means that if your session-timeout warning only breaks in a hidden tab, <strong>no Playwright test you write with default settings will ever catch it.</strong> Even removing those two flags was not enough in my run, because of the focus emulation - every page Playwright controls keeps saying it is visible. I had to launch the same Chromium binary myself and drive it over the raw DevTools protocol to get a tab that was genuinely hidden.</p>
+    <p>So test the behaviour, not the browser. Two things work well:</p>
+
+    <ul class="bullet-list">
+      <li><span>Use fake timers (<code>vi.useFakeTimers()</code>, <code>jest.useFakeTimers()</code>, or Playwright's <code>page.clock</code>) and assert that your countdown shows the right value after jumping forward a full minute in one step. If your code counts ticks instead of reading the clock, that test fails.</span></li>
+      <li><span>Dispatch a <code>visibilitychange</code> event yourself in a unit test and assert that the poller stops and restarts. That covers the logic without needing a real hidden tab.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">10 · The Short Version</div>
+    <h2>Treat Every Timer As A Suggestion</h2>
+    <ul class="bullet-list">
+      <li><span>The delay is a minimum. A busy main thread turned a 0ms timeout into 200ms in every engine I tested.</span></li>
+      <li><span>Nested timers get a 4ms floor after a handful of hops. 100 chained <code>setTimeout(0)</code> took 497ms in Chromium, 576ms in Firefox and 800ms in WebKit. The same hops over <code>MessageChannel</code> took 0.3ms, 2ms and 8ms.</span></li>
+      <li><span>Hide the tab and timers fire at most once a second. In my Chromium run, a 100ms timer hit 1,000ms gaps 917ms after the tab went into the background - <code>setInterval</code> included.</span></li>
+      <li><span>After five hidden minutes, Chrome's intensive throttling checks chained timers once a minute. Measured: 53s, then 60s. 302 callbacks in 7m21s instead of about 4,400. A timer in a Web Worker was not throttled at all in the same run.</span></li>
+      <li><span>Delays above 2,147,483,647ms (24.8 days) overflow. A 30-day <code>setTimeout</code> fired immediately in Chromium, Firefox and WebKit. Node warns and runs it after 1ms. Clamp and re-arm.</span></li>
+      <li><span>Yield with <code>scheduler.yield()</code> and a MessageChannel fallback. Count down from a deadline. Poll only while visible, or better, let the server push.</span></li>
+      <li><span>Playwright disables background throttling and fakes focus by default. Your e2e suite cannot see any of this, so cover it with fake clocks and <code>visibilitychange</code> tests.</span></li>
+    </ul>
+    <p>None of these behaviours are new. The 4ms clamp is older than most of the frameworks we use, and Chrome's one-minute throttling shipped in Chrome 88 in early 2021. They keep catching people because the API looks so simple. Two arguments, a function and a number. The number just never meant what it looks like it means.</p>
+
+    <div class="pull-quote">
+      <p>If your code would break when a timer fires a minute late, it is already broken. You just have not left the tab open long enough.</p>
+    </div>
+
+    <div class="footnote">Foreground timing, MessageChannel, scheduler and overflow results were reproduced locally with Playwright 1.59.1 against Chromium 147.0.7727.15, Firefox 148.0.2 and WebKit 26.4, headless, on macOS (Apple Silicon) on 8 October 2026; WebKit numbers are from Playwright's WebKit build, not a shipping Safari. Node results are from Node 26.0.0. The hidden-tab run used the same Chromium 147 binary launched directly and driven over the raw DevTools protocol (no Playwright emulation), with the page hidden for 7 minutes 21 seconds behind a foreground tab; one run, so treat exact gap values as illustrative. Intensive throttling conditions are from the Chrome for Developers post "Heavy throttling of chained JS timers beginning in Chrome 88". Clamp and overflow descriptions are from the HTML timer initialisation steps and MDN's setTimeout page. Scheduler API support is from MDN browser-compat-data. The React snippet is from packages/scheduler/src/forks/Scheduler.js on React's main branch, lightly trimmed. Playwright's default flags are from playwright-core 1.59.1.</div>
+  </section>
+
+</div>
+
+</body>
+</html>

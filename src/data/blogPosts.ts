@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "settimeout-zero-is-not-zero",
+    title:
+      "setTimeout(fn, 0) Is Not Zero. In A Background Tab, Your 100ms Timer Runs Once A Minute.",
+    description:
+      "The delay you pass to setTimeout is a minimum. Measured in Chromium, Firefox, WebKit and Node: the 4ms nesting clamp, hidden tabs throttled to 1 second, Chrome's once-a-minute intensive throttling after 5 minutes, a 30-day timer that fires instantly, and what to use instead.",
+    contentPath: "/blog/settimeout-zero-is-not-zero_article.html",
+    publishedAt: "2026-10-08",
+    tags: ["JavaScript", "Browser Internals", "Performance", "Timers", "Frontend Infrastructure"],
+    readingTime: "~19 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "javascript-date-parsing-off-by-one",
     title:
       'JavaScript Reads "2026-10-06" As UTC And "2026-10-06T00:00" As Local Time. Most Off-By-One Date Bugs Start There.',
