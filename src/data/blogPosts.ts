@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "lazy-hero-image-waits-for-your-css",
+    title:
+      'loading="lazy" On Your Hero Image Waits For Your CSS. Same Page, Same Attribute: 16ms Slower In One Test, 428ms In The Next.',
+    description:
+      'loading="lazy" on an above-the-fold image does not wait for a scroll, it waits for layout. Measured in Chromium, Firefox and WebKit: the lazy hero request starts right after the stylesheet lands, costing 16ms on one network profile and 428ms on another, why fetchpriority cannot rescue it, and why making everything eager is worse.',
+    contentPath: "/blog/lazy-hero-image-waits-for-your-css_article.html",
+    publishedAt: "2026-10-13",
+    tags: ["Web Performance", "LCP", "Browser Internals", "Images", "Frontend Infrastructure"],
+    readingTime: "~17 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "settimeout-zero-is-not-zero",
     title:
       "setTimeout(fn, 0) Is Not Zero. In A Background Tab, Your 100ms Timer Runs Once A Minute.",

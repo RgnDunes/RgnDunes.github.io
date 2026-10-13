@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>loading=&quot;lazy&quot; On Your Hero Image Waits For Your CSS. Same Page, Same Attribute: 16ms Slower In One Test, 428ms In The Next.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE  -  "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css  -  not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site  -  React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography  -  "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings  -  serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links  -  saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes  -  pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral  -  small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip  -  grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote  -  oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box  -  "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper)  -  inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="loading=&quot;lazy&quot; on an above-the-fold image does not wait for a scroll, it waits for layout. Measured in Chromium, Firefox and WebKit: the lazy hero request starts right after the stylesheet lands, costing 16ms on one network profile and 428ms on another, why fetchpriority cannot rescue it, and why making everything eager is worse." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="loading=&quot;lazy&quot; On Your Hero Image Waits For Your CSS. Same Page, Same Attribute: 16ms Slower In One Test, 428ms In The Next." />
+<meta property="og:description" content="loading=&quot;lazy&quot; on an above-the-fold image does not wait for a scroll, it waits for layout. Measured in Chromium, Firefox and WebKit: the lazy hero request starts right after the stylesheet lands, costing 16ms on one network profile and 428ms on another, why fetchpriority cannot rescue it, and why making everything eager is worse." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1567225591450-06036b3392a6?w=1200&h=630&fit=crop&q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/lazy-hero-image-waits-for-your-css" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="loading=&quot;lazy&quot; On Your Hero Image Waits For Your CSS. Same Page, Same Attribute: 16ms Slower In One Test, 428ms In The Next." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1567225591450-06036b3392a6?w=1200&h=630&fit=crop&q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Web Performance &nbsp;&middot;&nbsp; LCP</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1567225591450-06036b3392a6?w=1200&h=630&fit=crop&q=80" alt="A Shiba Inu asleep with its head resting on a wooden floor" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Myth-busting &middot; Web Performance</div>
+  <h1>loading="lazy" On Your Hero Image Waits For Your CSS. <em>Same Page, Same Attribute: 16ms Slower In One Test, 428ms In The Next.</em></h1>
+  <p class="hero-sub">The browser cannot tell an image is in the viewport until it has done layout, and layout waits for your stylesheet. I measured what that costs in Chromium, Firefox and WebKit across three network profiles, and why the obvious fix makes things worse.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>October 2026</span>
+    <span class="byline-dot"></span>
+    <span>~17 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">Web Performance</span>
+    <span class="tag">LCP</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 · The Experiment</div>
+    <h2>One Attribute, Two Very Different Bills</h2>
+    <p>I built a boring page. A header, one big hero image, a heading, a line of copy, and eight more images far below the fold. One render-blocking stylesheet, one <code>defer</code> script. Then I served it from a little Node server that adds latency to every request and pushes all the bytes through one shared, throttled pipe, so it behaves the same way in Chromium, Firefox and WebKit.</p>
+    <p>First test: add <code>loading="lazy"</code> to the hero. Nothing else changes. In Chromium, Largest Contentful Paint went from <strong>844ms to 860ms</strong>. Sixteen milliseconds. If you stopped there, you would conclude the "never lazy-load your LCP image" advice is folklore.</p>
+    <p>Second test: same page, same image, same attribute. The only difference is that the stylesheet now takes an extra 450ms to start arriving - roughly what you pay when your CSS lives on a different origin and the browser has to do DNS, TCP and TLS before the first byte. This time the lazy hero cost <strong>428ms</strong>. LCP went from 848ms to 1,276ms. That is a 50% regression from one attribute that most people add because a linter, a CMS or an image component told them it was a performance best practice.</p>
+
+    <div class="pull-quote">
+      <p>loading="lazy" on an above-the-fold image does not wait for the user to scroll. It waits for your CSS.</p>
+    </div>
+
+    <p>The rule "do not lazy-load the LCP image" is correct. But the explanation people usually attach to it - "the browser waits until the image scrolls into view" - is wrong, and the wrong explanation is why the rule keeps getting broken. The hero is already in view. The browser just does not <em>know</em> that yet, and finding out is the expensive part.</p>
+    <p>This piece is about what the browser is actually waiting for, why the cost swung from 16ms to 428ms on an identical page, why <code>fetchpriority="high"</code> does not rescue a lazy hero, and why the obvious overcorrection - making everything eager - was the slowest variant I tested. It is a companion to my piece on <a href="https://rgndunes.github.io/blog/long-animation-frames-not-long-tasks">Long Animation Frames</a>, which covers the other half of a slow page: a busy main thread.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 · The Mechanism</div>
+    <h2>The Browser Cannot Know Where Your Image Is Until It Has Done Layout</h2>
+    <p>Here is what happens to a normal <code>&lt;img src="hero.jpg"&gt;</code> in the HTML. While the HTML parser is still blocked on the stylesheet in the head, a second, lighter parser - the preload scanner - races ahead through the raw markup looking for URLs. It finds <code>hero.jpg</code> and starts the request immediately. The image downloads <strong>in parallel</strong> with your CSS.</p>
+    <p>Now add <code>loading="lazy"</code>. The HTML spec says a lazy image should only be fetched once it is close enough to the viewport, and leaves "close enough" to the browser. Chromium uses a distance of 1,250px on fast connections and 2,500px on slower ones (it was 3,000px and 4,000px until Chrome cut the thresholds in July 2020). Either way, the question "is this image within 1,250px of the viewport?" has a precondition: the browser has to know where the image is. That requires layout. Layout requires styles. Styles require the render-blocking stylesheet to have arrived and been parsed.</p>
+    <p>web.dev puts it in one line that I wish more image components quoted: <em>"The browser can't lazy-load an image until it knows where the image should be on the page."</em></p>
+
+    <div class="arch-title">Eager hero vs lazy hero, same page</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node">HTML arrives</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">Preload scanner starts hero + CSS together</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">CSS lands, layout, paint hero</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node">HTML arrives</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">CSS only - hero skipped</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">CSS lands, layout, "oh, it is in view"</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">Hero request starts</div>
+      </div>
+    </div>
+
+    <p>You do not have to take the diagram on trust. In every lazy run I recorded the moment the hero request started and the moment the stylesheet finished. In the cold-CSS profile in Chromium, the stylesheet finished at a median of <strong>802ms</strong> and the lazy hero's request started at <strong>813ms</strong>. Eleven milliseconds later. The eager hero's request had started at 160ms. Firefox and WebKit showed the same pattern: the lazy request starts right after the CSS, every time.</p>
+
+    <div class="callout">
+      <div class="callout-label">The one-line version</div>
+      <p><code>loading="lazy"</code> on an in-viewport image turns your stylesheet's latency into your image's latency. Whatever your CSS costs, your hero now pays it first and then starts downloading.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 · The Lab</div>
+    <h2>How I Measured It, And What This Setup Is Not</h2>
+    <p>I want to be specific about the setup, because "I measured it" means nothing without the conditions, and some of these results surprised me enough that I re-ran them.</p>
+    <ul class="bullet-list">
+      <li><span><strong>The page:</strong> a 56px header, a 1600×1067 JPEG hero (242KB) rendered full-width in a 1280×800 viewport, an <code>&lt;h1&gt;</code> and a paragraph, a 3,000px spacer, then eight 900×600 images (about 80KB each). One 30KB render-blocking stylesheet in the head and a 160KB <code>defer</code> script. Every image has <code>width</code> and <code>height</code> attributes.</span></li>
+      <li><span><strong>The server:</strong> plain Node HTTP/1.1 on localhost. Every response waits a fixed latency before headers, then all bodies share one throttled pipe, split evenly between whatever is in flight. <code>Cache-Control: no-store</code> everywhere.</span></li>
+      <li><span><strong>Three network profiles:</strong> "fast" (150ms latency, about 8Mbps), "slow" (300ms, about 1.6Mbps) and "cold CSS" (the fast profile, plus 450ms extra before the stylesheet only).</span></li>
+      <li><span><strong>Seven variants of the hero:</strong> eager (no attribute), <code>loading="lazy"</code>, eager with <code>fetchpriority="high"</code>, lazy with <code>fetchpriority="high"</code>, a classic JavaScript lazy-loader (<code>data-src</code> plus an IntersectionObserver in the deferred script), a CSS <code>background-image</code>, and "all eager", where the eight below-the-fold images lose their <code>loading="lazy"</code> too.</span></li>
+      <li><span><strong>The browsers:</strong> Playwright 1.59.1 driving Chromium 147, Firefox 148 and WebKit 26.4, headless, on an Apple Silicon Mac. A fresh browser context for every load, so nothing is cached. LCP comes from a buffered <code>PerformanceObserver</code>; request timings from Resource Timing. I report medians, mostly of seven runs.</span></li>
+    </ul>
+
+    <div class="callout warning">
+      <div class="callout-label">What this is not</div>
+      <p>This is a lab, not field data. A shared pipe on localhost is a simplification of a real mobile network, HTTP/1.1 is not HTTP/2 or HTTP/3, and WebKit here is Playwright's build, not a shipping Safari. The absolute numbers will not match your site. The <em>shape</em> of the results - when lazy costs nothing, when it costs a lot, and why - is the part I am confident about, and it matches Google's own field data further down.</p>
+    </div>
+  </section>
+  <section>
+    <div class="section-num">04 · The Surprise</div>
+    <h2>Why The Same Mistake Cost Only 16ms</h2>
+    <p>The fast-profile result bothered me, so I looked at when things started and finished instead of just at LCP. The lazy hero did start late. Its request began at a median of <strong>390ms</strong>, against <strong>163ms</strong> for the eager one - 227ms later, waiting on the stylesheet exactly as described above. And yet it finished only about 15ms later, and LCP moved by 16ms.</p>
+    <p>The reason is the pipe. During those 227ms the network was not idle. The eager hero was sharing the connection with the stylesheet and the 160KB script, each getting a slice. The lazy hero skipped that crowd and then had the pipe mostly to itself once the CSS and most of the script were done. Total bytes were the same, the pipe was full the whole time, so everything finished at roughly the same moment.</p>
+
+    <div class="highlight-box"><strong>The cost of a lazy hero is the time your network sits idle while the browser waits for layout.</strong>If other critical bytes are filling the pipe during that wait, a late start costs you very little. If the pipe is idle - because the stylesheet is stuck behind a slow handshake, a slow server, or a redirect - every one of those idle milliseconds lands on your LCP.</div>
+
+    <p>This is also why you can find people online who "tested it" and saw no difference. On a fast desktop connection, with CSS from the same origin and a hero that is small relative to everything else on the page, a lazy hero really can be almost free. That is not evidence that it is fine. It is evidence that the test did not have an idle gap to expose.</p>
+    <p>The slow profile makes the same point from the other side. At 1.6Mbps the pipe is saturated for the whole load, and lazy against eager was a wash in both engines that finished the profile: <strong>3,068ms vs 3,080ms</strong> in Chromium, <strong>3,090ms vs 3,090ms</strong> in Firefox. When bandwidth is the bottleneck, the start time barely matters; the bytes just queue.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05 · The Bill</div>
+    <h2>When The Pipe Goes Quiet, Every Millisecond Counts</h2>
+    <p>Real pages have idle gaps all the time, and they are almost always in the head of the document: CSS on a separate CDN host, a fonts stylesheet from a third-party origin, a CSS file behind a redirect, a cold edge cache. Any of those means the browser spends a few hundred milliseconds waiting on a handshake or a slow first byte with nothing else to download.</p>
+    <p>That is what the cold-CSS profile simulates, and it is where the attribute shows its real price. Chromium medians, seven runs each:</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">848ms</div><div class="stat-label">LCP, eager hero</div></div>
+      <div class="stat-item"><div class="stat-num">1,276ms</div><div class="stat-label">LCP, loading="lazy"</div></div>
+      <div class="stat-item"><div class="stat-num">+428ms</div><div class="stat-label">Cost of one attribute</div></div>
+      <div class="stat-item"><div class="stat-num">11ms</div><div class="stat-label">Gap between CSS done and lazy hero start</div></div>
+    </div>
+
+    <p>The eager hero started at 160ms and was fully downloaded by 782ms - before the stylesheet even finished. When layout happened, the image was already there, so LCP landed at 848ms, just after the CSS. The lazy hero did not start until 813ms. It then needed its own full download time on top. That download time is the bill.</p>
+    <p>Notice what this means for "how bad is it on my site?" The cost is roughly <em>min(time your CSS takes, time your hero takes)</em>. A big hero with slow CSS is the worst case, and it is exactly the case where you most care about LCP: marketing pages, product pages, article pages with a large header image. Exactly the pages a CMS or an image component is most likely to lazy-load by default.</p>
+
+    <div class="pull-quote">
+      <p>A lazy hero does not show up as a slow image. It shows up as an image that started late, which is much harder to spot in a waterfall.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">06 · The Overcorrection</div>
+    <h2>Making Everything Eager Was The Slowest Thing I Tested</h2>
+    <p>The natural reaction to all of this is "fine, I will remove <code>loading="lazy"</code> everywhere". I tested that too. The "all eager" variant keeps the hero eager and also removes lazy loading from the eight images that sit 3,000px below the fold. Here is what happened to LCP:</p>
+
+    <table>
+      <thead>
+        <tr><th>Profile (Chromium)</th><th>Eager hero, lazy rest</th><th>Lazy hero</th><th>Everything eager</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Fast</td><td>844ms</td><td>860ms</td><td>1,564ms</td></tr>
+        <tr><td>Cold CSS</td><td>848ms</td><td>1,276ms</td><td>1,544ms</td></tr>
+        <tr><td>Slow</td><td>3,080ms</td><td>3,068ms</td><td>6,724ms</td></tr>
+      </tbody>
+    </table>
+
+    <p>Everything-eager was worse than the lazy hero in every profile. The eight below-the-fold images are discovered by the preload scanner at the same moment as the hero, so they compete with it for the same pipe from the very first millisecond. In the slow profile that more than doubled LCP. Firefox showed the same thing: 6,741ms all-eager against 3,090ms for the normal page. WebKit was the exception in the cold-CSS profile, where it held every image back until about 500ms anyway, so all-eager (999ms) landed close to its plain eager hero (1,004ms) - still no better.</p>
+    <p>So lazy loading is not the villain. It is doing exactly its job for those eight images: keeping them out of the way of the one image the user is actually looking at. The mistake is only ever <strong>which</strong> images get it. Above the fold: eager. Below the fold: lazy. The hard part is that "above the fold" is a layout question, and your component usually does not know the answer.</p>
+
+    <div class="callout">
+      <div class="callout-label">Google's field data says the same</div>
+      <p>When WordPress 5.5 started adding <code>loading="lazy"</code> to every image by default, Felix Arntz and Rick Viscomi looked at the result on web.dev. Across CrUX origins, pages using native lazy loading had a median LCP of 3,546ms against 2,922ms for pages that did not - correlation, not causation, as they say themselves. In their lab A/B test on a WordPress theme, simply not lazy-loading above-the-fold images improved LCP by 14% on desktop archive pages and 18% on mobile, without loading any extra image bytes. WordPress 5.9 then stopped lazy-loading the first content image.</p>
+    </div>
+  </section>
+  <section>
+    <div class="section-num">07 · The Other Engines</div>
+    <h2>Firefox And WebKit Agree On Lazy, And Disagree On Everything Else</h2>
+    <p>The core finding held in all three engines. With cold CSS, a lazy hero's request waited for the stylesheet in Chromium, Firefox and WebKit, and adding <code>fetchpriority="high"</code> to a lazy image changed nothing in any of them. What surprised me was the eager column.</p>
+
+    <table>
+      <thead>
+        <tr><th>Cold CSS, median LCP</th><th>Chromium 147</th><th>Firefox 148</th><th>WebKit 26.4</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Eager</td><td>848ms</td><td>1,253ms</td><td>1,004ms</td></tr>
+        <tr><td>Eager + fetchpriority="high"</td><td>854ms</td><td>1,246ms</td><td>836ms</td></tr>
+        <tr><td>loading="lazy"</td><td>1,276ms</td><td>1,273ms</td><td>1,292ms</td></tr>
+        <tr><td>Lazy + fetchpriority="high"</td><td>1,272ms</td><td>1,283ms</td><td>1,297ms</td></tr>
+        <tr><td>JS lazy-loader (data-src)</td><td>1,276ms</td><td>1,270ms</td><td>1,290ms</td></tr>
+        <tr><td>CSS background-image</td><td>1,264ms</td><td>1,265ms</td><td>1,289ms</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>WebKit</strong> did not start a plain eager hero until about 500ms in, well after the preload scanner could have seen it. With <code>fetchpriority="high"</code> the request started at 164ms, same as Chromium, and LCP dropped from 1,004ms to 836ms. In the slow profile it was the same story: eager started at 951ms, eager with high priority at 319ms. So on WebKit, in this setup, <code>fetchpriority="high"</code> was the difference between an early hero and a late one.</p>
+    <p><strong>Firefox</strong> started the eager hero at 164ms, as early as Chromium, but in most runs it finished much later, and the eager median ended up close to lazy. The runs were bimodal - the fastest eager run hit 801ms, most landed around 1,250ms - and high priority did not change that. I do not have an explanation I am confident in for why the download stretched out, so I am not going to invent one. What I can say is that eager was never <em>slower</em> than lazy in Firefox, and in its good runs it was 470ms faster.</p>
+    <p>In <strong>Chromium</strong>, <code>fetchpriority="high"</code> made no measurable difference on this page. That is not because the attribute is useless there. My page had one image competing with one script on HTTP/1.1; there was no crowd of same-priority images for the hero to jump ahead of. On a real page with logos, avatars and product thumbnails in the first viewport, the priority boost has something to do.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">fetchpriority cannot rescue a lazy image</div>
+      <p>Priority decides the order of requests the browser has already decided to make. <code>loading="lazy"</code> decides <em>whether to make the request yet</em>. Until layout says the image is near the viewport, there is no request to prioritise. Lazy + high was within noise of plain lazy in all three engines.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">08 · The Lookalikes</div>
+    <h2>The Hero Bugs That Do Not Say "lazy" Anywhere</h2>
+    <p>Two variants in the table never use the <code>loading</code> attribute, and they behave just like it. Both are common, and both are harder to catch in review.</p>
+    <h3>JavaScript lazy-loaders</h3>
+    <p>The pre-2019 pattern: put the real URL in <code>data-src</code>, leave <code>src</code> empty or pointing at a placeholder, and let a script swap it in when an IntersectionObserver fires. The preload scanner cannot see a URL that is only in a data attribute, so nothing starts until the script has downloaded, run, and the observer has had its first callback - which needs layout too. In the fast profile that cost <strong>152ms</strong> in Chromium (996ms against 844ms), more than native lazy, because the request now waits for a 160KB script rather than a 30KB stylesheet. With cold CSS it landed at the same 1,276ms as native lazy, since the CSS was the slower of the two. Many sites still ship a lazy-loading library from that era, often bundled inside a theme or a carousel, and it applies to every image it finds, hero included.</p>
+    <h3>CSS background images</h3>
+    <p>A hero done as <code>background-image</code> on a div is discovered only when the stylesheet has been parsed and the rule matched against an element. Same wait as lazy: in the cold-CSS profile the request started at 804ms, right behind the CSS at 802ms, and LCP was 1,264ms. LCP does count background images, so this shows up in your metric; it just does not show up as an <code>&lt;img&gt;</code> you can grep for.</p>
+
+    <div class="code-block">
+      <div class="code-label">If the hero has to stay a background image or be inserted by JS</div>
+<pre><span class="code-cmt">&lt;!-- In the head, so the preload scanner sees it immediately --&gt;</span>
+&lt;<span class="code-kw">link</span> <span class="code-var">rel</span>=<span class="code-str">"preload"</span> <span class="code-var">as</span>=<span class="code-str">"image"</span>
+      <span class="code-var">href</span>=<span class="code-str">"/hero-1600.jpg"</span>
+      <span class="code-var">imagesrcset</span>=<span class="code-str">"/hero-800.jpg 800w, /hero-1600.jpg 1600w"</span>
+      <span class="code-var">imagesizes</span>=<span class="code-str">"100vw"</span>
+      <span class="code-var">fetchpriority</span>=<span class="code-str">"high"</span>&gt;</pre>
+    </div>
+    <p>If the hero is a real <code>&lt;img&gt;</code> in server-rendered HTML, you do not need the preload - the scanner already finds it. Preload is for when the URL would otherwise be invisible to it. And if your preload uses <code>imagesrcset</code>, it has to match the image's <code>srcset</code> and <code>sizes</code>, or the browser downloads two different files.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 · The Defaults</div>
+    <h2>Your Image Component Probably Chose Lazy For You</h2>
+    <p>Most lazy heroes are not written by hand. They come from a default somewhere.</p>
+    <ul class="bullet-list">
+      <li><span><strong>next/image</strong> defaults to <code>loading="lazy"</code>. Next.js 16 deprecated the old <code>priority</code> prop in favour of <code>preload</code>, and the current docs say that in most cases you should use <code>loading="eager"</code> or <code>fetchPriority="high"</code> instead of <code>preload</code>. If your hero is a <code>&lt;Image&gt;</code> with none of those props, it is lazy.</span></li>
+      <li><span><strong>WordPress</strong> added <code>loading="lazy"</code> to every image in 5.5, which is the change behind the web.dev numbers above. 5.9 stopped doing it for the first content image, 6.3 raised that to the first three and started adding <code>fetchpriority="high"</code> to the likely hero automatically. Themes and page builders that render the hero outside the main content, or plugins that apply their own JS lazy-loading, can still undo all of that.</span></li>
+      <li><span><strong>Design-system image components</strong> are the one I would check first in any codebase. Someone adds <code>loading="lazy"</code> as the default because it is a good default for a list of avatars, and two years later the same component renders the hero on the landing page.</span></li>
+    </ul>
+    <p>The common thread: a component cannot know whether it is above the fold. Only the page does. So the decision has to be made where the page is composed - a prop like <code>priority</code>, <code>preload</code> or <code>eager</code> that the page sets on the one or two images it knows are on top - not inside the component.</p>
+
+    <div class="code-block">
+      <div class="code-label">Hero.tsx - the page decides, not the component</div>
+<pre><span class="code-kw">import</span> Image <span class="code-kw">from</span> <span class="code-str">"next/image"</span>;
+
+<span class="code-kw">export function</span> <span class="code-fn">Hero</span>({ <span class="code-var">src</span>, <span class="code-var">alt</span> }: { src: <span class="code-kw">string</span>; alt: <span class="code-kw">string</span> }) {
+  <span class="code-kw">return</span> (
+    &lt;<span class="code-fn">Image</span>
+      <span class="code-var">src</span>={src}
+      <span class="code-var">alt</span>={alt}
+      <span class="code-var">width</span>={<span class="code-num">1600</span>}
+      <span class="code-var">height</span>={<span class="code-num">1067</span>}
+      <span class="code-var">sizes</span>=<span class="code-str">"100vw"</span>
+      <span class="code-var">loading</span>=<span class="code-str">"eager"</span>
+      <span class="code-var">fetchPriority</span>=<span class="code-str">"high"</span>
+    /&gt;
+  );
+}</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">10 · The Check</div>
+    <h2>Finding A Lazy Hero In Two Minutes</h2>
+    <p>Lighthouse and the Performance panel in Chrome DevTools already check this. The <strong>LCP request discovery</strong> insight looks at three things for an image LCP: that lazy loading is not applied, that the request is discoverable in the initial HTML, and that <code>fetchpriority="high"</code> is set. The first two would have caught every slow variant in my table, including the JS loader and the background image.</p>
+    <p>Lab tools only see the viewport you test with, though, and the hero on a 390px phone is often a different element from the hero on a laptop. web.dev's suggestion was to log it from real users, which is a few lines:</p>
+
+    <div class="code-block">
+      <div class="code-label">lcp-lazy-check.js - log it from real sessions</div>
+<pre><span class="code-kw">new</span> <span class="code-fn">PerformanceObserver</span>((<span class="code-var">list</span>) =&gt; {
+  <span class="code-kw">const</span> <span class="code-var">entries</span> = list.<span class="code-fn">getEntries</span>();
+  <span class="code-kw">const</span> <span class="code-var">lcp</span> = entries[entries.length - <span class="code-num">1</span>];
+  <span class="code-kw">const</span> <span class="code-var">el</span> = lcp.element;
+  <span class="code-kw">if</span> (!el) <span class="code-kw">return</span>;
+
+  <span class="code-kw">const</span> <span class="code-var">problems</span> = [];
+  <span class="code-kw">if</span> (el.<span class="code-fn">getAttribute</span>(<span class="code-str">"loading"</span>) === <span class="code-str">"lazy"</span>) problems.<span class="code-fn">push</span>(<span class="code-str">"loading=lazy"</span>);
+  <span class="code-kw">if</span> (el.dataset.src || el.dataset.srcset) problems.<span class="code-fn">push</span>(<span class="code-str">"js-lazy-loader"</span>);
+  <span class="code-kw">if</span> (el.tagName !== <span class="code-str">"IMG"</span> &amp;&amp; lcp.url) problems.<span class="code-fn">push</span>(<span class="code-str">"css-background"</span>);
+
+  <span class="code-kw">if</span> (problems.length) {
+    <span class="code-cmt">// Send to your RUM/analytics endpoint instead of the console</span>
+    console.<span class="code-fn">warn</span>(<span class="code-str">"LCP image is discovered late:"</span>, problems, el, Math.<span class="code-fn">round</span>(lcp.startTime));
+  }
+}).<span class="code-fn">observe</span>({ <span class="code-var">type</span>: <span class="code-str">"largest-contentful-paint"</span>, <span class="code-var">buffered</span>: <span class="code-kw">true</span> });</pre>
+    </div>
+    <p>It is crude, and <code>data-src</code> is only a convention, but it answers the useful question with real devices and real viewports: how often is the thing users wait for the thing we told the browser to deprioritise? Tag it with the route and viewport width and the answer usually points at one template.</p>
+  </section>
+
+  <section>
+    <div class="section-num">11 · The Short Version</div>
+    <h2>Lazy Below, Eager Above, And Know Which Is Which</h2>
+    <ul class="bullet-list">
+      <li><span><code>loading="lazy"</code> on an in-viewport image does not wait for a scroll. It waits for layout, which waits for your render-blocking CSS. In every engine I tested, the lazy hero's request started right after the stylesheet finished.</span></li>
+      <li><span>The cost is the network idle time during that wait. Same page, same attribute: 16ms when the pipe was busy anyway, 428ms when the stylesheet sat behind a cold connection. A quick test on a fast connection can easily show "no difference".</span></li>
+      <li><span><code>fetchpriority="high"</code> does not rescue a lazy image - there is no request to prioritise yet. On an eager hero it can matter a lot: in WebKit it moved the request from about 500ms to 164ms and LCP from 1,004ms to 836ms.</span></li>
+      <li><span>JS lazy-loaders and CSS background heroes have the same problem without the word "lazy" in the markup. Use a real <code>&lt;img&gt;</code> in the HTML, or a <code>&lt;link rel="preload" as="image"&gt;</code> when you cannot.</span></li>
+      <li><span>Do not overcorrect. In Chromium and Firefox, making every image eager was the slowest variant in every profile - up to 6.7 seconds against 3.1 in the slow one. Lazy loading is right for the images below the fold.</span></li>
+      <li><span>Components cannot know where they render. Make the page pass an explicit "this is the hero" prop, check your image component's default, and log the LCP element's loading mode from real users.</span></li>
+    </ul>
+    <p>The frustrating part is that lazy loading is a genuinely good feature, and the hero bug is almost always introduced by someone trying to make the page faster. The diff looks like an optimisation. The waterfall even looks fine - the image downloads at a normal speed. It just starts late, and "started late" is the easiest problem in performance work to stare at and not see.</p>
+
+    <div class="pull-quote">
+      <p>Lazy loading is a promise that the user will not need this image yet. On the hero, that promise is false on every single page view.</p>
+    </div>
+
+    <div class="footnote">All measurements were taken on 13 October 2026 with Playwright 1.59.1 driving Chromium 147, Firefox 148 and WebKit 26.4 (Playwright's builds, headless, not shipping Chrome, Firefox or Safari) on macOS on Apple Silicon, against a local Node 26 HTTP/1.1 server that adds fixed per-request latency and shares a throttled bandwidth budget across all in-flight responses. Profiles: fast = 150ms latency, about 8Mbps; slow = 300ms, about 1.6Mbps; cold CSS = fast plus 450ms before the stylesheet only. Values are medians of seven fresh-context loads per variant, except the WebKit slow-profile figures, which are from three. Request start times are Resource Timing startTime; LCP is the last largest-contentful-paint entry from a buffered PerformanceObserver. Lazy-loading thresholds are from web.dev's "Browser-level image lazy loading for the web". CrUX and WordPress lab figures are from "The performance effects of too much lazy-loading" by Felix Arntz and Rick Viscomi on web.dev. WordPress behaviour is from the make.wordpress.org post "Enhanced lazy-loading performance in 5.9" and Trac changesets 55816 and 56037. next/image behaviour is from the Next.js 16 Image component docs. The LCP request discovery checks are from the Chrome for Developers performance insights docs.</div>
+  </section>
+
+</div>
+
+</body>
+</html>
