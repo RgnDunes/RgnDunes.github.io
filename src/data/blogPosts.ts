@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "every-browser-retry-you-add-is-a-small-ddos-attack-stop-calling-it-reliability",
+    title: "Every Browser Retry You Add Is A Small DDoS Attack. Stop Calling It Reliability.",
+    description: "Retries keep a single request alive, but at production scale they can turn an outage into a traffic multiplier. The browser needs a retry policy, not a setTimeout loop.",
+    contentPath: "/blog/every-browser-retry-you-add-is-a-small-ddos-attack-stop-calling-it-reliability_article.html",
+    publishedAt: "2026-10-13",
+    tags: ["Frontend Reliability", "Web Performance", "HTTP", "JavaScript", "Architecture"],
+    readingTime: "~20 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "lazy-hero-image-waits-for-your-css",
     title:
       'loading="lazy" On Your Hero Image Waits For Your CSS. Same Page, Same Attribute: 16ms Slower In One Test, 428ms In The Next.',
