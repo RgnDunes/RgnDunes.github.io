@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A practical AI-assisted editing case study for first-time creators and experienced editors: 500 GB of footage, three rebuilds, custom cleanup, 3D maps and a finished 4K film." />
+<title>I Gave Claude 500 GB of Raw Footage. It Built a 29-Minute 4K Film.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE — "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css — not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site — React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography — "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings — serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links — saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes — pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral — small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip — grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote — oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box — "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) — inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<style>
+  /* The reference template caps covers at 420px, which crops a 16:9
+     YouTube thumbnail at the article's desktop width. Preserve the full
+     authored frame in the standalone preview. */
+  .cover-image-wrap {
+    max-height: none;
+    overflow: visible;
+  }
+  .cover-image {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    object-fit: contain;
+  }
+  .content-wrap table {
+    max-width: 100%;
+  }
+  .content-wrap .image-comparison {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .content-wrap .image-comparison figure {
+    min-width: 0;
+    margin: 0;
+  }
+  .content-wrap .image-comparison img {
+    width: 100%;
+    height: auto;
+  }
+  .content-wrap .comparison-label {
+    margin-bottom: 0.5rem;
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .content-wrap .narrow-figure {
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+  @media (max-width: 640px) {
+    .content-wrap table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
+    .content-wrap .image-comparison {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="masthead">Production Notes &nbsp;·&nbsp; Agentic Video Editing &nbsp;·&nbsp; 4K Workflow</div>
+
+<div class="cover-image-wrap">
+  <img class="cover-image" src="/assets/claude-kotagiri-video-cover.jpg" alt="Motorcycle travel film cover showing the Nilgiris above the clouds" />
+</div>
+
+<div class="hero">
+  <div class="hero-label">Case Study · AI-Assisted Filmmaking</div>
+  <h1>I Gave Claude 500 GB of Raw Footage. <em>It Built a 29-Minute 4K Film.</em></h1>
+  <p class="hero-sub">A practical production story for people who have never edited and for editors who know the tools deeply: 13 hours of DJI footage, three rebuilds, real narration, 3D maps, subtitles, sky recovery and the custom pipeline behind the final upload.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>October 2026</span>
+    <span class="byline-dot"></span>
+    <span>~28 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">AI Engineering</span>
+    <span class="tag">Video Production</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+  <section>
+    <div class="section-num">01 · The Brief</div>
+    <h2>I Did Not Ask Claude to Make a Montage</h2>
+
+    <p>I came back from my first solo motorcycle ride with a problem that will be familiar to anyone who has ever recorded a trip: the experience felt like a film in my head, but the camera had produced a hard drive full of fragments.</p>
+
+    <p>There were roughly <strong>500 GB of files</strong>, 50 long clips and about 13 hours of 4K footage from a DJI Action 5 Pro mounted on my helmet. There were sunrises, traffic, forest roads, phone calls, hairpins, tea estates, time-lapses, long stretches of wind noise and a lot of ordinary riding. Somewhere inside it was a story. I did not know where all of it was.</p>
+
+    <p>So I gave Claude Desktop a deliberately unreasonable assignment: inspect everything, find the story, build a cinematic travel documentary, edit it in 4K, grade it, repair the sound, create route animations, write subtitles, design thumbnails and prepare the YouTube upload. The raw footage had to remain untouched. I wanted a finished film, not a list of editing suggestions.</p>
+
+    <div class="highlight-box">
+      <strong>Who this article is for</strong>
+      If you want to edit a video but do not know where to begin, this is a realistic account of how far an AI agent can carry the technical workload and where you still need to make decisions. If you already know Filmora, DaVinci Resolve or another editor, read the same story as a production blueprint: the agent can automate repetition, but your knowledge of pacing, colour, sound and the software itself is what can turn a good result into a much better one.
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-num">500 GB</div>
+        <div class="stat-label">Raw Media</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">13 h</div>
+        <div class="stat-label">Footage Reviewed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">50</div>
+        <div class="stat-label">Source Clips</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">29:38</div>
+        <div class="stat-label">Final Runtime</div>
+      </div>
+    </div>
+
+    <p>The final video is public now. You can <a href="https://www.youtube.com/watch?v=kDqmjL8SZV8">watch the film on YouTube</a> before reading the production story, or keep it open and compare the finished scenes with the decisions below.</p>
+
+    <div class="pull-quote">
+      <p>The interesting part was not that an AI exported a video. It was that the job kept changing shape until the editing apps became only two components inside a much larger production system.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">02 · Ingest</div>
+    <h2>Thirteen Hours Had to Become Searchable Before It Could Become Watchable</h2>
+
+    <p>The first useful thing Claude did was refuse to start cutting immediately. It probed the footage, meaning it read the files' technical properties without changing them, and established the baseline: 4K, 59.94 frames per second, HEVC and ordinary Rec.709 colour rather than a flat log profile. If those terms are unfamiliar, the practical conclusion is simple: the clips were high-resolution, high-frame-rate files whose colour was already display-ready. Applying the wrong log conversion would have damaged them.</p>
+
+    <p>Then it tried to make contact sheets with a frame every 20 seconds. A contact sheet is simply a page of thumbnail frames that lets you scan a long video like a photo album. The local FFmpeg build did not include the <code>drawtext</code> filter, so the first approach failed. Claude dropped timestamp overlays, treated tile position as the clock, enabled hardware decoding and generated 72 sheets. In a later pass it extracted 982 labelled frames for a more precise review.</p>
+
+    <p>This converted the archive from "hours of video" into a visual index. Claude could now say that one clip contained a sunrise and a rider pointing at it, another had Dhimbam's hairpins, another had a roadside gaur, and a sequence of long static shots could become cloud time-lapses. It logged strong views, weak views, road signs, dialogue, traffic, arrival footage, thumbnail candidates and shots ruined by a hand, a phone or a tilted camera.</p>
+
+    <div class="highlight-box">
+      <strong>The first rule of autonomous editing</strong>
+      Do not give an agent a folder and ask it to start cutting. Make it build an evidence layer first: metadata, contact sheets, transcripts, clip tags and a source-bound manifest. The quality of every later decision depends on this index.
+    </div>
+
+    <p>Transcription created a second index. A full pass was too expensive while frame extraction was running, so Claude stopped it and moved to targeted speech windows. It used word-level timings and separate Hindi/Hinglish translation passes for the scenes likely to contain story.</p>
+
+    <p>That is where the film stopped being a scenery compilation. The microphone had recorded a call asking for another room, a conversation explaining that my Coonoor booking had been cancelled, and a later line where I said the destination had changed to Kotagiri. Those recordings were not clean. They were mixed with wind, traffic and helmet noise. But they contained the plot.</p>
+
+    <div class="callout">
+      <div class="callout-label">What to copy from this</div>
+      <p>A beginner does not need to learn every codec before starting. Ask the agent to inventory the files, create contact sheets and transcripts, and show you its proposed story before it edits. An experienced editor can go further by specifying proxy formats, colour management, frame-rate rules, naming conventions and the exact metadata the ingest report must contain.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 · Story</div>
+    <h2>The Footage Corrected the Story I Thought I Was Telling</h2>
+
+    <p>My original description was simple: this was my first solo ride, I planned to travel from Bangalore to Coonoor, my stay was cancelled, and I went to Kotagiri instead. That is accurate, but it is not yet a film. A film needs to decide when the audience learns each fact and which facts the footage can honestly support.</p>
+
+    <p>Claude found a useful contradiction. The cancellation happened before Dhimbam, but the first explicit on-camera statement about Kotagiri came later. It did not force the route animation to match my summary. It let Coonoor fade after the phone call, kept the uncertainty alive through the ghat and recalculated the route only when the recorded dialogue established the new destination.</p>
+
+    <p>It also corrected the geography. NH 181 belonged to the original Coonoor plan. The actual climb to Kotagiri followed SH 15. A route service initially produced an 18-kilometre detour near Bannari, which looked plausible on a map but did not match the trip. Claude removed it. A stretch between Bannari and Mettupalayam had no usable footage, so the film used a map and narration instead of pretending that shots from somewhere else belonged there.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">A Quiet Editorial Boundary</div>
+      <p>An agent can make a sequence feel smoother by inventing continuity. That is exactly what it should not do in a documentary. Missing footage is information. In this edit, the absence became a chapter called "The stretch I didn't film" rather than a reason to fake the route.</p>
+    </div>
+
+    <p>The final structure used a cold open from later moments, then returned to the departure. It moved through sunrise, open road, the cancellation, Dhimbam, the unfilmed stretch, the Nilgiris, Kotagiri, the next morning above the clouds and the return through Ooty, Mudumalai and Bandipur. A separate piece-to-camera clip eventually became an epilogue about solo and group riding.</p>
+
+    <p>This was the first lesson that surprised me: the agent was most useful when it treated my prompt as a hypothesis, not as ground truth. The raw material remained the authority.</p>
+
+    <p>You do not need editing vocabulary to judge this stage. You only need to answer human questions: What changed during the trip? What should the viewer learn first? Which moments are honest, and which are merely pretty? A trained editor will answer those questions with more control over reveal, rhythm and continuity, but the beginner and the professional are solving the same story problem.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 · Rebuilds</div>
+    <h2>The Film Was Rebuilt Three Times Because Each Version Exposed a Different Problem</h2>
+
+    <p>These were not three routine exports of one unchanged timeline. Each was a new production approach prompted by a visible weakness in the previous result: Filmora established the first watchable cut, Resolve offered finer editorial and colour control, and the scripted pipeline was created when repeated repairs across hundreds of shots became too fragile to perform by hand.</p>
+
+    <p>The first complete version was assembled in Filmora. Claude configured the project for 3840×2160 at 29.97 fps, built an edit decision list, rendered 276 selected shots, aligned nine music stems and created 13 titles. It tested transitions, repaired weak shot choices and replaced paid title animations that would have introduced a watermark.</p>
+
+    <p>That Filmora build also produced one of the stranger failures. Its "Apply Changes" control copied the end-card style to every title, so the first export contained oversized chapter cards floating in the middle of the frame. Claude traced the problem to that global style change, restored the intended design to each affected title and exported a repaired Filmora cut. It ran 27 minutes and 26 seconds.</p>
+
+    <figure>
+      <img src="/assets/article-claude-video/chat-filmora-titles-redacted.jpg" alt="Claude Desktop documenting the Filmora title-template experiment and the decision to rebuild the titles with plain text animation" loading="lazy" decoding="async" />
+      <figcaption>Claude testing Filmora title templates before replacing the unreliable per-letter animation. Account details have been redacted.</figcaption>
+    </figure>
+
+    <p>It was competent, but not the film I wanted. The colour work was shallow, subtitles were incomplete, the story was still thin and the music did too much of the emotional work. The Filmora version proved the footage could sustain a feature-length travel video. It did not prove the edit was finished.</p>
+
+    <p>The second build moved into DaVinci Resolve because the Filmora cut needed more precise colour, subtitle and timeline control. Claude generated FCPXML, imported clips, titles, voice-over markers and music, then used Resolve's Lua console to apply per-shot corrections. Moving the project revealed a new class of technical failures that had not existed in Filmora: macOS sandbox permissions prevented some media access, copied timecodes did not match the destination timeline, some dissolves pointed to missing references, the subtitle file did not create a subtitle track, and frame rounding shifted colour-grade keys away from their intended shots.</p>
+
+    <figure>
+      <img src="/assets/article-claude-video/chat-resolve-subtitles-redacted.jpg" alt="Claude Desktop showing a colour-coded DaVinci Resolve timeline while diagnosing an SRT subtitle-track import" loading="lazy" decoding="async" />
+      <figcaption>The Resolve timeline after section colour-coding, while Claude diagnosed why the SRT had not created a subtitle track. Account details have been redacted.</figcaption>
+    </figure>
+
+    <p>The third build was a response to those migration and repeatability problems. Instead of treating any editing application as the centre of the project, it recorded the timeline and processing rules in files that could be rebuilt consistently. Python handled the edit decision list and audio buses, Blender generated maps, Swift and Core Image graded the shots, OpenCV removed fixed spots, FFmpeg assembled the film, and Whisper produced transcripts and caption timings.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">Filmora, Resolve or code?</div>
+      <p>If you are new, start with Filmora or another editor whose timeline you can understand. Let the agent organise media, propose cuts and handle repetitive setup, but keep the project visually inspectable. If you already know Resolve, ask for proper bins, markers, handles, track layouts, colour-managed timelines and editable deliverables. Move work into scripts only when repetition, scale or a specialised repair makes code genuinely safer than hundreds of manual actions.</p>
+    </div>
+
+    <div class="arch-title">How the final system was organised</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node green">Raw Footage</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Contact Sheets + Transcripts</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">Evidence-led EDL</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node">Graded Shots</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">Maps + Titles + Captions</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Four-bus Audio Mix</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node red">Automated QA</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">4K Master</div>
+      </div>
+    </div>
+
+    <p>By the end, the surviving build folder contained more than 4,000 lines of pipeline code. That number is not impressive by itself. What mattered was repeatability: when review uncovered clipped skies, incomplete subtitles or speech leaking beneath the narration, Claude could change the relevant rule and rebuild every affected asset consistently instead of repeating hundreds of fragile mouse movements.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05 · Maps</div>
+    <h2>A Route Animation Is a Data Product Wearing Cinematic Clothes</h2>
+
+    <p>The map sequences looked like motion graphics, but their real difficulty was data alignment. Claude did not screen-record a consumer map. It assembled Sentinel-2 cloudless imagery, Copernicus elevation data, OpenStreetMap road geometry and Natural Earth boundaries. The terrain lived in Web Mercator coordinates, recentred over South India, with one Blender unit representing one kilometre.</p>
+
+    <figure>
+      <img src="/assets/article-claude-video/route-map-plan.jpg" alt="A finished 3D satellite map frame centred on Bangalore at the beginning of the planned route animation" loading="lazy" decoding="async" />
+      <figcaption>A full-resolution frame from the opening route sequence. Satellite imagery, terrain elevation, roads and labels were rendered as separate layers rather than captured from a consumer map application.</figcaption>
+    </figure>
+
+    <p>Multiple imagery levels were necessary. A wide India view needed a low zoom. Dhimbam and the Nilgiris needed much sharper tiles. Hard boundaries between those layers created visible seams, so Claude feathered the textures and tapered the terrain. Routes were draped onto the height surface and rendered as amber emissive curves. A simple glowing marker followed the road.</p>
+
+    <p>Six sequences were eventually built: the original plan, the cancellation, Dhimbam, the recalculation to Kotagiri, Day 3 and the return home. Per-frame camera projection data was exported to JSON so labels could be rendered separately and stay pinned to the moving terrain.</p>
+
+    <figure>
+      <img src="/assets/article-claude-video/chat-grade-map-redacted.jpg" alt="Claude Desktop showing before-and-after graded motorcycle footage alongside a 3D satellite route map from Bangalore to Coonoor" loading="lazy" decoding="async" />
+      <figcaption>An intermediate report paired raw-versus-graded frames with the first 3D route-map render. Private local paths and account details have been blacked out.</figcaption>
+    </figure>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Map problem</th>
+          <th>What caused it</th>
+          <th>What fixed it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Terrain rendered black</td>
+          <td>A world-volume and lighting change absorbed the scene</td>
+          <td>Mist-pass haze and rebuilt lighting</td>
+        </tr>
+        <tr>
+          <td>Satellite seams</td>
+          <td>Hard edges between zoom layers</td>
+          <td>Feathered alpha and terrain tapering</td>
+        </tr>
+        <tr>
+          <td>Coonoor left the frame</td>
+          <td>Camera path prioritised the route marker</td>
+          <td>Reframed the shot before the long render</td>
+        </tr>
+        <tr>
+          <td>Labels collided</td>
+          <td>Too many names in the final loop view</td>
+          <td>Simplified the label set and moved captions</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>This part of the project changed how I think about "AI animation". The agent did not conjure a convincing map from a sentence. It had to collect sources, resolve roads, build meshes, debug lighting, protect attribution and review every camera move. The generated result was only as trustworthy as the geographic pipeline underneath it.</p>
+
+    <p>The 3D route maps are an advanced layer, not a requirement for making your first good travel video. A beginner could use a clean static map or a simple animated line. An experienced motion designer could improve the same Blender scenes with better camera easing, label hierarchy, atmospheric depth and transitions that match the edit. The important principle at both levels is accuracy: the map should clarify the journey, not decorate it with a route that never happened.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 · Voice</div>
+    <h2>The Voice Clone Was Technically Correct and Emotionally Wrong</h2>
+
+    <p>For a while, the most ambitious branch of the project was voice cloning. Claude separated clean speech references, tested Chatterbox on the Mac's GPU, installed F5-TTS, corrected dependency conflicts and generated multiple takes. It transcribed the output to verify the words, measured speaking rate, pause length, pitch range and sentence endings, and tried to select takes closest to my real speech.</p>
+
+    <p>The voice sounded like me. The delivery did not.</p>
+
+    <p>One version was robotic. The next sounded poetic. Another started naturally and then slowed down until the energy disappeared. Time-stretching solved duration while making the performance worse. Better reference clips transferred a little more expression, but they could not supply the emotion of remembering a booking cancellation, riding alone or seeing the Nilgiris for the first time.</p>
+
+    <div class="pull-quote">
+      <p>Timbre is not authorship. A cloned voice can reproduce the surface of a person while missing the reason that person is speaking.</p>
+    </div>
+
+    <p>I recorded 37 lines in Voice Memos instead. That introduced an unexpectedly manual problem: macOS protects the Voice Memos library from ordinary terminal access. Claude tried dragging recordings out, failed, then discovered that copying a memo placed its audio on the clipboard. It exported the files one by one, preserved their V01-V37 names, cleaned them, detected the takes and retimed the edit around my real delivery.</p>
+
+    <p>The recordings ran for about 13 minutes, roughly twice the early estimate. Claude did not compress them into the old timeline. It expanded and trimmed the film around them. An additional iPhone HDR piece-to-camera was rotated correctly, converted to SDR, cleaned and used as a two-minute epilogue.</p>
+
+    <div class="callout">
+      <div class="callout-label">The Decision That Improved the Film Most</div>
+      <p>We abandoned the most impressive-sounding feature. The final video contains my real narration, not an AI clone. The experiments were useful because they showed precisely where synthetic speech stopped being good enough.</p>
+    </div>
+
+    <p>For a new creator, this is reassuring: you do not need a studio voice or complicated cloning setup. A phone recording in a quiet room, one line at a time, gives the agent clean material and preserves your personality. An experienced sound editor will get more from microphone technique, room treatment, noise control and performance direction than from endlessly tuning a synthetic voice.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 · Sound</div>
+    <h2>The Hardest Bug Was a Voice I Could Barely Hear</h2>
+
+    <p>The first real-voice 4K render still had a serious problem. Claude had reused the source camera audio as the ambience bed. Whenever the new voice-over played, fragments of my original on-camera speech survived underneath it. The overlap was faint, but it made the sound feel confused. At the same time, too many good helmet-camera lines had been replaced by narration.</p>
+
+    <p>The fix required reprocessing every relevant source clip with Demucs, a tool that separates a recording into components. Each clip produced two stems: a VOICE stem for speech and an AMB stem for everything else - engine, road, wind, birds and traffic. Think of stems as separate audio layers. The final mixer never treated the untouched camera track as background sound.</p>
+
+    <p>Claude then restored 12 more on-camera lines and removed or shortened narration that repeated them. My real speech ended up occupying about 10.6 minutes, against roughly 10 minutes of recorded voice-over. Hindi and Hinglish lines were translated into English subtitles.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Sound layer</th>
+          <th>What it contained</th>
+          <th>How it was treated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Ambience</td><td>Road, engine, wind, birds and traffic with speech removed</td><td>Kept beneath the edit without reintroducing old dialogue</td></tr>
+        <tr><td>On-camera dialogue</td><td>Cleaned speech recorded during the ride</td><td>Levelled near -16 LUFS</td></tr>
+        <tr><td>Narration</td><td>The newly recorded Voice Memo lines</td><td>Levelled near -16 LUFS</td></tr>
+        <tr><td>Music</td><td>A continuous multi-track score</td><td>Lowered smoothly around every spoken line</td></tr>
+      </tbody>
+    </table>
+
+    <p>Those four layers were combined into a master targeting roughly -14 LUFS, with a true-peak ceiling near -1 dB. Music ducking eased in over about 0.6 seconds and recovered over about 1.4 seconds so it did not jump abruptly around speech.</p>
+
+    <figure>
+      <img src="/assets/article-claude-video/filmora-music-timeline.jpg" alt="Filmora timeline with multiple music stems and the assembled motorcycle footage" loading="lazy" decoding="async" />
+      <figcaption>The earlier Filmora timeline with section-length music stems. The waveform view made gaps and abrupt level changes visible before the later four-layer mix replaced it.</figcaption>
+    </figure>
+
+    <p>The score used multiple Epidemic Sound tracks, but the transitions overlapped for six seconds so the bed never collapsed. Near-silent track introductions were skipped. Short speech gaps remained ducked so the music did not pump between sentences. Quiet musical passages were slowly levelled rather than crushed.</p>
+
+    <p>The automated checks eventually reported no voice-over/dialogue overlap, no speech leaking into ambience, no music dropouts and a speech-line spread of about 0.2 loudness units. The final master landed near -14 LUFS with approximately -0.9 dB true peak. LUFS describes perceived loudness across time; true peak estimates the highest playback peak after conversion. A beginner can treat these as delivery targets. An experienced mixer can treat them as guardrails and still shape dynamics by ear.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 · Picture</div>
+    <h2>The Grade Looked Good Until I Stopped Looking at the Road</h2>
+
+    <p>Colour was another case where a locally good result hid a global failure. I liked the treatment of the roads, grass, trees and sunrise. But when I watched the film again, the skies in many shots were almost white.</p>
+
+    <p>Claude measured the top third of every graded shot and found 47 of 196 with mostly near-white sky. It compared those frames with the source and discovered that the camera had retained cloud detail. The grade had destroyed it.</p>
+
+    <p>A whole-frame exposure reduction would have recovered the clouds by making the correctly exposed road, vegetation and motorcycle too dark. Claude therefore added a selective highlight-recovery pass that behaved more like a graduated filter: it targeted only very bright pixels near the top of the frame, rolled them down smoothly and preserved the parts of the existing grade that already worked. On the worst frames, the area measured as near-white fell from roughly 40-58 percent to almost zero.</p>
+
+    <figure class="narrow-figure">
+      <img src="/assets/article-claude-video/grade-before-after-grid.jpg" alt="Six matched frame pairs with raw footage on the left and the colour-graded result on the right" loading="lazy" decoding="async" />
+      <figcaption>Six matched frames from Claude's review report. Each row shows the raw image on the left and the graded result on the right, making the changes in contrast, colour separation and sky detail easier to judge than a verbal description alone.</figcaption>
+    </figure>
+
+    <p>Then there were the black marks in the sunrise time-lapses. They were not dead pixels or distant birds. They were dirt and water spots on glass, fixed in position while the sky moved behind them. Claude used temporal comparison to detect stationary dark deviations in smooth bright regions, excluded textured hills and roof edges, and inpainted the spots frame by frame with OpenCV.</p>
+
+    <div class="image-comparison" role="group" aria-label="Before and after spot removal comparison">
+      <figure>
+        <div class="comparison-label">Before cleanup</div>
+        <img src="/assets/article-claude-video/sunrise-before-cleanup.jpg" alt="Raw sunrise time-lapse frame with many fixed dirt and water spots across the sky" loading="lazy" decoding="async" />
+        <figcaption>The original frame: fixed marks are visible across the blue sky, clouds and bright horizon.</figcaption>
+      </figure>
+      <figure>
+        <div class="comparison-label">After cleanup</div>
+        <img src="/assets/article-claude-video/sunrise-after-cleanup.jpg" alt="The same sunrise frame after most fixed dirt and water spots were removed" loading="lazy" decoding="async" />
+        <figcaption>The same frame after temporal detection and inpainting. A few uncertain marks were deliberately left where aggressive repair could damage the scene.</figcaption>
+      </figure>
+    </div>
+
+    <figure>
+      <img src="/assets/article-claude-video/spot-detection-mask.jpg" alt="Early red detection mask covering sky spots but also incorrectly selecting the roof, hills and tea bushes" loading="lazy" decoding="async" />
+      <figcaption>An early detector mask from the Claude chat. Red shows the proposed repair area; the excessive red over the roof, hills and tea bushes is the false-positive problem that forced another iteration.</figcaption>
+    </figure>
+
+    <div class="highlight-box">
+      <strong>Why this took several attempts</strong>
+      The first mask also selected tea bushes and a roof edge. The second missed marks near the sun and haze. The final detector combined temporal stability, brightness, texture and edge rejection. One tiny mark at the sun's edge remained because repairing it risked damaging the moving disc.
+    </div>
+
+    <figure>
+      <img src="/assets/article-claude-video/chat-despeck-redacted.jpg" alt="Claude Desktop documenting iterations of the OpenCV spot-removal mask for the sunrise time-lapse" loading="lazy" decoding="async" />
+      <figcaption>The cleanup loop in the Claude chat: inspect the mask, reject false positives, tighten the detector and compare the repair. Account details have been redacted.</figcaption>
+    </figure>
+
+    <p>Subtitle review revealed a separate consistency problem: some early exports captioned selected on-camera dialogue but left other spoken sections—including narration—without text. That made the captions feel accidental rather than accessible, so I set a clear rule: subtitle every audible voice or remove subtitles entirely. Claude rebuilt the caption assets under that rule. The uploaded film contains 267 consistently styled burned-in cards covering narration, camera speech, translated Hindi/Hinglish and the epilogue, plus a separate timed SRT for optional YouTube closed captions.</p>
+
+    <div class="callout">
+      <div class="callout-label">Begin with correction, then create a look</div>
+      <p>If you are new to colour, ask first for neutral exposure, natural skin and preserved sky detail. Only then ask for warmth, contrast or a cinematic look. If you already grade, specify scopes, colour management, shot matching, highlight roll-off, isolation masks and the acceptable clipping threshold. The agent can execute measurable rules, but an experienced eye is still better at deciding whether a sequence feels coherent.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">09 · Toolchain</div>
+    <h2>You Do Not Need Every Tool Here, but You Should Know What Each Layer Solved</h2>
+
+    <p>Calling this a "Claude edit" can make the work sound as if one model generated the finished MP4 directly. It did not. Claude acted as the operator and engineer across a collection of specialised tools. Some were ordinary production applications, some were open-source media libraries, and some were scripts written specifically for this film.</p>
+
+    <p><strong>Filmora 16</strong> handled the first assembly and taught the project what worked about the intro, title rhythm and broad pacing. <strong>DaVinci Resolve 21.1</strong> handled the second story cut, per-shot corrections, timeline look and high-quality exports. Neither application remained the single source of truth in the final build. The repeatable work moved into code.</p>
+
+    <div class="highlight-box">
+      <strong>This is a menu, not a beginner checklist</strong>
+      You can make a useful first edit with an editing application, organised footage, clean narration, music and captions. The larger stack appeared because this project needed batch processing, audio separation, route maps, defect removal and repeated 4K rebuilds. Experienced editors should read the list as a set of extension points: keep creative decisions editable in the NLE, and automate the deterministic work around it.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Role in the project</th>
+          <th>What happened to it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>FFmpeg and ffprobe</td>
+          <td>Metadata, frame extraction, audio decode, contact sheets, transcodes, filters, chunk assembly and final muxing</td>
+          <td>Core part of every version</td>
+        </tr>
+        <tr>
+          <td>MLX Whisper large-v3-turbo</td>
+          <td>Speech transcription, word timings, take detection and English captions</td>
+          <td>Used in the final pipeline</td>
+        </tr>
+        <tr>
+          <td>Demucs htdemucs</td>
+          <td>Separated rider speech from wind, engine, road and environment</td>
+          <td>Used for every relevant final source clip</td>
+        </tr>
+        <tr>
+          <td>DeepFilterNet</td>
+          <td>Dialogue-cleanup experiment</td>
+          <td>Useful in tests, rejected as the main cleaner because it could garble speech</td>
+        </tr>
+        <tr>
+          <td>Chatterbox and F5-TTS MLX</td>
+          <td>Voice-cloning experiments and prosody variants</td>
+          <td>Rejected; no cloned narration remained in the film</td>
+        </tr>
+        <tr>
+          <td>Blender 4.5</td>
+          <td>3D terrain, camera moves, road lines and route marker</td>
+          <td>Rendered all six final map sequences</td>
+        </tr>
+        <tr>
+          <td>OpenCV</td>
+          <td>Detected and inpainted fixed dirt/water marks in sunrise time-lapses</td>
+          <td>Used in the uploaded final</td>
+        </tr>
+        <tr>
+          <td>Swift, Core Image and AVFoundation</td>
+          <td>GPU-accelerated colour pipeline and 10-bit HEVC shot encoding</td>
+          <td>Replaced slower CPU and PyTorch grading paths</td>
+        </tr>
+        <tr>
+          <td>PyTorch on Metal</td>
+          <td>Experimental 3D-LUT and GPU grading path</td>
+          <td>Profiled, then superseded by the native Swift grader</td>
+        </tr>
+        <tr>
+          <td>Skia and Pillow</td>
+          <td>Anti-aliased labels, titles, subtitles, thumbnails and map overlays</td>
+          <td>Used across graphics generation</td>
+        </tr>
+        <tr>
+          <td>pyloudnorm, NumPy, SciPy and SoundFile</td>
+          <td>Loudness measurement, buses, envelopes, limiting and WAV output</td>
+          <td>Powered the final audio mixer</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The map also depended on external data rather than a generative shortcut: Sentinel-2 cloudless imagery from EOX, Copernicus GLO-90 elevation, OSRM/OpenStreetMap route geometry and Natural Earth borders. The final description credits those sources.</p>
+
+    <h3>What the 28 automation files did</h3>
+
+    <p>Claude produced 28 retained automation files during the project. Their value is easier to understand by grouping them by responsibility rather than listing their filenames or source code:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Number of files</th>
+          <th>Production responsibility</th>
+          <th>What they accomplished</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>3</td><td>Editorial decisions</td><td>Recorded successive timeline revisions, including source clips, in-points, durations, speed changes, dialogue, narration, titles, maps, music and natural sound.</td></tr>
+        <tr><td>8</td><td>Dialogue, narration and mixing</td><td>Separated speech from ambience, cleaned targeted dialogue, processed Voice Memo takes, selected usable words, built four sound layers, ducked music and mastered the soundtrack.</td></tr>
+        <tr><td>4</td><td>Colour and picture repair</td><td>Defined the visual look, tested GPU grading, created the fast 4K grading route and removed fixed dirt and water marks without damaging textured areas.</td></tr>
+        <tr><td>4</td><td>3D route maps</td><td>Prepared satellite and elevation data, built the Blender terrain, projected route labels, added pins and credits, and encoded the map sequences.</td></tr>
+        <tr><td>6</td><td>Titles and captions</td><td>Generated title cards, burned-in subtitles and the separate timed caption file used by YouTube.</td></tr>
+        <tr><td>3</td><td>Finishing and delivery</td><td>Assembled the graded shots, maps, titles, subtitles and dissolves, added the mastered audio, produced thumbnail options and rebuilt chapters and upload metadata after the timing changed.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box">
+      <strong>Why the scripts mattered</strong>
+      Three late review findings required changes across the whole film: the colour grade had turned many detailed skies almost white, captions covered only some spoken sections, and the ambience track still contained faint original speech beneath the narration. Fixing those problems meant reprocessing dozens or hundreds of shots, caption cards and audio segments. A GUI-only edit would have required repeating fragile actions by hand. With an explicit edit decision list and scripted render stages, Claude could change one rule, rebuild every affected asset and run the same checks again.
+    </div>
+
+    <p>The colour pipeline is a good example. An FFmpeg filter approach was too slow. A PyTorch implementation on Apple's Metal backend needed a hand-written 3D LUT lookup and still competed with Blender. Claude then wrote a native Swift tool with Core Image filters, an AVAsset reader/writer and hardware Main10 HEVC output. It reportedly reached about 32 frames per second at 4K, roughly 30 times the slow CPU experiment.</p>
+
+    <p>The cleanup automation was equally specific. It did not apply a generic beauty filter. It looked for marks that stayed fixed while the sky changed, rejected textured and high-edge regions, expanded the safe mask and used inpainting only inside it. This is the difference between saying "clean the video" and defining what clean means for one class of defect.</p>
+
+    <p>For a beginner, the important point is not the programming language: each automated stage accepted a known input, performed one repeatable job and produced something that could be checked before the next stage began. An experienced editor can reuse that architecture with Resolve automation, Fusion, Fairlight, command-line tools or an entirely different NLE. The transferable idea is to make every automated stage inspectable and replaceable.</p>
+  </section>
+
+  <section>
+    <div class="section-num">10 · Reliability</div>
+    <h2>The Production Failures Were More Interesting Than the AI Demos</h2>
+
+    <p>A long-running agent does not fail like a single prompt. It fails like a small production team with fragile infrastructure.</p>
+
+    <p>The Mac reached one percent battery during the Resolve build. Claude stopped, saved the project and copied scripts out of a temporary directory before the machine could shut down. Disk space fell below what the 4K pipeline needed more than once. Old renders were moved to Trash first, then removed only after approval. At one point a 4K render failed because a replacement shot asked for frames beyond the end of its source clip. The EDL was corrected and the render restarted.</p>
+
+    <p>Resolve's App Store sandbox blocked media until folders were granted through the interface. Its console used Lua rather than Python. A 59.94 drop-frame timecode copied into 29.97 time-lapses made imports invalid. Grade keys drifted because Resolve accumulated rounded frame durations differently from the script. Subtitle import silently failed. A Blender lighting change turned the terrain black. A hardware-assisted dissolve produced a suspicious frozen frame that had to be isolated and inspected.</p>
+
+    <p>The upload had its own boundary. The finished file was about 17.8 GB, while the browser extension could transmit only 10 MB. The extension was connected to a different browser profile from the channel, so Claude could see the Studio window but not control it. I selected the video and filled the remaining fields from Claude's exact instructions.</p>
+
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-num">1,561</div>
+        <div class="stat-label">Tool Calls</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">6</div>
+        <div class="stat-label">3D Map Segments</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">267</div>
+        <div class="stat-label">Subtitle Cards</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">17.8 GB</div>
+        <div class="stat-label">Final 4K File</div>
+      </div>
+    </div>
+
+    <p>Claude did not watch every final render from beginning to end in real time. It said so. Instead it generated contact sheets, checked representative frames, verified streams and duration, detected black frames, measured loudness and peaks, checked source bounds, scanned for duplicate shots, measured sky clipping, tested music continuity and compared speech spans.</p>
+
+    <p>That disclosure matters. Automated QA is not the same as human viewing. The project worked because the two alternated: Claude measured what a machine could measure, and I kept finding the things that felt wrong.</p>
+
+    <p>For a beginner, the safest review loop is simple: export a short preview, watch it on headphones and a phone, write down every moment that feels confusing, then ask for specific changes. For an experienced editor, automated QA can sit beside the normal review process and catch mechanical errors before the creative pass: illegal source ranges, missing media, clipped highlights, caption gaps, loudness drift, duplicate shots and broken handles.</p>
+  </section>
+
+  <section>
+    <div class="section-num">11 · What I Learned</div>
+    <h2>Agentic Work Is Not One Prompt. It Is a Negotiation Between Evidence, Taste and Recovery</h2>
+
+    <p>The finished film is not proof that editors are obsolete. It is proof that the boundary of an editing project can expand dramatically when an agent can inspect files, write code, control applications, use a browser and keep state across days.</p>
+
+    <p>I also do not want to present the finished video as professional-grade post-production. An experienced editor will notice choices that could be more refined, from pacing and transitions to colour consistency and the final sound mix. But I began with little to no knowledge of video editing, and from that starting point the output is genuinely impressive. It turned an intimidating 500 GB archive into a coherent film I could publish. Someone who already understands Filmora or DaVinci Resolve, knows what those applications can do and can give the agent more precise creative direction could take the same approach much further.</p>
+
+    <p>Claude was excellent at exhaustive work: indexing footage, converting timings, generating variants, rebuilding maps, normalising speech, checking source bounds and preserving a reproducible pipeline. It was weaker at judgement that depends on sustained human perception. The voice clone was technically convincing but emotionally false. The road grade looked strong while the sky was broken. A music bed could be mathematically continuous and still feel misplaced until the real dialogue returned.</p>
+
+    <p>If I repeated this project, I would put these rules in the first prompt:</p>
+
+    <ul class="bullet-list">
+      <li><span><strong>Real voice first.</strong> Use narration only where the rider is silent, and never let source dialogue survive under voice-over.</span></li>
+      <li><span><strong>Protect the sky separately.</strong> Do not solve land and clouds with one exposure decision.</span></li>
+      <li><span><strong>Build the evidence layer before the edit.</strong> Contact sheets, transcripts, tags and source bounds come first.</span></li>
+      <li><span><strong>Treat missing footage honestly.</strong> Maps and narration can explain an absence; unrelated B-roll cannot.</span></li>
+      <li><span><strong>Reserve operational headroom.</strong> A 4K pipeline needs disk space, power, persistent working files and clear deletion rules.</span></li>
+      <li><span><strong>Specify delivery constraints early.</strong> Browser profile, upload limits, captions, thumbnails, metadata and visibility are part of production.</span></li>
+    </ul>
+
+    <h3>If you have never edited before</h3>
+
+    <p>Do not begin by requesting every technique in this article. Start with one small project and ask the agent for an inventory, a story outline and a low-resolution preview. Protect the raw files. Use your real voice. Review the result for truth, clarity and feeling before worrying about LUTs, codecs or 3D maps. Your advantage is not technical vocabulary; it is that you know what the experience meant.</p>
+
+    <h3>If you already know the tools</h3>
+
+    <p>Treat the agent as a junior post-production team that can work continuously but needs an exact brief and strong supervision. Define the timeline standard, media strategy, handles, colour pipeline, audio buses, naming rules, interchange format, revision boundaries and QA thresholds. Keep the project editable. Use automation to remove repetitive labour, then spend your own time on the decisions the system cannot measure: performance, rhythm, emphasis, restraint and taste.</p>
+
+    <p>The project began as "take control of Filmora" and ended as a small post-production system. That shift was the real result. The 29-minute video matters, but the reusable asset is the pipeline and the set of failures it now knows how to avoid.</p>
+
+    <div class="callout">
+      <div class="callout-label">My Verdict</div>
+      <p>An autonomous agent can carry an enormous amount of production labour, especially for someone who does not yet know how to perform all of that work manually. But it should not be trusted to declare its own work finished. The best workflow is not human versus AI. It is an agent that can measure and rebuild, paired with a human who can still say, "The road looks right, but look at the sky." Add an experienced editor who understands the tools deeply, and the ceiling becomes much higher.</p>
+    </div>
+  </section>
+
+  <div class="footnote">
+    The completed film, <a href="https://www.youtube.com/watch?v=kDqmjL8SZV8">This Hill Town Was Never The Plan | Kotagiri - Above The Clouds | My First Solo Ride</a>, is available on the RGN Dunes YouTube channel. Technical counts in this article come from the local production log and retained build artefacts. Personal account details, private paths and credentials have been intentionally omitted.
+  </div>
+</div>
+</body>
+</html>

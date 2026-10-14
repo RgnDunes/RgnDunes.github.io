@@ -751,6 +751,39 @@
   color: rgb(var(--ink));
 }
 
+/* Matched visual comparisons used in production case studies. */
+.prose-notebook :where(.image-comparison) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.prose-notebook :where(.image-comparison figure) {
+  min-width: 0;
+  margin: 0;
+}
+.prose-notebook :where(.image-comparison img) {
+  width: 100%;
+  height: auto;
+}
+.prose-notebook :where(.comparison-label) {
+  margin-bottom: 0.5rem;
+  color: rgb(var(--muted));
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.prose-notebook :where(.narrow-figure) {
+  max-width: 30rem;
+  margin-inline: auto;
+}
+@media (max-width: 640px) {
+  .prose-notebook :where(.image-comparison) {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Marker highlight (some source articles use <mark>) */
 .prose-notebook :where(mark) {
   background-image: linear-gradient(

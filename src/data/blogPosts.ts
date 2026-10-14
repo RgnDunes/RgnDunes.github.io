@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "claude-edited-500gb-raw-footage-4k-film",
+    title: "I Gave Claude 500 GB of Raw Footage. It Built a 29-Minute 4K Film.",
+    description:
+      "A practical AI-assisted editing case study for first-time creators and experienced editors: 500 GB of footage, three rebuilds, custom cleanup, 3D maps and a finished 4K film.",
+    contentPath: "/blog/claude-edited-500gb-raw-footage-4k-film_article.html",
+    publishedAt: "2026-10-14",
+    tags: ["AI Engineering", "Video Production", "Agentic Workflows", "Claude", "Automation"],
+    readingTime: "~28 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+    coverImage: "/assets/claude-kotagiri-video-cover.jpg",
+  },
+  {
     slug: "every-browser-retry-you-add-is-a-small-ddos-attack-stop-calling-it-reliability",
     title: "Every Browser Retry You Add Is A Small DDoS Attack. Stop Calling It Reliability.",
     description: "Retries keep a single request alive, but at production scale they can turn an outage into a traffic multiplier. The browser needs a retry policy, not a setTimeout loop.",
