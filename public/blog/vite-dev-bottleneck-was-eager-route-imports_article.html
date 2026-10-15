@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>We Blamed Vite For A 90-Second Local Load. The Real Bottleneck Was The 11,516 Modules We Asked It For.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="A local Vite page took 90 seconds to load because eager route imports pulled 11,516 modules into one page load. Making routes lazy cut it to 54 modules and 10.54 seconds. The mechanism, how to count your own modules, and where the fix stops working." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="We Blamed Vite For A 90-Second Local Load. The Real Bottleneck Was The 11,516 Modules We Asked It For." />
+<meta property="og:description" content="A local Vite page took 90 seconds to load because eager route imports pulled 11,516 modules into one page load. Making routes lazy cut it to 54 modules and 10.54 seconds. The mechanism, how to count your own modules, and where the fix stops working." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1569261655993-3ae347322edd?w=1200&amp;h=630&amp;fit=crop&amp;q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/vite-dev-bottleneck-was-eager-route-imports" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="We Blamed Vite For A 90-Second Local Load. The Real Bottleneck Was The 11,516 Modules We Asked It For." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1569261655993-3ae347322edd?w=1200&amp;h=630&amp;fit=crop&amp;q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Frontend Infrastructure &nbsp;&middot;&nbsp; Vite</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1569261655993-3ae347322edd?w=1200&h=630&fit=crop&q=80" alt="Night-time aerial view of a highway where one side is jammed bumper to bumper and the other side is almost empty" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Frontend Infrastructure &middot; Developer Experience</div>
+  <h1>We Blamed Vite For A 90-Second Local Load. <em>The Real Bottleneck Was The 11,516 Modules We Asked It For.</em></h1>
+  <p class="hero-sub">One product's local page took 90 seconds to finish loading. The fix was not a new dev server, a faster laptop or a plugin. It was making route imports lazy, which took the import graph from 11,516 modules to 54 and the load from 90 seconds to 10.54. Here is the mechanism, how to measure it in your own app, and where the fix stops working.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>October 2026</span>
+    <span class="byline-dot"></span>
+    <span>~18 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">Vite</span>
+    <span class="tag">Developer Experience</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 · The Number</div>
+    <h2>Ninety Seconds Is Not A Slow Page. It Is A Different Workflow.</h2>
+    <p>Ninety seconds. That was how long one product's page took to finish loading on a local Vite dev server. Not a production build, not a CI job. The thing an engineer opens every morning, and again after every branch switch, and again after the dev server restarts because a config file changed.</p>
+    <p>At ninety seconds, people stop using the tool the way it was designed. They stop restarting the server when they should. They keep three stale tabs open so they never have to cold-load again. They start a load, open Slack, and come back four minutes later having forgotten what they were testing. None of this shows up in a dashboard, but it shows up in how carefully people test their own changes.</p>
+    <p>The easy explanation was the tool. Vite is unbundled in development, the app is large, so "Vite does not scale to big apps" sounded reasonable. It is also a convenient explanation, because it puts the problem outside the codebase and the fix on somebody else's roadmap.</p>
+    <p>It was not the bigger problem. The bigger problem was that opening one page asked the browser for the entire application. Every route in the product was imported eagerly at the top of the router, so loading a single screen pulled in every other screen, every one of their dependencies, and every file those dependencies touched. The import graph for that one page load was <strong>11,516 modules</strong>.</p>
+    <p>After making the route imports lazy, the same page load needed <strong>54 modules</strong>, and the finished-loading time dropped from <strong>90 seconds to 10.54 seconds</strong>. The same analysis was then applied across six product areas.</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">11,516</div><div class="stat-label">Modules before</div></div>
+      <div class="stat-item"><div class="stat-num">54</div><div class="stat-label">Modules after</div></div>
+      <div class="stat-item"><div class="stat-num">90s</div><div class="stat-label">Load before</div></div>
+      <div class="stat-item"><div class="stat-num">10.54s</div><div class="stat-label">Load after</div></div>
+    </div>
+
+    <p>This piece is about why that happens, why your production build never warns you about it, how to count modules in your own app in about five minutes, and the cases where lazy routes do not save you. I am not going to claim Vite is perfect for huge apps. The Vite team itself says it is not, and I will get to what they are doing about it. But the tool should be the second suspect, not the first.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 · The Mechanism</div>
+    <h2>In Development, Every Import Is A Network Request</h2>
+    <p>To see why module count matters so much, you have to remember what Vite does differently from a bundler in development. The Vite docs put it plainly: source code is <em>"served on-demand over native ESM"</em>, and Vite <em>"transforms each file as it's requested."</em> Dependencies from <code>node_modules</code> are pre-bundled once, so a library with hundreds of internal files arrives as a handful of requests. Your own code is not.</p>
+    <p>So the browser does the job a bundler would normally do: it walks the import graph. It loads your entry module, parses it, finds its <code>import</code> statements, requests those, parses them, finds their imports, and so on. Each hop is a real HTTP request to the dev server, which has to resolve the path, run the file through every relevant plugin, and send it back.</p>
+
+    <div class="arch-title">What one page load costs per module in dev</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node">Browser parses module</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Finds imports</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">HTTP request per import</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node">Dev server resolves path</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Plugins transform file</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">Repeat 11,516 times</div>
+      </div>
+    </div>
+
+    <p>Three things make that expensive at scale:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Discovery is layered.</strong> The browser cannot request a module's imports until it has received and parsed that module. A deep graph turns into a waterfall of round trips, even on localhost.</span></li>
+      <li><span><strong>Transforms are per file.</strong> TypeScript stripping, JSX, CSS modules, SVG-as-component plugins, any custom plugin you added. Each one runs for each file the browser asks for, the first time it asks.</span></li>
+      <li><span><strong>Connections are limited.</strong> By default the dev server speaks HTTP/1.1, and browsers open about six connections per host over HTTP/1.1. Thousands of requests queue behind each other. Vite's <code>server.https</code> option enables TLS and HTTP/2, which helps with the queuing, but it does not reduce the number of files to transform.</span></li>
+    </ul>
+    <p>The Vite team is open about this limit. Their own "Why Vite" page says <em>"exceptionally large codebases can experience slow page loads due to the high number of unbundled network requests."</em> That sentence is the whole problem in one line. The question is whether your codebase is exceptionally large, or whether your page is just asking for far more of it than it needs.</p>
+
+    <div class="pull-quote">
+      <p>A bundler hides your module count inside a few files. An unbundled dev server sends you an itemised bill.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 · The Cause</div>
+    <h2>How One Router File Pulls In The Whole Application</h2>
+    <p>Here is the shape of a router file that almost every React app starts with. It is completely reasonable on day one, when there are four pages.</p>
+
+    <div class="code-block">
+      <div class="code-label">routes.tsx (eager)</div>
+<pre><span class="code-kw">import</span> <span class="code-var">Dashboard</span> <span class="code-kw">from</span> <span class="code-str">"./pages/dashboard"</span>;
+<span class="code-kw">import</span> <span class="code-var">Reports</span> <span class="code-kw">from</span> <span class="code-str">"./pages/reports"</span>;
+<span class="code-kw">import</span> <span class="code-var">Settings</span> <span class="code-kw">from</span> <span class="code-str">"./pages/settings"</span>;
+<span class="code-kw">import</span> <span class="code-var">Approvals</span> <span class="code-kw">from</span> <span class="code-str">"./pages/approvals"</span>;
+<span class="code-cmt">// ...and forty more, added one at a time over four years</span>
+
+<span class="code-kw">export const</span> <span class="code-var">routes</span> = [
+  { <span class="code-var">path</span>: <span class="code-str">"/"</span>, <span class="code-var">element</span>: &lt;<span class="code-fn">Dashboard</span> /&gt; },
+  { <span class="code-var">path</span>: <span class="code-str">"/reports"</span>, <span class="code-var">element</span>: &lt;<span class="code-fn">Reports</span> /&gt; },
+  { <span class="code-var">path</span>: <span class="code-str">"/settings"</span>, <span class="code-var">element</span>: &lt;<span class="code-fn">Settings</span> /&gt; },
+  { <span class="code-var">path</span>: <span class="code-str">"/approvals"</span>, <span class="code-var">element</span>: &lt;<span class="code-fn">Approvals</span> /&gt; },
+];</pre>
+    </div>
+
+    <p>Every static <code>import</code> at the top of a module is a hard dependency. The browser must fetch and evaluate all of them before this module can run. So the router module depends on every page. Every page depends on its own components, hooks, API clients, form schemas, charts, tables, translations and utilities. Many of those depend on shared design-system components, and some of those depend on each other.</p>
+    <p>The result is that the graph reachable from the entry point is roughly the graph of the whole product. Open the dashboard, and you also load the reports page's charting code, the settings page's form library wrappers, and the approvals page's rich-text editor. You never render any of it. You still fetch, transform and evaluate all of it.</p>
+    <p>Nobody writes this on purpose. It grows. Each new page is a two-line change in the router, reviewed in thirty seconds. Each one adds a few hundred modules to every page load, and the cost is spread so thinly that no single pull request looks guilty. Four years later, the router file is the most expensive file in the repository and nobody has opened it in months.</p>
+
+    <div class="callout">
+      <div class="callout-label">Barrel files make it worse</div>
+      <p>An <code>index.ts</code> that re-exports everything in a folder turns "I need one button" into "load every component in this folder". The Vite performance guide specifically calls this out: barrel files force extra files to be fetched and transformed. If a page imports one helper from <code>@/utils</code> and that barrel re-exports sixty files, you pay for sixty.</p>
+    </div>
+
+    <p>Notice what the 11,516 to 54 ratio says. Fewer than half a percent of the modules in that load were needed to show the page. The rest were the cost of convenience in one file.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04 · The Blind Spot</div>
+    <h2>Why Production Never Warned You</h2>
+    <p>If eager route imports are this expensive, why did nobody notice in production? Because production pays a different bill.</p>
+    <p>A production build runs the whole graph through a bundler once, on a CI machine, and emits a small number of chunks. Eleven thousand modules become a handful of JavaScript files. Users download more bytes than they need, which is a real cost, but they make a few requests, not eleven thousand. The minifier and compression shrink the bytes further. Your Lighthouse score might dip, but nothing like a 90-second wait appears anywhere.</p>
+
+    <table>
+      <thead>
+        <tr><th>Cost of an eager router</th><th>Production build</th><th>Unbundled dev server</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Requests per page load</td><td>A few chunks</td><td>One per module</td></tr>
+        <tr><td>Transform work</td><td>Once, in CI</td><td>Per file, on your laptop, on first request</td></tr>
+        <tr><td>Who notices</td><td>Users, as extra bytes</td><td>Every engineer, every cold load</td></tr>
+        <tr><td>Shows up in</td><td>Bundle size reports, LCP</td><td>Nothing, unless someone measures it</td></tr>
+      </tbody>
+    </table>
+
+    <p>That last row is the important one. Production performance has owners, budgets and dashboards. Local development performance usually has none. It is measured by complaint, and complaints are a terrible metric because people get used to things. An engineer who has waited 90 seconds every day for a year does not file a ticket about it. They just think that is what the app is like.</p>
+    <p>There is also a framing problem. When the dev server feels slow, people look at the dev server. They read about plugin overhead, try a different config, compare Vite versions, or argue for switching tools entirely. All of those can matter at the margin. But if the page is asking for two hundred times more code than it uses, no tool change will close that gap, because the tool is doing exactly what it was told to do.</p>
+
+    <div class="pull-quote">
+      <p>Production performance has dashboards. Local development performance is measured by complaint, and people stop complaining.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">05 · Measure First</div>
+    <h2>Count Your Modules Before You Change Anything</h2>
+    <p>The most useful thing in this whole article is a number you can get in five minutes: how many modules does one page load request in development? Most teams have never looked.</p>
+    <p>The quickest check is the DevTools Network panel. Start the dev server, open a page with the Network panel recording, filter to JS, and read the request count at the bottom. Keep "Disable cache" off, as the Vite docs recommend, and use a browser profile without extensions so they do not add noise.</p>
+    <p>For something you can repeat, put in a pull request description, or run in CI, a short Playwright script does the same thing:</p>
+
+    <div class="code-block">
+      <div class="code-label">count-modules.mjs</div>
+<pre><span class="code-kw">import</span> { <span class="code-var">chromium</span> } <span class="code-kw">from</span> <span class="code-str">"playwright"</span>;
+
+<span class="code-kw">const</span> <span class="code-var">url</span> = process.argv[<span class="code-num">2</span>] ?? <span class="code-str">"http://localhost:5173/"</span>;
+<span class="code-kw">const</span> <span class="code-var">browser</span> = <span class="code-kw">await</span> chromium.<span class="code-fn">launch</span>();
+<span class="code-kw">const</span> <span class="code-var">page</span> = <span class="code-kw">await</span> browser.<span class="code-fn">newPage</span>();
+
+<span class="code-cmt">// In Vite dev, JS, TS and imported CSS all arrive as module scripts</span>
+<span class="code-kw">let</span> <span class="code-var">modules</span> = <span class="code-num">0</span>;
+page.<span class="code-fn">on</span>(<span class="code-str">"request"</span>, (r) =&gt; {
+  <span class="code-kw">if</span> (r.<span class="code-fn">resourceType</span>() === <span class="code-str">"script"</span>) modules++;
+});
+
+<span class="code-kw">const</span> <span class="code-var">t0</span> = Date.<span class="code-fn">now</span>();
+<span class="code-kw">await</span> page.<span class="code-fn">goto</span>(url, { <span class="code-var">waitUntil</span>: <span class="code-str">"networkidle"</span>, <span class="code-var">timeout</span>: <span class="code-num">300_000</span> });
+console.<span class="code-fn">log</span>({ url, modules, <span class="code-var">ms</span>: Date.<span class="code-fn">now</span>() - t0 });
+<span class="code-kw">await</span> browser.<span class="code-fn">close</span>();</pre>
+    </div>
+
+    <p>Run it twice: once right after starting the dev server (cold, transforms not cached yet) and once again (warm). The cold number is what people feel after a restart or a branch switch. The warm number is what they feel on a refresh. The gap between them tells you how much of your time is transform work versus request overhead.</p>
+    <p>If the count looks too high, find out where it comes from before you fix anything:</p>
+    <ul class="bullet-list">
+      <li><span>Sort the Network panel by the <strong>Initiator</strong> column and follow the chain upwards. If most chains run through your router file, you have found your problem.</span></li>
+      <li><span>Run <code>vite --debug transform</code> to log how long each file takes to transform, or use the community <code>vite-plugin-inspect</code> plugin to see what each plugin does to each file.</span></li>
+      <li><span>Run <code>vite --profile</code>, load the page, press <code>p</code> then Enter, and open the saved <code>.cpuprofile</code> in a tool like speedscope to see where the dev server's own time goes.</span></li>
+    </ul>
+
+    <div class="callout warning">
+      <div class="callout-label">Measure the page, not the server start</div>
+      <p>"Dev server ready in 400ms" is the number Vite prints and the number people quote. It is not the number your engineers feel. Vite starts fast because it does almost nothing until the browser asks. The cost lands on the first page load, which is why the page is what you should time.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">06 · The Fix</div>
+    <h2>Make Routes Lazy, Then Check They Actually Are</h2>
+    <p>The fix itself is not clever. Replace static imports in the router with dynamic <code>import()</code> calls, so each page's code is only requested when that route renders. With plain React, that is <code>React.lazy</code> plus a <code>Suspense</code> boundary:</p>
+
+    <div class="code-block">
+      <div class="code-label">routes.tsx (lazy)</div>
+<pre><span class="code-kw">import</span> { <span class="code-var">lazy</span>, <span class="code-var">Suspense</span> } <span class="code-kw">from</span> <span class="code-str">"react"</span>;
+
+<span class="code-cmt">// Nothing below is fetched until its route renders</span>
+<span class="code-kw">const</span> <span class="code-var">Dashboard</span> = <span class="code-fn">lazy</span>(() =&gt; <span class="code-kw">import</span>(<span class="code-str">"./pages/dashboard"</span>));
+<span class="code-kw">const</span> <span class="code-var">Reports</span> = <span class="code-fn">lazy</span>(() =&gt; <span class="code-kw">import</span>(<span class="code-str">"./pages/reports"</span>));
+<span class="code-kw">const</span> <span class="code-var">Settings</span> = <span class="code-fn">lazy</span>(() =&gt; <span class="code-kw">import</span>(<span class="code-str">"./pages/settings"</span>));
+
+<span class="code-kw">const</span> <span class="code-fn">page</span> = (<span class="code-var">el</span>: React.ReactNode) =&gt; (
+  &lt;<span class="code-fn">Suspense</span> fallback={&lt;<span class="code-fn">PageSkeleton</span> /&gt;}&gt;{el}&lt;/<span class="code-fn">Suspense</span>&gt;
+);
+
+<span class="code-kw">export const</span> <span class="code-var">routes</span> = [
+  { <span class="code-var">path</span>: <span class="code-str">"/"</span>, <span class="code-var">element</span>: <span class="code-fn">page</span>(&lt;<span class="code-fn">Dashboard</span> /&gt;) },
+  { <span class="code-var">path</span>: <span class="code-str">"/reports"</span>, <span class="code-var">element</span>: <span class="code-fn">page</span>(&lt;<span class="code-fn">Reports</span> /&gt;) },
+  { <span class="code-var">path</span>: <span class="code-str">"/settings"</span>, <span class="code-var">element</span>: <span class="code-fn">page</span>(&lt;<span class="code-fn">Settings</span> /&gt;) },
+];</pre>
+    </div>
+
+    <p>Most routers have their own version of this. React Router's data routers accept a <code>lazy</code> function on a route, and file-based routers often split by route automatically. Use whatever your router expects. The principle is the same: the router file should know that a page exists without importing what is inside it.</p>
+    <p>Then comes the step that is easy to skip. <strong>Re-count.</strong> A dynamic import only keeps a module out of the initial graph if nothing else imports it statically. If a navigation config, a permissions map, a test helper re-exported through a barrel, or a "page registry" file still has <code>import Reports from "./pages/reports"</code>, the page stays in the initial graph and the lazy wrapper does nothing useful.</p>
+    <p>Production builds tell you about this one, if you read the output. Vite prints a warning along the lines of <em>"is dynamically imported by ... but also statically imported by ..., dynamic import will not move module into another chunk."</em> In many large repositories that warning has been scrolling past in CI logs for months. It is worth grepping for.</p>
+
+    <div class="highlight-box"><strong>The real fix is a property of the graph, not of the router</strong>The goal is not "the router uses lazy()". The goal is "loading page A does not reach page B's code through any static path". Only a module count confirms that.</div>
+
+    <p>In this case, confirming it gave a clean answer: 54 modules for the page load, down from 11,516, and 10.54 seconds to finish loading instead of 90. The page itself did not change. The engineers using it got back most of a minute and a half every time they opened it cold.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 · Where It Stops Working</div>
+    <h2>What Did Not Generalise, And What Lazy Routes Cost</h2>
+    <p>I would be overselling this if I said "make your routes lazy and get 8x faster". The analysis was applied across six product areas, and the reason it was an analysis and not a find-and-replace is that the shape of the problem differs from app to app.</p>
+    <ul class="bullet-list">
+      <li><span><strong>Some apps are already lazy at the router.</strong> Their module count comes from a heavy shell instead: a layout that eagerly imports every modal, a global provider tree that pulls in half the design system, or a feature-flag module that imports the code for every flagged feature so it can decide which to show.</span></li>
+      <li><span><strong>Some pages are genuinely big.</strong> If one screen really does render a data grid, a chart library, a rich-text editor and a form builder, lazy routes do not shrink it. That page needs component-level splitting, or simply needs to be accepted as the heavy page.</span></li>
+      <li><span><strong>Shared code does not disappear.</strong> If every page imports the same giant barrel, every lazy route still pays for it. You moved the cost from "first load" to "every first navigation".</span></li>
+    </ul>
+    <p>Lazy routes also cost something, in development and in production:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Navigation in dev now has its own cold load.</strong> The first time you open a different route, its modules are fetched and transformed. On a well-split page that is a short pause. On a page that is still enormous, you have just moved the 90 seconds to a click.</span></li>
+      <li><span><strong>Loading states become a design problem.</strong> A <code>Suspense</code> fallback is now part of every navigation. A spinner that flashes for 80ms on every click feels worse than no spinner. A skeleton that matches the page layout is usually the right answer.</span></li>
+      <li><span><strong>Production gets a request on navigation.</strong> Users pay a chunk download the first time they visit each route. Prefetching likely next routes on hover or idle time usually covers this, but it is work someone has to do.</span></li>
+      <li><span><strong>Chunk-load failures become possible.</strong> After a deploy, an open tab may request a chunk that no longer exists. If the app has no handling for a failed dynamic import, users get a blank route instead of a page. Any app that code-splits needs a plan for that.</span></li>
+    </ul>
+    <p>None of these are reasons not to do it. They are reasons to do it deliberately, with someone who owns the follow-up, instead of as a drive-by commit that turns every navigation into a flash of spinner.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 · The Tool's Side</div>
+    <h2>What Vite Itself Offers, And Why It Comes Second</h2>
+    <p>Blaming the tool was the wrong first move, but the tool does have levers, and it is worth knowing them once your own graph is sensible.</p>
+    <ul class="bullet-list">
+      <li><span><strong><code>server.warmup</code></strong> pre-transforms files you list (for example, your app shell) when the server starts, so the first page load does not wait on them. The Vite docs say this <em>"prevents transform waterfalls"</em>, and also warn against listing too much, which just moves the wait to startup.</span></li>
+      <li><span><strong>HTTP/2 via <code>server.https</code></strong> removes the six-connection queue. It does not reduce transform work and adds certificate setup for every engineer.</span></li>
+      <li><span><strong>Cheaper transforms.</strong> The performance guide suggests plain CSS over preprocessors where possible, importing SVGs as URLs or strings instead of converting them into components, writing explicit import extensions to save resolution work, and keeping plugin hooks cheap.</span></li>
+      <li><span><strong>Bundled Dev Mode.</strong> Vite 8.1, released in June 2026, added an experimental mode that bundles in development the way production does. You turn it on with <code>--experimental-bundle</code> or <code>experimental.bundledDev: true</code>. The Vite team reported about 15x faster startup and 10x faster full reloads on a test app loading 10,000 React components, and Linear reported up to 3x faster cold-start rendering and 10x fewer network requests. It is experimental, and the announcement says third-party plugins may not work with it yet.</span></li>
+    </ul>
+    <p>Bundled Dev Mode is the most interesting item on that list, because it attacks exactly the "one request per module" cost from section two. It is also exactly why measuring your graph first matters. A bundler in development makes 11,516 modules cheaper to deliver. It does not make them necessary. You still parse them, evaluate them, and run their top-level side effects on every load. And when you do something that invalidates the bundle, you pay to rebuild a graph that is mostly code the page never uses.</p>
+
+    <div class="pull-quote">
+      <p>A faster delivery mechanism for code you do not need is still a delivery mechanism for code you do not need.</p>
+    </div>
+
+    <p>So my order is simple. First, make each page ask for what it uses. Then measure again. Then, if the honest number is still large, reach for warmup, HTTP/2 or bundled dev mode. In that order, the tool improvements land on a graph that deserves them.</p>
+  </section>
+
+  <section>
+    <div class="section-num">09 · Keeping It Fixed</div>
+    <h2>Treat Local Load Time Like A Production Metric</h2>
+    <p>The uncomfortable thing about this kind of fix is how easily it rots. One new page added with a static import in a shared file, one barrel that grows, one "quick" helper that imports a page component to reuse a type, and the graph creeps back up. Nobody will notice for months, for the same reason nobody noticed the first time.</p>
+    <p>So the lasting change is not the lazy router. It is deciding that local load time is a number someone owns. Some practical ways to do that:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Put a module budget in CI.</strong> Start the dev server in a CI job, run the counting script against a few key routes, and fail or warn when a route crosses its budget. It is cheap, and it catches regressions in the pull request that causes them instead of a year later.</span></li>
+      <li><span><strong>Lint the router.</strong> A lint rule that forbids static imports from <code>pages/</code> in route files, or from one page into another, encodes the decision so new engineers do not have to rediscover it.</span></li>
+      <li><span><strong>Treat the Vite "dynamic import will not move module" warning as an error.</strong> It is almost always a lazy route that someone accidentally made eager again.</span></li>
+      <li><span><strong>Write down the before and after.</strong> "11,516 modules, 90 seconds" is a sentence that wins the argument the next time someone wants to add a convenient re-export. Without the number, the rule looks like taste.</span></li>
+    </ul>
+    <p>This is the part I care about most as a frontend infrastructure engineer. Fixing one router is a good afternoon. Making a slow local loop visible, measurable and owned is what stops the next one. Most developer-experience problems are not hard to fix. They are hard to see, because they cost every engineer a little bit every day and none of them enough to raise their hand.</p>
+  </section>
+
+  <section>
+    <div class="section-num">10 · The Short Version</div>
+    <h2>Suspect Your Graph Before You Suspect Your Tool</h2>
+    <ul class="bullet-list">
+      <li><span>Vite serves your source as native ESM in development and transforms each file when it is requested. Module count is the cost driver, and the Vite docs say so.</span></li>
+      <li><span>A router that statically imports every page makes every page load the whole app. In this case that was 11,516 modules for one page load, where 54 were needed.</span></li>
+      <li><span>Production builds hide the problem because bundling turns thousands of modules into a few files. Nothing in your production dashboards will point at it.</span></li>
+      <li><span>Count modules per page load with the Network panel or a short Playwright script. Measure cold and warm. Time the page, not the server start.</span></li>
+      <li><span>Lazy routes fixed this case: 90 seconds to 10.54. Re-count afterwards, because any static import of a page anywhere else silently cancels the split.</span></li>
+      <li><span>Lazy routes move cost to navigation and add loading states and chunk-failure handling. Do them deliberately.</span></li>
+      <li><span><code>server.warmup</code>, HTTP/2 and Vite 8.1's experimental Bundled Dev Mode help, but they come after the graph is fixed, not instead of it.</span></li>
+    </ul>
+    <p>The best part of this fix was not the nearly 80 seconds. It was learning that the tool everybody wanted to replace had been doing exactly what the code asked. If your local app is slow, open the router file before you open a migration RFC. There is a decent chance the bottleneck is a list of imports that made perfect sense when there were four pages.</p>
+
+    <div class="footnote">The 11,516 to 54 module and 90 to 10.54 second figures are from a single product's local page load on a large SaaS frontend, measured before and after making route imports lazy; the same analysis was later applied across six product areas, and the figures should not be read as a typical result for them. Vite behaviour is from the Vite documentation ("Why Vite", the Performance guide, and Server Options for <code>server.https</code> and <code>server.warmup</code>), checked against the v8 docs in October 2026. Bundled Dev Mode details and the 10,000-component and Linear figures are from the Vite team's "Announcing Vite 8.1" post (23 June 2026). The six-connections-per-host figure refers to browsers' HTTP/1.1 connection limit. Cover photo by Koushik Pal on Unsplash.</div>
+  </section>
+
+</div>
+
+</body>
+</html>

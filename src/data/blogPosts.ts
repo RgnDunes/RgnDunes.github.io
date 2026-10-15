@@ -19,6 +19,20 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "vite-dev-bottleneck-was-eager-route-imports",
+    title:
+      "We Blamed Vite For A 90-Second Local Load. The Real Bottleneck Was The 11,516 Modules We Asked It For.",
+    description:
+      "A local Vite page took 90 seconds to load because eager route imports pulled 11,516 modules into one page load. Making routes lazy cut it to 54 modules and 10.54 seconds. The mechanism, how to count your own modules, and where the fix stops working.",
+    contentPath: "/blog/vite-dev-bottleneck-was-eager-route-imports_article.html",
+    publishedAt: "2026-10-15",
+    tags: ["Vite", "Frontend Infrastructure", "Developer Experience", "Performance", "React"],
+    readingTime: "~18 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "claude-edited-500gb-raw-footage-4k-film",
     title: "I Gave Claude 500 GB of Raw Footage. It Built a 29-Minute 4K Film.",
     description:
