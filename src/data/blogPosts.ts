@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "flaky-tests-twenty-green-runs",
+    title: "One Green Rerun Proves Almost Nothing. What 20 Green Runs Taught Me About Flaky Tests.",
+    description: "A single rerun turns a failed test green, but it does not tell you whether the test is flaky, how often it fails, or what else fails beside it. The 20-run scoring pipeline I use to turn intermittent CI failures into an ordered engineering queue.",
+    contentPath: "/blog/flaky-tests-twenty-green-runs_article.html",
+    publishedAt: "2026-10-29",
+    tags: ["CI/CD", "Testing", "Developer Experience", "Frontend Infrastructure", "Reliability"],
+    readingTime: "~20 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "vite-dev-bottleneck-was-eager-route-imports",
     title:
       "We Blamed Vite For A 90-Second Local Load. The Real Bottleneck Was The 11,516 Modules We Asked It For.",
