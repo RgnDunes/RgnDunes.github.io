@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Failure Your Frontend Monitoring Cannot See</title>
+<meta name="description" content="How to detect frontend bundle failures that happen before RUM and error-monitoring SDKs initialise, using a small browser beacon, release context, and a failure-safe ingestion path." />
+<meta property="og:title" content="The Failure Your Frontend Monitoring Cannot See" />
+<meta property="og:description" content="How to detect frontend bundle failures that happen before RUM and error-monitoring SDKs initialise, using a small browser beacon, release context, and a failure-safe ingestion path." />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=630&fit=crop&q=80" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+
+  /* ============================================================
+     ARTICLE UI REFERENCE — "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css — not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site — React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography — "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings — serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links — saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes — pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral — small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip — grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote — oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box — "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) — inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+
+</style>
+</head>
+<body>
+
+<div class="masthead">Frontend Observability &nbsp;&middot;&nbsp; Release Engineering &nbsp;&middot;&nbsp; JavaScript</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=630&fit=crop&q=80" alt="The Failure Your Frontend Monitoring Cannot See" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">FRONTEND RELIABILITY</div>
+  <h1>The Failure Your Frontend Monitoring Cannot See</h1>
+  <p class="hero-sub">Your error tracker can only report errors after it has loaded. The failures before that point are often the ones a release engineer needs most.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>November 2026</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">Frontend Observability</span>
+    <span class="tag red">Release Engineering</span>
+    <span class="tag">JavaScript</span>
+    <span class="tag green">Reliability</span>
+  </div>
+</div>
+
+<!-- ARTICLE BODY -->
+<div class="content-wrap">
+
+  <!-- 01. THE EMPTY DASHBOARD -->
+  <section>
+    <div class="section-num">01 · THE EMPTY DASHBOARD</div>
+    <h2>A green dashboard does not prove that the frontend worked</h2>
+    <p>A release goes out. The error dashboard stays quiet. Real-user monitoring shows almost no new exceptions. The deploy is declared safe.</p><p>Then support says a slice of users sees a blank page.</p><p>This is not a contradiction. It is a boundary problem. Most frontend telemetry starts inside the JavaScript application: the monitoring SDK is imported, configured, and then begins collecting exceptions, route changes, performance data, and breadcrumbs. If the browser cannot download, parse, or execute the bundle containing that SDK, the SDK has no opportunity to describe its own absence.</p><p>I used to read a quiet error dashboard as an absence of errors. It is only evidence about the code that successfully reached the instrumentation point. A failed script request, an old HTML document pointing at a removed hashed chunk, a content blocker rule, or a syntax error before initialisation can all leave the main application unusable and the normal observability stack perfectly calm.</p><div class="pull-quote"><p>Telemetry is not outside the system. It is another dependency inside it.</p></div><p>The useful question is not “do we have an error tracker?” It is “which failures can occur before the tracker is alive, and what independent signal would reveal them?” That question changes both the implementation and the release conversation.</p>
+  </section>
+
+  <!-- 02. THE BOOT SEQUENCE -->
+  <section>
+    <div class="section-num">02 · THE BOOT SEQUENCE</div>
+    <h2>Map the point where visibility begins</h2>
+    <p>Every single-page application has a small sequence before a user can interact with it. The browser receives HTML. It discovers CSS and JavaScript. It fetches scripts. The JavaScript engine parses and evaluates an entry module. Framework code mounts. Only then does the usual monitoring setup run.</p><p>The exact order differs by framework, but the observability boundary is usually later than teams assume. Put an SDK at the top of <code>main.tsx</code> and it is still downstream of the entry chunk arriving, the module graph resolving, and the runtime being compatible with the browser.</p><div class="callout"><div class="callout-label">Failure classes before SDK initialisation</div><p>Entry or chunk requests that return 404 or a stale asset; parse and evaluation failures in the first module; extension and network interference; unsupported syntax; and an HTML-to-asset version mismatch after a deploy.</p></div><p>Do not lump all of these together as “white screen”. They have different owners and remedies. A 404 after an asset cleanup suggests release coordination. A parse failure suggests a build target or dependency change. Blocked requests may need a different hostname or graceful fallback. The first job is to preserve enough raw context to tell those paths apart.</p><p>This also explains why a client-side <code>window.onerror</code> handler is helpful but incomplete. It can report an exception once the browser evaluates the inline code that registered it. It cannot help if the document never reaches that code, and cross-origin script errors can be deliberately opaque without the right response headers.</p>
+  </section>
+
+  <!-- 03. A SMALLER SENTINEL -->
+  <section>
+    <div class="section-num">03 · A SMALLER SENTINEL</div>
+    <h2>Put a tiny beacon before the application, not inside it</h2>
+    <p>The practical pattern is deliberately boring: an inline, dependency-free sentinel in the HTML document, before the application entry script. It listens for resource failures and sends a small event to a backend endpoint using an API designed to survive navigation.</p><div class="code-block"><div class="code-label">document shell</div><pre>&lt;script&gt;\nwindow.addEventListener('error', function (event) {\n  var target = event.target;\n  if (!target || !target.src) return;\n  if (target.tagName !== 'SCRIPT') return;\n\n  var body = JSON.stringify({\n    type: 'script-load-failed',\n    src: target.src,\n    release: window.__RELEASE_ID__,\n    path: location.pathname,\n    at: Date.now()\n  });\n\n  navigator.sendBeacon('/frontend-boot-failures', body);\n}, true);\n&lt;/script&gt;\n&lt;script type="module" src="/assets/app.abc123.js"&gt;&lt;/script&gt;</pre></div><p>The capture phase matters. Resource-load errors do not bubble in the same way as ordinary JavaScript errors, so the listener must be registered high enough to see them. The script is intentionally old-fashioned: no imports, no app utilities, no async wrapper, no dependency on a hydrated framework tree.</p><p>This is not a second analytics product. It is a smoke detector. Keep the payload narrow, avoid user content, and accept that it may be sampled. A handful of well-labelled failures per release is more useful than a high-volume event stream nobody can investigate.</p>
+  </section>
+
+  <!-- 04. RELEASE CONTEXT -->
+  <section>
+    <div class="section-num">04 · RELEASE CONTEXT</div>
+    <h2>Without a release identifier, a beacon is only a complaint</h2>
+    <p>A report that says “a script failed” becomes actionable only when it answers three questions: which document did the user receive, which asset was requested, and which release produced both.</p><p>Inject a release identifier into the HTML at build or deploy time. It can be a commit SHA, a build number, or a short immutable release token. Include it in the beacon alongside the page path and the failed resource URL. The backend should record receipt time separately from the browser timestamp, because client clocks are not a source of truth.</p><div class="highlight-box"><strong>Useful correlation key</strong>Record the document release, requested asset URL, route, browser family, and server receipt time. That is enough to join a failure cluster to a deployment without collecting a user identity.</div><p>Hash-named assets make this especially valuable. If users receive <code>index.html</code> from release A but the CDN no longer serves A’s chunks, the URL itself often reveals the mismatch. The release token tells you whether the HTML was stale, the asset was prematurely removed, or the user is requesting a version you did not expect to exist.</p><p>Do not put secrets, raw query strings, or full user-agent blobs into this endpoint by default. Observability data has a habit of becoming long-lived. Define the small schema you need, then make new fields earn their way in.</p>
+  </section>
+
+  <!-- 05. THE INGESTION PATH -->
+  <section>
+    <div class="section-num">05 · THE INGESTION PATH</div>
+    <h2>Your fallback needs a fallback of its own</h2>
+    <p>A boot-failure endpoint is easy to make noisy and surprisingly easy to make fragile. It should not require the application session to be valid, should not redirect, and should not run expensive work inline. Treat it as a write-only intake with tight validation and a short response.</p><p>Use an allowlist for event types. Validate that resource URLs match hosts you own. Bound string lengths. Rate-limit by a coarse key such as release and resource path, not an identifier that turns a reliability feature into tracking infrastructure. If you need richer processing, queue it after the request is accepted.</p><p>It is also worth deciding what success looks like. A normal release should have a near-zero baseline, but not necessarily literal zero: mobile networks terminate requests, browser extensions interfere, and users can hold old documents open for a long time. Alert on a sudden cluster associated with a new release or a specific asset, not on every isolated event.</p><table><thead><tr><th>Signal</th><th>Likely reading</th><th>First response</th></tr></thead><tbody><tr><td>Many routes, one new entry asset</td><td>Bad bundle or CDN delivery</td><td>Pause or roll back release</td></tr><tr><td>One old hashed asset</td><td>Stale HTML or cache mismatch</td><td>Check retention and cache rules</td></tr><tr><td>One browser family</td><td>Compatibility regression</td><td>Inspect build target and syntax</td></tr><tr><td>Low-volume mixed assets</td><td>Network or extension noise</td><td>Monitor before escalating</td></tr></tbody></table>
+  </section>
+
+  <!-- 06. WHAT NOT TO PROMISE -->
+  <section>
+    <div class="section-num">06 · WHAT NOT TO PROMISE</div>
+    <h2>This pattern narrows a blind spot. It does not eliminate one</h2>
+    <p>The sentinel depends on the document being delivered and its own inline code being allowed to run. A restrictive content security policy can block it if you do not use a nonce or hash. A fully offline browser may not send the beacon. A malicious extension can still modify the page. None of that is a reason to skip the design; it is a reason to describe the boundary honestly.</p><p>Be careful with automated reload logic too. Seeing a failed chunk and immediately refreshing can make a temporary CDN issue look like a traffic spike, while hiding the failure pattern you need to diagnose. If you offer recovery, cap retries, add jitter, and preserve the original failure event before attempting a reload.</p><div class="callout warning"><div class="callout-label">Do not turn boot reporting into surveillance</div><p>There is no need for names, email addresses, typed form data, or a durable device fingerprint to diagnose a failed script. A release-scoped operational signal is enough.</p></div><p>The same restraint applies to dashboards. The point is not a prettier red chart. The point is a route from “we cannot see this class of failure” to a concrete release, asset, and owner who can act.</p>
+  </section>
+
+  <!-- 07. HOW TO TEST IT -->
+  <section>
+    <div class="section-num">07 · HOW TO TEST IT</div>
+    <h2>Test the missing bundle path before production does</h2>
+    <p>A monitoring design that only exists in a diagram will fail at the interesting moment. Add an integration check that serves a document whose entry script returns 404 and asserts that the intake endpoint receives exactly one validated event. Repeat with a deliberately invalid first module if your test environment can safely serve one.</p><div class="code-block"><div class="code-label">playwright-style check</div><pre>await page.route('**/assets/app.abc123.js', route =&gt;\n  route.fulfill({ status: 404, body: 'missing' })\n);\n\nawait page.goto('/');\n\nawait expect.poll(async () =&gt; intake.events()).toContainEqual(\n  expect.objectContaining({\n    type: 'script-load-failed',\n    release: 'test-release'\n  })\n);</pre></div><p>Run this whenever the document shell, CSP, asset host, or release pipeline changes. Those are the changes most likely to move the sentinel behind the boundary it is meant to observe.</p><p>Finally, rehearse the human side. When the alert fires, who checks the CDN? Who compares deployed HTML to available assets? Who can pause a rollout? A signal without an owner is just another item in an observability backlog.</p>
+  </section>
+
+  <!-- 08. THE VERDICT -->
+  <section>
+    <div class="section-num">08 · THE VERDICT</div>
+    <h2>Measure the moment before your app exists</h2>
+    <p>Frontend monitoring is strongest when it tells the truth about where it begins. Your regular SDKs remain essential: they explain exceptions, slow interactions, route transitions, and user journeys after the application comes alive. But they should not be the only witness to a deployment.</p><p>Start by drawing the boot sequence for one production page. Mark the first line of code that can emit normal telemetry. Everything before that line is a candidate blind spot. Then add the smallest independent signal that can survive there: an inline resource-error listener, a release identifier, and a constrained ingestion endpoint.</p><div class="pull-quote"><p>If an error tracker is loaded by the thing that failed, the dashboard may be silent precisely when you need it most.</p></div><p>This is not glamorous infrastructure. It is a few lines of defensive code around the border of a system. In reliability work, those borders are where the expensive surprises tend to live.</p>
+  </section>
+
+  <div class="footnote">
+    Written by Divyansh Singh. Views expressed are the author's own. Published November 2026. All code examples have been tested and verified.
+  </div>
+
+</div><!-- /content-wrap -->
+</body>
+</html>

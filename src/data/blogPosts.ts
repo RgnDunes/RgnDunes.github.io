@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "the-failure-your-frontend-monitoring-cannot-see",
+    title: "The Failure Your Frontend Monitoring Cannot See",
+    description: "Frontend observability tools start after your application bundle executes. That leaves a dangerous blind spot: the failures that prevent the monitoring SDK itself from loading. Here is the small browser beacon and release-context design that closes it without turning error reporting into another outage.",
+    contentPath: "/blog/the-failure-your-frontend-monitoring-cannot-see_article.html",
+    publishedAt: "2026-11-22",
+    tags: ["Frontend Observability", "Release Engineering", "JavaScript", "Reliability"],
+    readingTime: "~21 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "flaky-tests-twenty-green-runs",
     title: "One Green Rerun Proves Almost Nothing. What 20 Green Runs Taught Me About Flaky Tests.",
     description: "A single rerun turns a failed test green, but it does not tell you whether the test is flaky, how often it fails, or what else fails beside it. The 20-run scoring pipeline I use to turn intermittent CI failures into an ordered engineering queue.",
