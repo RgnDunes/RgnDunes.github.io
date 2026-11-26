@@ -19,6 +19,18 @@ export interface BlogPost {
 // Your blog posts go here - add new posts to this array
 export const blogPosts: BlogPost[] = [
   {
+    slug: "ci-p90-not-the-average",
+    title: "The Average CI Build Is Not The One Your Engineers Wait For. Why I Measure P90, And What Took It From 81 To 52 Minutes.",
+    description: "Averages and medians describe the build nobody complains about. What P50, P75 and P90 each expose, how to measure them without fooling yourself, why you cannot average percentiles, and how safe parallelisation took successful-build CI P90 from 81 to 52 minutes.",
+    contentPath: "/blog/ci-p90-not-the-average_article.html",
+    publishedAt: "2026-11-26",
+    tags: ["CI/CD", "Engineering Metrics", "Developer Experience", "Frontend Infrastructure", "Reliability"],
+    readingTime: "~18 min read",
+    author: {
+      name: "Divyansh Singh",
+    },
+  },
+  {
     slug: "the-failure-your-frontend-monitoring-cannot-see",
     title: "The Failure Your Frontend Monitoring Cannot See",
     description: "Frontend observability tools start after your application bundle executes. That leaves a dangerous blind spot: the failures that prevent the monitoring SDK itself from loading. Here is the small browser beacon and release-context design that closes it without turning error reporting into another outage.",

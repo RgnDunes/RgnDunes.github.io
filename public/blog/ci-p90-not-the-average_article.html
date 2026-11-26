@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Average CI Build Is Not The One Your Engineers Wait For. Why I Measure P90, And What Took It From 81 To 52 Minutes.</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     ARTICLE UI REFERENCE - "The Editorial" / prose-notebook
+     Mirrors: RgnDunes.github.io → src/styles/globals.css
+              (the `.prose-notebook` block, ~line 525 onwards)
+
+     HOW THE LIVE SITE RENDERS THIS FILE
+     -----------------------------------
+     src/app/blog/[slug]/page.tsx does NOT use this stylesheet. It:
+       1. keeps only what is inside the BODY element
+       2. deletes every STYLE, LINK, META and TITLE tag
+       3. deletes the .masthead / .cover-image-wrap / .cover-image /
+          .hero / .byline blocks (React renders its own header)
+       4. deletes div|nav|ul|p elements whose class contains "tag"/"tags"
+       5. demotes any surviving H1 to H2
+       6. injects the rest into div.prose.prose-notebook
+
+     So the ONLY thing that survives is the markup inside .content-wrap,
+     and it is styled by globals.css - not by anything here.
+
+     IMPORTANT: never write a literal BODY / STYLE / META / TITLE / LINK
+     tag inside a comment in this file. The stripper works on raw text,
+     so a stray opening tag in a comment makes it slice the document in
+     the wrong place. Spell tag names out in caps, as above.
+
+     The CSS below is scoped to `.content-wrap` and reproduces the live
+     `.prose-notebook` rules 1:1, so that the standalone file in output/
+     previews exactly as it will look once published.
+
+     KEEPING IT IN SYNC
+     ------------------
+     Do not hand-edit the generated region. globals.css is the source of
+     truth; this file is derived from it:
+
+       npm run sync:article-ui              regenerate
+       npm run sync:article-ui -- --check   exit 1 if it has drifted
+
+     Only the preview chrome above the generated markers (backdrop, plane,
+     masthead, cover, hero, byline) is maintained here, because it has no
+     counterpart in globals.css - the live page renders that header itself.
+
+     htmlGenerator.ts lifts this stylesheet verbatim into every generated
+     article, which is what makes the local preview truthful.
+     ============================================================ */
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  /* The live article sits on a dark "observatory" backdrop with the
+     reading plane floated on top of it. Reproduced here for preview. */
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background: #05070a;
+    color: rgb(var(--ink-2));
+    padding: 3rem 0 7rem;
+    overflow-x: hidden;
+  }
+
+  /* ── MASTHEAD (stripped on the live site) ── */
+  .masthead {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(242, 238, 231, 0.7);
+    text-align: center;
+    font: 500 0.65rem/1 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  /* ── COVER IMAGE (stripped on the live site) ── */
+  .cover-image-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    max-height: 420px;
+    margin: 0 auto;
+    overflow: hidden;
+    background: rgb(var(--paper));
+  }
+  .cover-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── HERO (stripped on the live site - React renders the header) ── */
+  .hero {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem) 0;
+    background: rgb(var(--paper));
+  }
+  .hero-label {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: clamp(2.6rem, 5.3vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: rgb(var(--ink));
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; color: rgb(var(--saffron)); }
+  .hero-sub {
+    max-width: 62ch;
+    margin-top: 2rem;
+    color: rgb(var(--ink-2));
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.4rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgb(var(--rule));
+    color: rgb(var(--muted));
+    font: 500 0.64rem/1.4 var(--font-jetbrains), ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byline-dot { width: 3px; height: 3px; border-radius: 50%; background: rgb(var(--rule)); }
+
+  /* ── READING PLANE (preview only) ──
+     The paper plane the article sits on. The live site draws this in React;
+     here it approximates the published layout. Typography for everything
+     inside comes from the generated block below. */
+  .content-wrap {
+    width: min(1040px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0 clamp(2rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4.5rem);
+    background: rgb(var(--paper));
+    /* Contains the first .section-num's top margin so it doesn't collapse
+       out of the paper plane and expose the backdrop. */
+    display: flow-root;
+  }
+  /* The live site constrains the prose column inside the wider plane. */
+  .content-wrap > * { max-width: 720px; margin-inline: auto; }
+
+  .content-wrap img { max-width: 100%; height: auto; }
+
+  @media (max-width: 640px) {
+    .hero, .content-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+
+  /* ── ARTICLE TYPOGRAPHY ──
+     Everything below is lifted from the portfolio's prose-notebook rules.
+     Do not hand-edit: run `npm run sync:article-ui` after changing
+     globals.css, or `npm run sync:article-ui -- --check` to detect drift. */
+
+  /* @generated:prose-notebook-start - do not edit by hand.
+     Run `npm run sync:article-ui` to regenerate from the portfolio's
+     src/styles/globals.css. Source of truth is that file, not this one. */
+
+  :root {
+  --paper: 246 240 231;
+  --paper-2: 240 233 221;
+  --ink: 20 20 22;
+  --ink-2: 60 58 55;
+  --muted: 122 116 108;
+  --rule: 210 202 189;
+  --saffron: 232 106 43;
+  --saffron-deep: 194 78 22;
+  --seal: 39 88 74;
+  --highlight: 255 232 143;
+
+    /* globals.css gets these from the Next.js font loader. A standalone
+       file has no loader, and an undefined var makes the whole
+       font-family declaration invalid - so they are pinned here. */
+    --font-fraunces: "Fraunces";
+    --font-inter: "Inter";
+    --font-jetbrains: "JetBrains Mono";
+  }
+
+  /* Print / GH Pages basePath awareness handled by Next.js Image loader */
+
+/* ============================================================
+   Article typography - "prose-notebook" variant of Tailwind Typography.
+   Applied via `<div className="prose prose-notebook">` on the article
+   page. Overrides Tailwind Typography's default palette to match the
+   notebook identity,
+and adds styles for elements the raw article HTML
+   ships with (h2/h3,
+pre/code,
+blockquote,
+tables,
+callout classes).
+   ============================================================ */
+
+.content-wrap {
+
+    --tw-prose-body: rgb(var(--ink-2));
+    --tw-prose-headings: rgb(var(--ink));
+    --tw-prose-lead: rgb(var(--ink-2));
+    --tw-prose-links: rgb(var(--saffron));
+    --tw-prose-bold: rgb(var(--ink));
+    --tw-prose-counters: rgb(var(--muted));
+    --tw-prose-bullets: rgb(var(--rule));
+    --tw-prose-hr: rgb(var(--rule));
+    --tw-prose-quotes: rgb(var(--ink));
+    --tw-prose-quote-borders: rgb(var(--saffron));
+    --tw-prose-captions: rgb(var(--muted));
+    --tw-prose-code: rgb(var(--ink));
+    --tw-prose-pre-code: #e6e0d4;
+    --tw-prose-pre-bg: #1e1c19;
+    --tw-prose-th-borders: rgb(var(--rule));
+    --tw-prose-td-borders: rgb(var(--rule));
+
+    font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+    font-size: 17.5px;
+    line-height: 1.75;
+
+  }
+  /* Headings - serif display face,
+editorial rhythm */
+.content-wrap :where(h1,
+h2,
+h3,
+h4) {
+
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+
+  }
+  .content-wrap :where(h2) {
+
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.75em;
+    margin-bottom: 0.9em;
+    padding-top: 0.6em;
+    border-top: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(h2:first-child) {
+
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+
+  }
+  .content-wrap :where(h3) {
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-top: 2.25em;
+    margin-bottom: 0.7em;
+
+  }
+  .content-wrap :where(h4) {
+
+    font-size: 1.15rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+
+  }
+  /* Body paragraphs */
+.content-wrap :where(p) {
+
+    margin-top: 1.15em;
+    margin-bottom: 1.15em;
+    max-width: 68ch;
+
+  }
+  /* Lead / first paragraph after the header */
+.content-wrap > :where(p:first-of-type) {
+
+    font-size: 1.18em;
+    line-height: 1.65;
+    color: rgb(var(--ink));
+
+  }
+  /* Links - saffron with a soft underline */
+.content-wrap :where(a) {
+
+    color: rgb(var(--saffron));
+    text-decoration: underline;
+    text-decoration-color: rgba(232, 106, 43, 0.35);
+    text-underline-offset: 3px;
+    font-weight: 500;
+    transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+
+  }
+  .content-wrap :where(a:hover) {
+
+    color: rgb(var(--saffron-deep));
+    text-decoration-color: rgb(var(--saffron-deep));
+
+  }
+  /* Blockquotes - pulled quote,
+saffron rule */
+.content-wrap :where(blockquote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.25em;
+    line-height: 1.5;
+    color: rgb(var(--ink));
+    quotes: none;
+
+  }
+  .content-wrap :where(blockquote p) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(blockquote p::before,
+blockquote p::after) {
+
+    content: none;
+
+  }
+  /* Inline code */
+.content-wrap :where(code) {
+
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.87em;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(code::before,
+code::after) {
+
+    content: none;
+
+  }
+  .content-wrap :where(a code) {
+
+    color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.09);
+
+  }
+  /* Code blocks */
+.content-wrap :where(pre) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    padding: 1.1em 1.3em;
+    font-size: 0.86em;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 1.75em 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 0 rgb(var(--rule));
+
+  }
+  .content-wrap :where(pre code) {
+
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 1em;
+    font-weight: 400;
+    border-radius: 0;
+
+  }
+  /* Lists */
+.content-wrap :where(ul,
+ol) {
+
+    padding-left: 1.6em;
+    margin: 1.15em 0;
+
+  }
+  .content-wrap :where(li) {
+
+    margin: 0.5em 0;
+
+  }
+  .content-wrap :where(ul > li) {
+
+    list-style-type: disc;
+
+  }
+  .content-wrap :where(ul > li::marker) {
+
+    color: rgb(var(--saffron));
+
+  }
+  .content-wrap :where(ol > li::marker) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.9em;
+
+  }
+  /* Horizontal rule */
+.content-wrap :where(hr) {
+
+    border: 0;
+    border-top: 1px solid rgb(var(--rule));
+    margin: 3em 0;
+
+  }
+  /* Tables */
+.content-wrap :where(table) {
+
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.94em;
+
+  }
+  .content-wrap :where(th) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.65em 0.9em;
+    border-bottom: 1px solid rgb(var(--ink));
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(td) {
+
+    padding: 0.75em 0.9em;
+    border-bottom: 1px solid rgb(var(--rule));
+    vertical-align: top;
+
+  }
+  /* Images inside the article */
+.content-wrap :where(img) {
+
+    border-radius: 8px;
+    border: 1px solid rgb(var(--rule));
+    margin: 2em auto;
+
+  }
+  .content-wrap :where(figcaption) {
+
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    text-align: center;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+
+  }
+  /* Strong / emphasis */
+.content-wrap :where(strong) {
+
+    color: rgb(var(--ink));
+    font-weight: 600;
+
+  }
+  .content-wrap :where(em) {
+
+    font-style: italic;
+    color: rgb(var(--ink));
+
+  }
+  /* Marker highlight (some source articles use <mark>) */
+.content-wrap :where(mark) {
+
+    background-image: linear-gradient(
+    transparent 62%,
+    rgba(255, 232, 143, 0.75) 62%,
+    rgba(255, 232, 143, 0.75) 92%,
+    transparent 92%
+    );
+    color: inherit;
+    padding: 0 2px;
+
+  }
+  /* First-paragraph drop cap (opt-in via .drop-cap on the article body) */
+.content-wrap.drop-cap > p:first-of-type::first-letter {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    float: left;
+    font-size: 4.5rem;
+    line-height: 0.85;
+    padding-right: 0.5rem;
+    padding-top: 0.4rem;
+
+  }
+  /* Callout / aside classes commonly used in the source articles */
+.content-wrap :where(.callout,
+.aside,
+.note) {
+
+    border-left: 3px solid rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+    padding: 1em 1.2em;
+    border-radius: 6px;
+    margin: 1.75em 0;
+    font-size: 0.96em;
+
+  }
+  .content-wrap :where(.callout > .callout-label) {
+
+    display: block;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--seal));
+    margin-bottom: 0.5em;
+
+  }
+  .content-wrap :where(.callout p) {
+
+    margin: 0;
+    max-width: none;
+
+  }
+  .content-wrap :where(.warning) {
+
+    border-left-color: rgb(var(--saffron));
+    background: rgba(232, 106, 43, 0.08);
+
+  }
+  .content-wrap :where(.warning > .callout-label) {
+
+    color: rgb(var(--saffron-deep));
+
+  }
+  /* Section numeral - small mono label preceding an <h2> chapter break */
+.content-wrap :where(.section-num) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--saffron));
+    margin-top: 3.5em;
+    margin-bottom: 0.4em;
+
+  }
+  /* When a section-num precedes an h2,
+tighten the spacing between them. */
+.content-wrap :where(.section-num + h2) {
+
+    margin-top: 0.1em;
+    padding-top: 0;
+    border-top: 0;
+
+  }
+  /* Stat strip - grid of "big number + tiny label" tiles */
+.content-wrap :where(.stat-strip) {
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+    margin: 2em 0;
+    padding: 0;
+    border-top: 1px solid rgb(var(--rule));
+    border-bottom: 1px solid rgb(var(--rule));
+    padding-top: 1.4em;
+    padding-bottom: 1.4em;
+
+  }
+  @media (min-width: 640px) {
+    .content-wrap :where(.stat-strip) {
+
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    }
+  }
+  .content-wrap :where(.stat-item) {
+
+    padding: 0 0.5em;
+    border-left: 1px solid rgb(var(--rule));
+
+  }
+  .content-wrap :where(.stat-item:first-child) {
+
+    border-left: 0;
+    padding-left: 0;
+
+  }
+  .content-wrap :where(.stat-num) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 2.25rem;
+    line-height: 1;
+    font-weight: 500;
+    color: rgb(var(--saffron));
+    margin-bottom: 0.3em;
+
+  }
+  .content-wrap :where(.stat-label) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    line-height: 1.4;
+
+  }
+  /* Pull-quote - oversized italic serif with saffron rule */
+.content-wrap :where(.pull-quote) {
+
+    border-left: 3px solid rgb(var(--saffron));
+    padding: 0.5em 0 0.5em 1.5em;
+    margin: 2.5em 0;
+
+  }
+  .content-wrap :where(.pull-quote p) {
+
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-size: 1.35em;
+    line-height: 1.45;
+    color: rgb(var(--ink));
+    margin: 0;
+    max-width: none;
+
+  }
+  /* Highlight box - "the one fact most X don't know" callout */
+.content-wrap :where(.highlight-box) {
+
+    background: rgba(255, 232, 143, 0.35);
+    border: 1px solid rgba(232, 106, 43, 0.25);
+    padding: 1.2em 1.4em;
+    border-radius: 8px;
+    margin: 2em 0;
+    font-size: 1.02em;
+
+  }
+  .content-wrap :where(.highlight-box strong) {
+
+    display: block;
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15em;
+    color: rgb(var(--ink));
+    margin-bottom: 0.5em;
+
+  }
+  /* Custom code block wrapper the articles emit around a <pre> */
+.content-wrap :where(.code-block) {
+
+    background: #1e1c19;
+    color: #e6e0d4;
+    border-radius: 10px;
+    margin: 1.75em 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+
+  }
+  .content-wrap :where(.code-block > .code-label) {
+
+    display: block;
+    padding: 0.6em 1.2em;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.72em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 224, 212, 0.75);
+
+  }
+  .content-wrap :where(.code-block > pre) {
+
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    box-shadow: none;
+
+  }
+  /* Syntax-token spans emitted by the article authors */
+.content-wrap :where(.code-kw) {
+
+    color: #c084fc;
+
+  }
+  .content-wrap :where(.code-fn) {
+
+    color: #7dd3fc;
+
+  }
+  .content-wrap :where(.code-var) {
+
+    color: #fbbf24;
+
+  }
+  .content-wrap :where(.code-str) {
+
+    color: #a3e635;
+
+  }
+  .content-wrap :where(.code-cmt) {
+
+    color: rgba(230, 224, 212, 0.5);
+    font-style: italic;
+
+  }
+  .content-wrap :where(.code-num) {
+
+    color: #f472b6;
+
+  }
+  /* Inline "code-flavored" span used mid-sentence */
+.content-wrap :where(code.inline),
+.content-wrap :where(.inline) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.87em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: rgba(20, 20, 22, 0.06);
+    color: rgb(var(--ink));
+    font-weight: 500;
+
+  }
+  /* Bullet list styled to match the notebook rhythm */
+.content-wrap :where(.bullet-list) {
+
+    list-style: none;
+    padding-left: 0;
+    margin: 1.3em 0;
+
+  }
+  .content-wrap :where(.bullet-list > li) {
+
+    position: relative;
+    padding-left: 1.5em;
+    margin: 0.7em 0;
+    line-height: 1.65;
+
+  }
+  .content-wrap :where(.bullet-list > li)::before {
+
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 0.6em;
+    height: 1px;
+    background: rgb(var(--saffron));
+
+  }
+  /* Article footnote at the end */
+.content-wrap :where(.footnote) {
+
+    margin-top: 3em;
+    padding-top: 1.5em;
+    border-top: 1px solid rgb(var(--rule));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    line-height: 1.7;
+    color: rgb(var(--muted));
+    font-style: normal;
+
+  }
+  /* Ascii flow-diagram used in some articles (flow → node → arrow → node) */
+.content-wrap :where(.flow-track) {
+
+    margin: 2em 0;
+    padding: 1.2em;
+    border: 1px dashed rgb(var(--rule));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.015);
+    overflow-x: auto;
+
+  }
+  .content-wrap :where(.flow) {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6em;
+    justify-content: flex-start;
+
+  }
+  .content-wrap :where(.flow-node) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--rule));
+    background: rgb(var(--paper));
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.82em;
+    color: rgb(var(--ink));
+
+  }
+  .content-wrap :where(.flow-node.green) {
+
+    border-color: rgb(var(--seal));
+    color: rgb(var(--seal));
+    background: rgba(39, 88, 74, 0.06);
+
+  }
+  .content-wrap :where(.flow-node.red) {
+
+    border-color: rgb(var(--saffron));
+    color: rgb(var(--saffron-deep));
+    background: rgba(232, 106, 43, 0.06);
+
+  }
+  .content-wrap :where(.flow-arrow)::after {
+
+    content: "→";
+    color: rgb(var(--muted));
+    font-family: var(--font-jetbrains), monospace;
+
+  }
+  .content-wrap :where(.flow-bend) {
+
+    height: 0.5em;
+
+  }
+  .content-wrap :where(.arch-title) {
+
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.78em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    margin-bottom: 0.5em;
+
+  }
+  /* Article-emitted tag pills (if any survive the stripper) - inert */
+.content-wrap :where(.tag) {
+
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgb(var(--rule));
+    border-radius: 999px;
+    font-family: var(--font-jetbrains), monospace;
+    font-size: 0.7em;
+    letter-spacing: 0.06em;
+    color: rgb(var(--ink-2));
+    background: rgba(255, 255, 255, 0.3);
+    margin-right: 0.3em;
+
+  }
+  .content-wrap :where(.tag.red) {
+
+    color: rgb(var(--saffron-deep));
+    border-color: rgba(232, 106, 43, 0.35);
+
+  }
+  .content-wrap :where(.tag.green) {
+
+    color: rgb(var(--seal));
+    border-color: rgba(39, 88, 74, 0.35);
+
+  }
+
+  /* @generated:prose-notebook-end */
+
+</style>
+<meta name="description" content="Averages and medians describe the build nobody complains about. What P50, P75 and P90 each expose, how to measure them without fooling yourself, why you cannot average percentiles, and how safe parallelisation took successful-build CI P90 from 81 to 52 minutes." />
+<meta name="author" content="Divyansh Singh" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="The Average CI Build Is Not The One Your Engineers Wait For. Why I Measure P90, And What Took It From 81 To 52 Minutes." />
+<meta property="og:description" content="Averages and medians describe the build nobody complains about. What P50, P75 and P90 each expose, how to measure them without fooling yourself, why you cannot average percentiles, and how safe parallelisation took successful-build CI P90 from 81 to 52 minutes." />
+<meta property="og:image" content="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&amp;h=630&amp;fit=crop&amp;q=80" />
+<meta property="og:url" content="https://rgndunes.github.io/blog/ci-p90-not-the-average" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="The Average CI Build Is Not The One Your Engineers Wait For. Why I Measure P90, And What Took It From 81 To 52 Minutes." />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&amp;h=630&amp;fit=crop&amp;q=80" />
+</head>
+<body>
+
+<div class="masthead">Engineering Diaries &nbsp;&middot;&nbsp; Frontend Infrastructure &nbsp;&middot;&nbsp; CI/CD</div>
+
+<!-- COVER IMAGE -->
+<div class="cover-image-wrap">
+  <img class="cover-image" src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=630&fit=crop&q=80" alt="A performance analytics dashboard on a laptop screen showing long-tailed histograms of page load times, with the view set to median" />
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">CI/CD &middot; Engineering Metrics</div>
+  <h1>The Average CI Build Is Not The One Your Engineers Wait For. <em>Why I Measure P90, And What Took It From 81 To 52 Minutes.</em></h1>
+  <p class="hero-sub">Averages and medians describe the build nobody complains about. The slow tail is the build people plan their day around. Here is what P50, P75 and P90 each expose, how to measure them without fooling yourself, and how safe parallelisation took successful-build P90 from 81 to 52 minutes.</p>
+  <div class="byline">
+    <span>By Divyansh Singh</span>
+    <span class="byline-dot"></span>
+    <span>November 2026</span>
+    <span class="byline-dot"></span>
+    <span>~18 min read</span>
+    <span class="byline-dot"></span>
+    <span class="tag green">CI/CD</span>
+    <span class="tag">Developer Experience</span>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <section>
+    <div class="section-num">01 · The Number</div>
+    <h2>Nobody Remembers The 35-Minute Build</h2>
+    <p>Ask an engineer how long CI takes and you will not get the median. You will get the worst build they had this week. "CI takes over an hour" is what people say, even if most of their builds finished in forty minutes. They are not exaggerating. They are reporting the build that cost them something: the one that finished after standup, or after the reviewer had logged off, or after they had already switched to a different task and lost the thread of the first one.</p>
+    <p>That is the gap this piece is about. Dashboards love averages, and the average build is a very pleasant build. But the build that shapes how people work is the slow one, and the slow one lives in the tail of the distribution, which an average flattens and a median ignores completely.</p>
+    <p>So when I worked on CI wait times on a large SaaS platform, the target was not "make the average faster". It was the 90th percentile: the duration that nine builds in ten finish under, and one in ten does not. After parallelising the integration-test suites that were safe to run in parallel, across ten product and platform domains, the three P90s we tracked moved like this:</p>
+
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">81→52</div><div class="stat-label">Successful build P90 (min)</div></div>
+      <div class="stat-item"><div class="stat-num">76→40</div><div class="stat-label">Backend PR P90 (min)</div></div>
+      <div class="stat-item"><div class="stat-num">88→58</div><div class="stat-label">Frontend PR P90 (min)</div></div>
+      <div class="stat-item"><div class="stat-num">47%</div><div class="stat-label">Biggest P90 cut</div></div>
+    </div>
+
+    <p>That is 29 minutes off the successful-build tail (about 36%), 36 minutes off the backend pull-request tail (about 47%) and 30 minutes off the frontend pull-request tail (about 34%). Tests that shared state stayed serial, which matters more than it sounds, and I will come back to it.</p>
+    <p>I am deliberately reporting only P90 here, because P90 is what we targeted and what I can stand behind. This is not a post about a magic parallelisation trick. It is about the metric choice that came first: why P90 is the honest number for developer wait time, what P50 and P75 tell you that P90 does not, how to compute them without accidentally lying to yourself, and the tradeoffs that show up the moment you start optimising the tail on purpose.</p>
+  </section>
+
+  <section>
+    <div class="section-num">02 · The Vocabulary</div>
+    <h2>P50, P75 And P90 Are Three Different Questions</h2>
+    <p>A percentile is a position in a sorted list. Sort every build duration from fastest to slowest. The value that half the builds finish under is the 50th percentile, P50, which is the median. The value that three quarters finish under is P75. The value nine in ten finish under is P90. Each one answers a different question about the same set of builds.</p>
+    <p>An example makes it concrete. The numbers below are <strong>illustrative, not real pipeline data</strong>: twenty pull-request builds, in minutes, shaped the way CI durations usually are. Most cluster together, and a handful run long because they hit a slow suite, a cold cache or a busy agent pool.</p>
+
+    <div class="code-block">
+      <div class="code-label">twenty builds, sorted (minutes, illustrative)</div>
+<pre><span class="code-num">31</span>  <span class="code-num">33</span>  <span class="code-num">34</span>  <span class="code-num">35</span>  <span class="code-num">36</span>  <span class="code-num">37</span>  <span class="code-num">38</span>  <span class="code-num">38</span>  <span class="code-num">39</span>  <span class="code-num">40</span>
+<span class="code-num">41</span>  <span class="code-num">42</span>  <span class="code-num">44</span>  <span class="code-num">46</span>  <span class="code-num">58</span>  <span class="code-num">64</span>  <span class="code-num">71</span>  <span class="code-num">79</span>  <span class="code-num">86</span>  <span class="code-num">92</span></pre>
+    </div>
+
+    <table>
+      <thead><tr><th>Statistic</th><th>Value</th><th>What it says about these builds</th></tr></thead>
+      <tbody>
+        <tr><td>Mean</td><td>49.2 min</td><td>A duration no build actually took. It sits in the empty gap between 46 and 58.</td></tr>
+        <tr><td>P50 (median)</td><td>40 min</td><td>The routine build. Half finish faster than this.</td></tr>
+        <tr><td>P75</td><td>58 min</td><td>One build in four is slower than this. "Bad, but common."</td></tr>
+        <tr><td>P90</td><td>79 min</td><td>Two builds in twenty are slower than this. The build people tell stories about.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Look at the spread. The median says forty minutes. P90 says nearly double that. Both are correct. They are just describing different builds, and an engineer pushing several times a day will meet all of them.</p>
+    <p>The mean is the strangest number in the table. It is pulled upwards by the six slow builds, so it overstates the routine case, and it is diluted by the fourteen fast ones, so it understates the bad case. It ends up describing a build that does not exist. When a distribution has a long right tail, which CI durations, page loads and API latencies almost always do, the mean is a weighted compromise between two populations that it refuses to name.</p>
+
+    <div class="pull-quote">
+      <p>The median describes the build nobody complains about. P90 describes the build people plan around.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03 · The Trap</div>
+    <h2>How A Team Can Make CI "Faster" Without Anyone Waiting Less</h2>
+    <p>Here is the failure mode that makes me suspicious of any CI improvement reported as an average or a median.</p>
+    <p>Take the same illustrative twenty builds. Suppose someone ships a sensible improvement: a faster dependency install, say, that saves six minutes on every build that was already running normally. It does nothing for the slow builds, because their slowness comes from somewhere else, perhaps one enormous serial suite. Recompute:</p>
+
+    <table>
+      <thead><tr><th>Statistic</th><th>Before</th><th>After</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td>Mean</td><td>49.2 min</td><td>45.0 min</td><td>8.5% faster</td></tr>
+        <tr><td>P50</td><td>40 min</td><td>34 min</td><td>15% faster</td></tr>
+        <tr><td>P75</td><td>58 min</td><td>58 min</td><td>No change</td></tr>
+        <tr><td>P90</td><td>79 min</td><td>79 min</td><td>No change</td></tr>
+      </tbody>
+    </table>
+
+    <p>The update writes itself: "Median CI time down 15%." It is true. It is also nearly irrelevant to the people who are actually unhappy, because the builds that hurt did not move at all. The engineer who waited 79 minutes last week will wait 79 minutes next week, and they will reasonably conclude that the infrastructure team is measuring the wrong thing.</p>
+    <p>The reverse is just as possible. A change that targets the tail, like splitting the slow suite, might leave the median exactly where it was. A team that only watches the median would see a flat line and wonder why people suddenly stopped complaining.</p>
+    <p>None of this means the dependency improvement was bad. Six minutes on most builds is real time, and over hundreds of builds a day it adds up to a lot of compute and a lot of small waits. The point is that it is a <em>different</em> improvement from fixing the tail, and the two should be reported with the numbers that describe them. Median for the routine experience. P90 for the painful one.</p>
+
+    <div class="callout warning">
+      <div class="callout-label">The question to ask in review</div>
+      <p>When someone reports a CI speed-up, ask which percentile moved. If the answer is only "the average", you do not yet know whether anyone's worst build got better.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">04 · What Each One Exposes</div>
+    <h2>Choosing A Percentile Is Choosing Whose Experience Counts</h2>
+    <p>Every percentile is a decision about how much of the bad experience you are willing to ignore. P50 ignores the slower half entirely. P90 ignores the worst tenth. P99 ignores the worst hundredth. There is no neutral choice, so it helps to be explicit about what each one is good for.</p>
+    <ul class="bullet-list">
+      <li><span><strong>P50 shows the routine cost.</strong> It moves when you improve something every build does: installs, checkout, caching, image pulls. It is the right number for capacity and cost conversations, because most of your compute is spent there. It is the wrong number for "are people suffering".</span></li>
+      <li><span><strong>P75 shows the bad-but-common case.</strong> One build in four is slower. Web performance already uses this level: Core Web Vitals are assessed at the 75th percentile of page loads. Google's write-up on how the thresholds were defined explains the reasoning. It wanted most visits to meet the target while keeping a few extreme outliers from distorting the result. It also notes that a 95th percentile on a site with 100 visits would be swung by just five outlier samples.</span></li>
+      <li><span><strong>P90 shows what trust is built on.</strong> If one build in ten takes nearly twice as long as normal, engineers do not plan around the normal one. They plan around the risk. They batch changes, avoid pushing late in the day and stop running CI as a feedback loop. P90 is where developer-experience problems turn into behaviour.</span></li>
+      <li><span><strong>P99 is mostly noise for CI.</strong> In a window of a hundred builds, P99 is the slowest build or very close to it. One build stuck behind an agent outage can set it. It is useful for alerting on pathological cases and almost useless as a target you move week to week, unless your build volume is very high.</span></li>
+    </ul>
+    <p>Why did I land on P90 for wait time rather than P75? Volume is part of it. A busy monorepo runs enough builds that P90 is stable from week to week, which is not true for every repository. But mostly it is about what changes behaviour. An engineer does not notice one slow build in four as a pattern. They notice one in ten that is dramatically slower, because those are the builds that collide with a meeting, a release window or the end of the day.</p>
+    <p>That makes the gap between P50 and P90 one of the most useful single numbers you can put on a dashboard. A small gap means CI is predictable, even if it is slow, and predictable slowness can be planned around. A large gap means CI is a lottery. In my experience, people tolerate slow far better than they tolerate unpredictable.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05 · The Compounding</div>
+    <h2>One In Ten Sounds Rare. It Is Not Rare For The Person Pushing.</h2>
+    <p>The most common objection to tail metrics is "it is only ten percent of builds". That framing is per build. Engineers do not experience CI per build. They experience it per day, per pull request and per release, and each of those involves several builds.</p>
+    <p>Do the arithmetic. If each build independently has a one-in-ten chance of landing above P90, an engineer who pushes five times in a day has a <strong>1 - 0.9<sup>5</sup> ≈ 41%</strong> chance of hitting at least one tail build that day. A pull request that needs four or five rounds of review fixes will very likely meet the tail at least once before it merges. "Ten percent of builds" quietly becomes "most pull requests, eventually".</p>
+    <p>Real builds are not perfectly independent, so treat the number as an intuition rather than a measurement. Slow builds cluster around busy hours and around changes that touch the same expensive suites. But clustering usually makes the experience worse, not better, because the people who hit one slow build are disproportionately likely to hit the next.</p>
+    <p>Distributed systems people have been making this argument for years. In <em>The Tail at Scale</em> (Communications of the ACM, 2013), Jeffrey Dean and Luiz André Barroso describe servers that usually respond in about 10 ms but have a 99th-percentile latency of one second. One user request in a hundred hitting one such server is slow. A request that must wait for responses from a hundred such servers in parallel is slower than a second <strong>63%</strong> of the time. The rare tail of each component becomes the common experience of the whole.</p>
+
+    <div class="pull-quote">
+      <p>A metric that is rare per build can be routine per engineer. Measure the unit people actually live in.</p>
+    </div>
+
+    <p>CI has the same shape. A pull request waits on several jobs. A merge waits on a pipeline. A release waits on many merges. Each layer gathers up the tails below it. If you want to know what CI feels like, the tail is not the edge case. It is what people actually get.</p>
+  </section>
+
+  <section>
+    <div class="section-num">06 · The Measurement</div>
+    <h2>How To Compute P90 Without Fooling Yourself</h2>
+    <p>Percentiles are easy to compute and surprisingly easy to compute wrongly. These are the decisions I think matter most, and each one changes the number.</p>
+    <ul class="bullet-list">
+      <li><span><strong>Segment before you aggregate.</strong> The three numbers at the top of this piece are separate populations: successful builds, backend pull requests and frontend pull requests. Blending a frontend pipeline and a backend pipeline into one P90 gives you a number that describes neither, and an improvement in one can be hidden by growth in the other.</span></li>
+      <li><span><strong>Decide what to do with failures.</strong> A build that fails in the third minute is not a fast build. Mixing failed and cancelled runs into a duration metric drags the distribution down and rewards pipelines that fail early for bad reasons. Measuring successful builds separately keeps "how long does a green build take" clean. Failure rate is its own metric.</span></li>
+      <li><span><strong>Write down where the clock starts.</strong> Time spent queued for an agent is time the engineer waits. Whether you include it changes the answer, and both choices are defensible. What is not defensible is changing it halfway through a quarter.</span></li>
+      <li><span><strong>Use a window with enough samples.</strong> With 20 builds, P90 is decided by the second-slowest one. With 2,000, it is stable. Pick a window, a week or a month, that gives the segment enough volume, and keep it fixed when comparing before and after.</span></li>
+      <li><span><strong>Know which percentile formula your tool uses.</strong> Nearest-rank returns an actual observed value. Interpolated methods blend between neighbours. PostgreSQL exposes both as <code>percentile_disc</code> and <code>percentile_cont</code>, and the default in many analysis libraries interpolates. On large samples the difference is small. On small segments it is not.</span></li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-label">percentiles.ts</div>
+<pre><span class="code-kw">type</span> <span class="code-var">Build</span> = { <span class="code-var">pipeline</span>: <span class="code-kw">string</span>; <span class="code-var">state</span>: <span class="code-str">"passed"</span> | <span class="code-str">"failed"</span> | <span class="code-str">"canceled"</span>; <span class="code-var">minutes</span>: <span class="code-kw">number</span> };
+
+<span class="code-cmt">// Nearest-rank: always returns a duration a real build actually took.</span>
+<span class="code-kw">function</span> <span class="code-fn">percentile</span>(<span class="code-var">values</span>: <span class="code-kw">number</span>[], <span class="code-var">p</span>: <span class="code-kw">number</span>): <span class="code-kw">number</span> {
+  <span class="code-kw">const</span> <span class="code-var">sorted</span> = [...<span class="code-var">values</span>].<span class="code-fn">sort</span>((<span class="code-var">a</span>, <span class="code-var">b</span>) =&gt; <span class="code-var">a</span> - <span class="code-var">b</span>);
+  <span class="code-kw">const</span> <span class="code-var">rank</span> = Math.<span class="code-fn">ceil</span>((<span class="code-var">p</span> / <span class="code-num">100</span>) * <span class="code-var">sorted</span>.<span class="code-var">length</span>);
+  <span class="code-kw">return</span> <span class="code-var">sorted</span>[Math.<span class="code-fn">max</span>(<span class="code-num">0</span>, <span class="code-var">rank</span> - <span class="code-num">1</span>)];
+}
+
+<span class="code-kw">export function</span> <span class="code-fn">summarise</span>(<span class="code-var">builds</span>: <span class="code-var">Build</span>[], <span class="code-var">pipeline</span>: <span class="code-kw">string</span>) {
+  <span class="code-cmt">// Segment first, and keep only green builds, so early failures cannot flatter the tail.</span>
+  <span class="code-kw">const</span> <span class="code-var">mins</span> = <span class="code-var">builds</span>
+    .<span class="code-fn">filter</span>((<span class="code-var">b</span>) =&gt; <span class="code-var">b</span>.<span class="code-var">pipeline</span> === <span class="code-var">pipeline</span> &amp;&amp; <span class="code-var">b</span>.<span class="code-var">state</span> === <span class="code-str">"passed"</span>)
+    .<span class="code-fn">map</span>((<span class="code-var">b</span>) =&gt; <span class="code-var">b</span>.<span class="code-var">minutes</span>);
+  <span class="code-kw">return</span> {
+    <span class="code-var">n</span>: <span class="code-var">mins</span>.<span class="code-var">length</span>,
+    <span class="code-var">p50</span>: <span class="code-fn">percentile</span>(<span class="code-var">mins</span>, <span class="code-num">50</span>),
+    <span class="code-var">p75</span>: <span class="code-fn">percentile</span>(<span class="code-var">mins</span>, <span class="code-num">75</span>),
+    <span class="code-var">p90</span>: <span class="code-fn">percentile</span>(<span class="code-var">mins</span>, <span class="code-num">90</span>),
+  };
+}</pre>
+    </div>
+
+    <p>Always report <code>n</code> next to the percentile. A P90 without a sample size is a number you cannot argue with, and that is exactly the problem.</p>
+  </section>
+
+  <section>
+    <div class="section-num">07 · The Mistake Everyone Makes</div>
+    <h2>You Cannot Average Percentiles</h2>
+    <p>This one deserves its own section, because it shows up in almost every hand-built metrics pipeline I have looked at. Someone computes a daily P90, stores it, and later builds a weekly chart by averaging the seven daily values. The chart looks reasonable. It is wrong.</p>
+    <p>Another illustrative example. A busy day has 40 builds, six of which run long, and its P90 is <strong>81 minutes</strong>. A quiet day has 10 builds, all quick, and its P90 is <strong>35 minutes</strong>. Average the two P90s and you get <strong>58 minutes</strong>. Pool all 50 builds and compute P90 properly and you get <strong>78 minutes</strong>.</p>
+
+    <div class="highlight-box"><strong>Twenty minutes, gone by arithmetic</strong>Averaging the daily P90s gives the quiet day the same weight as the busy one, even though the busy day had four times as many builds and every slow one. The averaged number hides most of the tail, and it does so most on the days that matter.</div>
+
+    <p>The rule is simple: <em>percentiles must be computed from the raw values, or from a data structure designed to merge them</em>. You can sum counts and average means. You cannot average P90s, and you cannot take the P90 of a set of P90s.</p>
+    <p>Monitoring tools have the same trap built in, and it is worth knowing which metric type you are using. Datadog is a good example. Its <code>histogram</code> metric type computes percentiles on each Agent, per host and per flush interval. So a P95 graphed across a fleet of hosts is built from per-host percentiles, not from all the raw values together. Its <code>distribution</code> type sends the values to be aggregated server-side, using the DDSketch data structure, and Datadog documents those percentiles as globally accurate across your infrastructure. If your CI agents report durations as histograms and you graph a fleet-wide P90, you have quietly averaged percentiles.</p>
+    <p>The same applies to any pipeline you build yourself. Store raw durations, or store a mergeable sketch. Store one percentile per day and you have thrown away the information you need to answer the next question.</p>
+  </section>
+
+  <section>
+    <div class="section-num">08 · What Moved The Tail</div>
+    <h2>Why Parallelism Hits P90 Harder Than P50</h2>
+    <p>Once the metric was P90, the question became: what makes a build land in the tail? For integration-heavy pipelines, a common answer is that the build is waiting on its longest serial path. Wall-clock time for a pipeline is not the sum of its work. It is the length of the slowest chain of steps that must run one after another. A large serial suite sets that length for every build that runs it.</p>
+    <p>That is why parallelisation is a tail tool more than a median tool. Splitting a suite that runs for an hour into shards that run side by side shortens the critical path directly. Builds that were long because of that suite get much shorter. Builds that were already short barely change. The distribution does not slide left evenly. Its right side gets pulled in, which is exactly the part P90 measures.</p>
+
+    <div class="arch-title">Where parallelisation shortens the critical path</div>
+    <div class="flow-track">
+      <div class="flow">
+        <div class="flow-node">Checkout &amp; install</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Build</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node red">One long serial integration run</div>
+      </div>
+      <div class="flow-bend"></div>
+      <div class="flow">
+        <div class="flow-node">Checkout &amp; install</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Build</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node green">Independent suites in parallel</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node">Shared-state suites, still serial</div>
+      </div>
+    </div>
+
+    <p>The work spanned integration-test suites across ten product and platform domains. The important word is <em>safe</em>. A suite is safe to parallelise when it does not depend on state another suite also touches: a shared database fixture, a global cache, a singleton service, an ordering assumption nobody wrote down. Those suites stayed serial. The temptation to parallelise them too is real, because they are often the slowest ones, but a test that passes or fails depending on what ran next to it is worse than a slow test.</p>
+    <p>Which is how the three P90s moved: <strong>81 to 52 minutes</strong> for successful builds, <strong>76 to 40</strong> for backend pull requests and <strong>88 to 58</strong> for frontend pull requests. The backend pull-request tail moved most, nearly halving. That is consistent with the idea that its tail was most dominated by long serial runs, though I would not generalise it into a rule. Every pipeline's tail has its own cause, and the first job is always to find it rather than assume it.</p>
+
+    <div class="callout">
+      <div class="callout-label">Find the tail's cause first</div>
+      <p>Pull the slowest tenth of builds for one segment and compare their step timings with the median build's. If the same step is long in most of them, you have a critical-path problem. If different steps are long each time, you probably have a queueing, cache or infrastructure problem, and parallelism will not fix it.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">09 · The Tradeoffs</div>
+    <h2>Optimising The Tail Creates New Tails</h2>
+    <p>Targeting P90 is not free, and anyone who tells you parallelisation is a pure win has not looked at what happens after it ships.</p>
+    <ul class="bullet-list">
+      <li><span><strong>The slowest shard sets the pace.</strong> A parallel stage finishes when its last shard finishes. If each of eight shards independently has a one-in-ten chance of running slow, the stage has a <strong>1 - 0.9<sup>8</sup> ≈ 57%</strong> chance that at least one does. More shards means more chances for one of them to straggle. Balance shards by measured duration, not by file count, and keep checking it. Suites grow unevenly.</span></li>
+      <li><span><strong>Queue time moves into the tail.</strong> Parallel stages ask for more agents at once. At peak hours, the build may wait for capacity instead of waiting for tests. If your P90 is measured from the start of execution rather than from the request, you will miss this entirely. That is one more reason to write down where the clock starts.</span></li>
+      <li><span><strong>Compute cost goes up.</strong> Each shard repeats setup: checkout, install, warm-up, fixtures. Wall-clock time drops, total machine time often rises. That is usually a good trade for developer time, but it is a trade, and someone will eventually ask about the bill.</span></li>
+      <li><span><strong>A faster pipeline can be a less trustworthy one.</strong> Hidden shared state that was harmless in a serial run becomes an intermittent failure in a parallel one. If P90 drops while the rate of flaky failures rises, engineers rerun more often, and every rerun is another build on their clock. You can lower the metric and still make the experience worse.</span></li>
+    </ul>
+    <p>That last point is why I am wary of P90 as the <em>only</em> number. A tail metric needs a guardrail metric beside it. Flake rate is the obvious one, and measuring it properly is its own discipline. One green rerun proves very little, which is why the flaky-test detection I built runs the full suite twenty times against a known-green commit before scoring anything. Duration and reliability have to be read together, because each one is easy to improve at the other's expense.</p>
+
+    <div class="pull-quote">
+      <p>A tail metric without a reliability guardrail is an invitation to make CI fast and wrong.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">10 · The Decision Framework</div>
+    <h2>Which Percentile To Put On Which Dashboard</h2>
+    <p>If I were setting up CI metrics from scratch for a team today, this is the split I would start with. It is not universal, but it maps each number to a question someone actually asks.</p>
+
+    <table>
+      <thead><tr><th>Question</th><th>Metric</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>What does CI cost us in compute?</td><td>Mean and total</td><td>Money adds up linearly, so the mean is the right tool here.</td></tr>
+        <tr><td>What does a normal build feel like?</td><td>P50</td><td>Moves with improvements every build benefits from.</td></tr>
+        <tr><td>What do engineers plan around?</td><td>P90</td><td>Captures the slow builds that change behaviour.</td></tr>
+        <tr><td>Is CI predictable?</td><td>P90 ÷ P50</td><td>A ratio near 1 is predictable. A ratio near 2 is a lottery.</td></tr>
+        <tr><td>Did something break badly?</td><td>P99 or max, as an alert</td><td>Good at catching outliers, bad as a target.</td></tr>
+        <tr><td>Is faster still trustworthy?</td><td>Flake rate, rerun rate</td><td>The guardrail that keeps duration work honest.</td></tr>
+      </tbody>
+    </table>
+
+    <p>A few habits make this hold up over time:</p>
+    <ul class="bullet-list">
+      <li><span><strong>Show P50 and P90 on the same chart.</strong> The space between the lines is the information. A median line on its own can stay flat while the tail climbs underneath it.</span></li>
+      <li><span><strong>Set targets per segment.</strong> A frontend pipeline and a backend pipeline have different work and different floors. One shared target either goes easy on one or is unfair to the other.</span></li>
+      <li><span><strong>Report before and after with the same definition.</strong> Same segment, same window length, same clock start, same percentile formula. Otherwise you are comparing two different metrics that happen to share a name.</span></li>
+      <li><span><strong>Say what you did not measure.</strong> I have only given P90s in this piece because those are the numbers I can defend. A good metrics write-up is clear about its blind spots.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">11 · The Short Version</div>
+    <h2>Measure The Build People Remember</h2>
+    <ul class="bullet-list">
+      <li><span>CI durations have a long right tail. The mean describes a build that does not exist, and the median describes the one nobody complains about.</span></li>
+      <li><span>P50 is the routine cost, P75 is the bad-but-common case (the level Core Web Vitals use), and P90 is the slow build that changes how engineers work.</span></li>
+      <li><span>One in ten per build compounds quickly per engineer. Five pushes a day gives roughly a 41% chance of hitting the tail at least once.</span></li>
+      <li><span>Segment by pipeline, separate failed builds, fix the window, write down where the clock starts and report <code>n</code>.</span></li>
+      <li><span>Never average percentiles. Compute them from raw values or a mergeable sketch, and check whether your monitoring metric type does that for you.</span></li>
+      <li><span>Parallelising safe suites shortens the critical path, which is why it moves P90 more than P50. Here it took successful-build P90 from 81 to 52 minutes, backend PR P90 from 76 to 40 and frontend PR P90 from 88 to 58. Shared-state tests stayed serial.</span></li>
+      <li><span>Pair every duration target with a reliability guardrail. A fast pipeline that flakes is not faster for anyone.</span></li>
+    </ul>
+    <p>The most useful thing the P90 target did was not the 29 minutes. It was making the argument concrete. "CI feels slow" is a complaint you can nod along to and do nothing about. "One build in ten takes over 80 minutes" is a problem with a size, a segment and an owner. Pick the percentile that describes the pain, write down exactly how you compute it, and then go and find out what lives in the tail.</p>
+
+    <div class="footnote">The P90 figures (successful builds 81 to 52 minutes, backend pull requests 76 to 40, frontend pull requests 88 to 58) are from CI pipelines on a large SaaS platform, measured before and after parallelising safe integration-test suites across ten product and platform domains; shared-state tests were kept serial. Median values are deliberately not reported. The twenty-build dataset, the six-minute improvement and the two-day averaging example are illustrative, constructed to show how the statistics behave, and are not pipeline data. The probabilities in sections 05 and 09 assume independent builds or shards. Core Web Vitals reasoning is from web.dev, "How the Core Web Vitals metrics thresholds were defined". The 10 ms / one second / 100 servers / 63% example is from Dean and Barroso, "The Tail at Scale", Communications of the ACM 56(2), 2013. Datadog histogram and distribution behaviour is from Datadog's Distributions documentation, checked in November 2026. Cover photo by Luke Chesser on Unsplash.</div>
+  </section>
+
+</div>
+
+</body>
+</html>
